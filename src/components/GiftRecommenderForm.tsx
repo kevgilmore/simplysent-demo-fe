@@ -17,7 +17,7 @@ export function GiftRecommenderForm() {
     personAge: '',
     interests: [],
     minBudget: 10,
-    maxBudget: 15
+    maxBudget: 20
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
