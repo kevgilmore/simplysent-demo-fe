@@ -76,17 +76,10 @@ export function GiftRecommenderForm() {
     if (!validateForm()) return;
     setIsLoading(true);
     try {
-      const apiPayload = {
-        interests: formData.interests,
-        age: parseInt(formData.personAge),
-        budget_min: formData.minBudget,
-        budget_max: formData.maxBudget
-      };
-      const response = await axios.post('https://gift-api-973409790816.europe-west1.run.app/recommend', apiPayload);
+      await new Promise(resolve => setTimeout(resolve, 1000));
       navigate('/products', {
         state: {
-          formData,
-          recommendations: response.data
+          formData
         }
       });
     } catch (error) {
