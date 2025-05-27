@@ -1,7 +1,7 @@
 import React, { useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, TagIcon, HeartIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon } from 'lucide-react';
+import { ArrowLeftIcon, TagIcon, HeartIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon } from 'lucide-react';
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -10,6 +10,8 @@ export function ResultsPage() {
   } = location.state || {};
   const [showModal, setShowModal] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [modalError, setModalError] = useState('');
   // Mock recommendations data with 5 products
   const recommendations = [{
     title: 'Premium Wireless Headphones',
@@ -103,11 +105,18 @@ export function ResultsPage() {
     }
   };
   const handleModalSubmit = () => {
-    // Handle feedback submission here
-    console.log('Feedback:', feedback);
-    setShowModal(false);
-    setFeedback('');
-    // You could navigate back to form or show success message
+    if (feedback.length < 10) {
+      setModalError('Please provide at least 10 characters of feedback');
+      return;
+    }
+    setModalError('');
+    setIsSubmitted(true);
+    // Reset after 2 seconds
+    setTimeout(() => {
+      setShowModal(false);
+      setFeedback('');
+      setIsSubmitted(false);
+    }, 2000);
   };
   if (!formData) {
     return <motion.div initial={{
@@ -149,7 +158,7 @@ export function ResultsPage() {
         delay: 0.2
       }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center mb-6">
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Back to Form
+          Start Over
         </motion.button>
         {/* Top Recommendation Section */}
         <motion.div initial={{
@@ -163,7 +172,7 @@ export function ResultsPage() {
       }} className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-6">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Top Recommendation for {formData.personName}!
+              Top Recommendation
             </h2>
             <p className="text-gray-600">
               Based on their interests and your budget of £{formData.minBudget}{' '}
@@ -306,7 +315,7 @@ export function ResultsPage() {
               </motion.div>)}
           </motion.div>
         </motion.div>
-        {/* Request New Recommendation Button */}
+        {/* Request New Recommendations Button */}
         <motion.div initial={{
         opacity: 0,
         y: 20
@@ -316,8 +325,8 @@ export function ResultsPage() {
       }} transition={{
         delay: 0.7
       }}>
-          <button onClick={() => setShowModal(true)} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">
-            Request New Recommendation
+          <button onClick={() => setShowModal(true)} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">
+            Request New Recommendations
           </button>
         </motion.div>
       </motion.div>
@@ -340,28 +349,50 @@ export function ResultsPage() {
           opacity: 0,
           scale: 0.95
         }} className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Request New Recommendation
-                </h3>
-                <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                  <XIcon className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Tell us what we can do differently...
-                </label>
-                <textarea value={feedback} onChange={e => setFeedback(e.target.value)} className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-none" rows={4} placeholder="Share your feedback to help us improve our recommendations..." />
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-colors">
-                  Cancel
-                </button>
-                <button onClick={handleModalSubmit} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                  Submit
-                </button>
-              </div>
+              {isSubmitted ? <motion.div initial={{
+            opacity: 0,
+            scale: 0.9
+          }} animate={{
+            opacity: 1,
+            scale: 1
+          }} className="flex flex-col items-center justify-center py-8">
+                  <CheckCircle2Icon className="w-24 h-24 text-blue-500 mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Thank you for your feedback!
+                  </h3>
+                </motion.div> : <>
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      Request New Recommendations
+                    </h3>
+                    <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                      <XIcon className="w-6 h-6" />
+                    </button>
+                  </div>
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Tell us what we can do differently...
+                    </label>
+                    <textarea value={feedback} onChange={e => {
+                setFeedback(e.target.value);
+                if (e.target.value.length >= 10) {
+                  setModalError('');
+                }
+              }} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-none ${modalError ? 'border-red-300' : 'border-gray-200'}`} rows={4} placeholder="Share your feedback to help us improve our recommendations..." />
+                    {modalError && <p className="text-red-500 text-sm mt-2">{modalError}</p>}
+                    <p className="text-gray-500 text-sm mt-2">
+                      {feedback.length}/10 characters minimum
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-colors">
+                      Cancel
+                    </button>
+                    <button onClick={handleModalSubmit} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                      Submit
+                    </button>
+                  </div>
+                </>}
             </motion.div>
           </motion.div>}
       </AnimatePresence>

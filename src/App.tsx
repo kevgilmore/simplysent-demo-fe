@@ -18,7 +18,7 @@ export function App() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Gift Recommender
+              Father's Day Gift Recommender
             </h1>
             <p className="text-gray-600">
               Find the perfect gift with our AI-powered recommendations
