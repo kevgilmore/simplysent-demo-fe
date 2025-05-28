@@ -203,14 +203,16 @@ export function ResultsPage() {
               </div>
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <motion.button whileHover={{
-                scale: 1.02
-              }} whileTap={{
-                scale: 0.98
-              }} onClick={() => handleLinkClick(topRecommendation.recommendation_id, topRecommendation.url)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center">
+                <a
+                  href={topRecommendation.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => handleLinkClick(topRecommendation.recommendation_id)}
+                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline"
+                >
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
                   Show on Amazon
-                </motion.button>
+                </a>
                 {/* Row 2: Good and Bad buttons */}
                 <div className="flex gap-2">
                   <motion.button whileHover={{
@@ -291,14 +293,16 @@ export function ResultsPage() {
                       </div>
                       {/* Buttons */}
                       <div className="space-y-2 mt-auto">
-                        <motion.button whileHover={{
-                    scale: 1.02
-                  }} whileTap={{
-                    scale: 0.98
-                  }} onClick={() => handleLinkClick(item.recommendation_id, item.url)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm">
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => handleLinkClick(item.recommendation_id)}
+                          className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline"
+                        >
                           <ShoppingCartIcon className="w-4 h-4 mr-2" />
                           Show on Amazon
-                        </motion.button>
+                        </a>
                         {/* Row 2: Good and Bad buttons */}
                         <div className="flex gap-2">
                           <motion.button whileHover={{
@@ -466,7 +470,7 @@ const handleFeedback = async (recommendationId: string, isGood: boolean) => {
   }
 };
 // Add new function near the top of the component, next to the existing handleFeedback function
-const handleLinkClick = async (recommendationId: string, url: string) => {
+const handleLinkClick = async (recommendationId: string) => {
   try {
     await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
       method: 'POST',
@@ -480,19 +484,5 @@ const handleLinkClick = async (recommendationId: string, url: string) => {
     });
   } catch (error) {
     console.error('Error sending link click feedback:', error);
-  }
-  
-  // Try to open in new tab using window.open first
-  const newWindow = window.open(url, '_blank');
-  
-  // If window.open was blocked or failed, create and click a temporary link
-  if (newWindow === null) {
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   }
 };
