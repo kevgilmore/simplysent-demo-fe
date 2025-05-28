@@ -193,7 +193,7 @@ export function ResultsPage() {
                 scale: 1.02
               }} whileTap={{
                 scale: 0.98
-              }} onClick={() => window.open(topRecommendation.url, '_blank')} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center">
+              }} onClick={() => handleLinkClick(topRecommendation.recommendation_id, topRecommendation.url)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center">
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
                   Show on Amazon
                 </motion.button>
@@ -203,10 +203,15 @@ export function ResultsPage() {
                   scale: productFeedback[0] !== 'down' ? 1.05 : 1
                 }} whileTap={{
                   scale: productFeedback[0] !== 'down' ? 0.95 : 1
-                }} onClick={() => productFeedback[0] !== 'down' && setProductFeedback(prev => ({
-                  ...prev,
-                  0: 'up'
-                }))} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'down'}>
+                }} onClick={() => {
+                  if (productFeedback[0] !== 'down') {
+                    setProductFeedback(prev => ({
+                      ...prev,
+                      0: 'up'
+                    }));
+                    handleFeedback(topRecommendation.recommendation_id, true);
+                  }
+                }} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'down'}>
                     <ThumbsUpIcon className="w-5 h-5" />
                     <span className="font-medium">Good</span>
                   </motion.button>
@@ -214,10 +219,15 @@ export function ResultsPage() {
                   scale: productFeedback[0] !== 'up' ? 1.05 : 1
                 }} whileTap={{
                   scale: productFeedback[0] !== 'up' ? 0.95 : 1
-                }} onClick={() => productFeedback[0] !== 'up' && setProductFeedback(prev => ({
-                  ...prev,
-                  0: 'down'
-                }))} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'up'}>
+                }} onClick={() => {
+                  if (productFeedback[0] !== 'up') {
+                    setProductFeedback(prev => ({
+                      ...prev,
+                      0: 'down'
+                    }));
+                    handleFeedback(topRecommendation.recommendation_id, false);
+                  }
+                }} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'up'}>
                     <ThumbsDownIcon className="w-5 h-5" />
                     <span className="font-medium">Bad</span>
                   </motion.button>
@@ -271,7 +281,7 @@ export function ResultsPage() {
                     scale: 1.02
                   }} whileTap={{
                     scale: 0.98
-                  }} onClick={() => window.open(item.url, '_blank')} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm">
+                  }} onClick={() => handleLinkClick(item.recommendation_id, item.url)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm">
                           <ShoppingCartIcon className="w-4 h-4 mr-2" />
                           Show on Amazon
                         </motion.button>
@@ -287,6 +297,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'up'
                         }));
+                        handleFeedback(item.recommendation_id, true);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsUpIcon className="w-4 h-4" />
@@ -302,6 +313,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'down'
                         }));
+                        handleFeedback(item.recommendation_id, false);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsDownIcon className="w-4 h-4" />
@@ -417,4 +429,44 @@ const truncateText = (text: string, maxLength: number) => {
 // Add image error handling function at the top
 const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
   e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
+};
+// Add new function near the top of the component
+const handleFeedback = async (recommendationId: string, isGood: boolean) => {
+  try {
+    const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recommendation_id: recommendationId,
+        label: isGood ? 1 : 0
+      })
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error sending feedback:', error);
+    // Optionally show an error message to the user
+  }
+};
+// Add new function near the top of the component, next to the existing handleFeedback function
+const handleLinkClick = async (recommendationId: string, url: string) => {
+  try {
+    await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recommendation_id: recommendationId,
+        link_clicked: true
+      })
+    });
+  } catch (error) {
+    console.error('Error sending link click feedback:', error);
+  }
+  // Open the URL after sending feedback
+  window.open(url, '_blank');
 };
