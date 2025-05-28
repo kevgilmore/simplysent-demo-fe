@@ -113,101 +113,6 @@ export function ResultsPage() {
         </button>
       </motion.div>;
   }
-  // Update product card rendering to use API data
-  // In the top recommendation section:
-  ;
-  <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-      {truncateText(capitalizeWords(topRecommendation.name), 45)}
-    </h3>, <div className="mb-3 flex justify-center">
-        <StarRating rating={topRecommendation.average_star_rating} />
-      </div>, <div className="relative">
-        <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt={topRecommendation.name} className="w-full h-64 object-cover" />
-        <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
-          <span className="text-purple-600 font-bold text-lg">
-            £{topRecommendation.price.toFixed(2)}
-          </span>
-        </div>
-      </div>;
-  // In the other recommendations map function:
-  {
-    otherRecommendations.length > 0 && otherRecommendations.map((item, index) => {
-      const feedbackIndex = index + 1;
-      return <motion.div key={item.asin} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
-            <div className="relative">
-              <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt={item.name} className="w-full h-48 object-cover" />
-              <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-md">
-                <span className="text-purple-600 font-semibold">
-                  £{item.price.toFixed(2)}
-                </span>
-              </div>
-            </div>
-            <div className="p-4 flex flex-col flex-1">
-              <h4 className="text-lg font-bold text-gray-900 mb-2">
-                {truncateText(capitalizeWords(item.name), 45)}
-              </h4>
-              <div className="mb-3">
-                <StarRating rating={item.average_star_rating} />
-              </div>
-              <div className="text-center mb-4">
-                <span className="text-purple-600 font-bold text-xl">
-                  £{item.price.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex items-start space-x-2 mb-4">
-                <TagIcon className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
-                <p className="text-sm text-gray-700">
-                  {truncateText(capitalizeFirstWord(item.description), 90)}
-                </p>
-              </div>
-              {/* Button Section - Two Rows - Always at bottom */}
-              <div className="space-y-2 mt-auto">
-                {/* Row 1: Amazon button */}
-                <motion.button whileHover={{
-              scale: 1.02
-            }} whileTap={{
-              scale: 0.98
-            }} onClick={() => window.open(item.url, '_blank')} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm">
-                  <ShoppingCartIcon className="w-4 h-4 mr-2" />
-                  Show on Amazon
-                </motion.button>
-                {/* Row 2: Good and Bad buttons */}
-                <div className="flex gap-2">
-                  <motion.button whileHover={{
-                scale: productFeedback[feedbackIndex] !== 'down' ? 1.05 : 1
-              }} whileTap={{
-                scale: productFeedback[feedbackIndex] !== 'down' ? 0.95 : 1
-              }} onClick={() => {
-                if (productFeedback[feedbackIndex] !== 'down') {
-                  setProductFeedback(prev => ({
-                    ...prev,
-                    [feedbackIndex]: 'up'
-                  }));
-                }
-              }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
-                    <ThumbsUpIcon className="w-4 h-4" />
-                    <span className="text-xs font-medium">Good</span>
-                  </motion.button>
-                  <motion.button whileHover={{
-                scale: productFeedback[feedbackIndex] !== 'up' ? 1.05 : 1
-              }} whileTap={{
-                scale: productFeedback[feedbackIndex] !== 'up' ? 0.95 : 1
-              }} onClick={() => {
-                if (productFeedback[feedbackIndex] !== 'up') {
-                  setProductFeedback(prev => ({
-                    ...prev,
-                    [feedbackIndex]: 'down'
-                  }));
-                }
-              }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
-                    <ThumbsDownIcon className="w-4 h-4" />
-                    <span className="text-xs font-medium">Bad</span>
-                  </motion.button>
-                </div>
-              </div>
-            </div>
-          </motion.div>;
-    });
-  }
   return <>
       <motion.div initial={{
       opacity: 0,
@@ -261,6 +166,14 @@ export function ResultsPage() {
         }} transition={{
           delay: 0.4
         }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 max-w-2xl mx-auto">
+            <div className="relative">
+              <img src={topRecommendation.image_url} alt={topRecommendation.name} className="w-full h-64 object-cover" onError={handleImageError} />
+              <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
+                <span className="text-purple-600 font-bold text-lg">
+                  £{topRecommendation.price.toFixed(2)}
+                </span>
+              </div>
+            </div>
             <div className="p-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
                 {truncateText(capitalizeWords(topRecommendation.name), 45)}
@@ -273,11 +186,6 @@ export function ResultsPage() {
                 <p className="text-gray-700">
                   {truncateText(capitalizeFirstWord(topRecommendation.description), 90)}
                 </p>
-              </div>
-              <div className="text-center mb-6">
-                <span className="text-purple-600 font-bold text-2xl">
-                  £{topRecommendation.price.toFixed(2)}
-                </span>
               </div>
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
@@ -335,17 +243,21 @@ export function ResultsPage() {
               {otherRecommendations.map((item, index) => {
             const feedbackIndex = index + 1;
             return <motion.div key={item.asin} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
+                    {/* Add image section at the top */}
+                    <div className="relative">
+                      <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover" onError={handleImageError} />
+                      <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-md">
+                        <span className="text-purple-600 font-semibold">
+                          £{item.price.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
                     <div className="p-4 flex flex-col flex-1">
                       <h4 className="text-lg font-bold text-gray-900 mb-2">
                         {truncateText(capitalizeWords(item.name), 45)}
                       </h4>
                       <div className="mb-3">
                         <StarRating rating={item.average_star_rating} />
-                      </div>
-                      <div className="text-center mb-4">
-                        <span className="text-purple-600 font-bold text-xl">
-                          £{item.price.toFixed(2)}
-                        </span>
                       </div>
                       <div className="flex items-start space-x-2 mb-2">
                         <TagIcon className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
@@ -501,4 +413,8 @@ const getPlaceholderImage = (index: number) => {
 const truncateText = (text: string, maxLength: number) => {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trim() + '...';
+};
+// Add image error handling function at the top
+const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
 };
