@@ -481,6 +481,18 @@ const handleLinkClick = async (recommendationId: string, url: string) => {
   } catch (error) {
     console.error('Error sending link click feedback:', error);
   }
-  // Open the URL after sending feedback
-  window.open(url, '_blank');
+  
+  // Try to open in new tab using window.open first
+  const newWindow = window.open(url, '_blank');
+  
+  // If window.open was blocked or failed, create and click a temporary link
+  if (newWindow === null) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 };
