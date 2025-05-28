@@ -11,6 +11,17 @@ interface FormData {
   minBudget: number | null;
   maxBudget: number | null;
 }
+interface ApiResponse {
+  id: string;
+  products: {
+    asin: string;
+    name: string;
+    description: string;
+    average_star_rating: number;
+    price: number;
+    url: string;
+  }[];
+}
 const interestOptions = ['Tech', 'Golf', 'Fishing', 'Hiking', 'Camping', 'Cycling', 'Running', 'Swimming', 'Weightlifting', 'Yoga', 'Martial Arts', 'Boxing', 'CrossFit', 'Rowing', 'Rock Climbing', 'Kayaking', 'Sailing', 'Surfing', 'Skiing', 'Snowboarding', 'Archery', 'Hunting', 'Gardening', 'Woodworking', 'Car Restoration', 'Home Improvement', 'Leatherworking', 'Metalworking', 'Model Building', 'Electronics', '3D Printing', 'Drone Flying', 'Coding', 'Video Gaming', 'Board Games', 'Chess', 'Photography', 'Painting', 'Drawing', 'Sculpting', 'Calligraphy', 'Music (Playing Instruments)', 'Writing', 'Reading', 'Film Watching', 'Theatre', 'Magic Tricks', 'Cooking', 'Baking', 'Grilling/BBQ', 'Home Brewing', 'Wine Tasting', 'Coffee Brewing', 'Cheesemaking', 'Stamp Collecting', 'Coin Collecting', 'Vintage Cars', 'Antique Collecting', 'Action Figures', 'Comic Books', 'Watches', 'Vinyl Records', 'Sports Memorabilia', 'Model Trains', 'Road Trips', 'Backpacking', 'Scuba Diving', 'Geocaching', 'Motorcycling', 'Off-Roading', 'Genealogy', 'Bird Watching', 'Astronomy', 'Language Learning', 'Meditation', 'Podcasting', 'Blogging', 'Home Automation', 'Virtual Reality', 'Retro Gaming', 'Pet Training', 'Storytelling', 'Volunteering', 'Landscaping', 'Interior Design', 'Tattooing', 'Soap Making', 'Stock Market Trading', 'Leather Craft', 'Knife Making', 'RC Planes', 'RC Boats', 'RC Cars', 'Metal Detecting', 'Treasure Hunting', 'Beekeeping', 'Aquarium Keeping', 'Origami', 'Kite Flying', 'Astrophotography'];
 export function GiftRecommenderForm() {
   const navigate = useNavigate();
@@ -92,10 +103,30 @@ export function GiftRecommenderForm() {
     if (!validateForm()) return;
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const requestData = {
+        interests: formData.interests,
+        favourite_drink: formData.favoritedrink.toLowerCase(),
+        size: formData.clothesSize,
+        age: parseInt(formData.personAge),
+        budget_min: formData.minBudget,
+        budget_max: formData.maxBudget
+      };
+      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/recommend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data: ApiResponse = await response.json();
+      console.log('API Response:', data);
       navigate('/products', {
         state: {
-          formData
+          formData,
+          recommendations: data.products
         }
       });
     } catch (error) {
