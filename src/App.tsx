@@ -13,7 +13,7 @@ function AnimatedRoutes() {
     </AnimatePresence>;
 }
 export function App() {
-  return <BrowserRouter basename="/simplysent-demo-fe">
+  return <BrowserRouter>
       <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-8 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
