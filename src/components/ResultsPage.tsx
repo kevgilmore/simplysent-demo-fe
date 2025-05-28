@@ -84,19 +84,33 @@ export function ResultsPage() {
     3: null,
     4: null
   });
-  const handleModalSubmit = () => {
+  const handleModalSubmit = async () => {
     if (modalFeedback.length < 10) {
       setModalError('Please provide at least 10 characters of feedback');
       return;
     }
-    setModalError('');
-    setIsSubmitted(true);
-    // Reset after 2 seconds
-    setTimeout(() => {
-      setShowModal(false);
-      setModalFeedback('');
-      setIsSubmitted(false);
-    }, 2000);
+    try {
+      await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          feedback_text: modalFeedback
+        })
+      });
+      setModalError('');
+      setIsSubmitted(true);
+      // Reset after 2 seconds
+      setTimeout(() => {
+        setShowModal(false);
+        setModalFeedback('');
+        setIsSubmitted(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+      // Optionally show an error message to the user
+    }
   };
   if (!formData || !recommendations || recommendations.length === 0) {
     return <motion.div initial={{
