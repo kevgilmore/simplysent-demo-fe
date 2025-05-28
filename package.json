@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "homepage": "https://demo.simplysent.com",
+  "homepage": "https://demo.simplysent.co",
   "scripts": {
     "dev": "npx vite",
     "build": "vite build",
