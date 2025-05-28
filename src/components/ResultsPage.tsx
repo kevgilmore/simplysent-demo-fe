@@ -1,4 +1,4 @@
-import React, { useState, Children } from 'react';
+import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, HeartIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon } from 'lucide-react';
@@ -8,8 +8,12 @@ export function ResultsPage() {
   const {
     formData
   } = location.state || {};
+  // Add useEffect to scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const [showModal, setShowModal] = useState(false);
-  const [feedback, setFeedback] = useState('');
+  const [modalFeedback, setModalFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [modalError, setModalError] = useState('');
   // Mock recommendations data with 5 products
@@ -104,8 +108,16 @@ export function ResultsPage() {
       }
     }
   };
+  // Add state for each product's feedback
+  const [productFeedback, setProductFeedback] = useState<Record<number, 'up' | 'down' | null>>({
+    0: null,
+    1: null,
+    2: null,
+    3: null,
+    4: null
+  });
   const handleModalSubmit = () => {
-    if (feedback.length < 10) {
+    if (modalFeedback.length < 10) {
       setModalError('Please provide at least 10 characters of feedback');
       return;
     }
@@ -114,7 +126,7 @@ export function ResultsPage() {
     // Reset after 2 seconds
     setTimeout(() => {
       setShowModal(false);
-      setFeedback('');
+      setModalFeedback('');
       setIsSubmitted(false);
     }, 2000);
   };
@@ -169,12 +181,10 @@ export function ResultsPage() {
         y: 0
       }} transition={{
         delay: 0.3
-      }} className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Top Recommendation
-            </h2>
-            <p className="text-gray-600">
+      }} className="bg-gradient-to-br from-[#7265f1] via-[#a87ec0] to-[#de9696] rounded-2xl shadow-xl p-8 border-2 border-white">
+          <div className="text-center mb-6 px-4 sm:px-0 text-white">
+            <h2 className="text-3xl font-bold mb-2">Top Recommendation</h2>
+            <p className="text-white/90">
               Based on their interests and your budget of £{formData.minBudget}{' '}
               - £{formData.maxBudget}
             </p>
@@ -188,7 +198,7 @@ export function ResultsPage() {
           scale: 1
         }} transition={{
           delay: 0.4
-        }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 max-w-2xl mx-auto">
+        }} className="bg-gradient-to-br from-[#7265f1] via-[#a87ec0] to-[#de9696] rounded-xl shadow-lg overflow-hidden border border-gray-200 max-w-2xl mx-auto">
             <div className="relative">
               <img src={topRecommendation.image} alt={topRecommendation.title} className="w-full h-64 object-cover" />
               <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
@@ -197,11 +207,11 @@ export function ResultsPage() {
                 </span>
               </div>
             </div>
-            <div className="p-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            <div className="p-6 bg-white/90 backdrop-blur-sm">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
                 {topRecommendation.title}
               </h3>
-              <div className="mb-3">
+              <div className="mb-3 flex justify-center">
                 <StarRating rating={topRecommendation.rating} />
               </div>
               <div className="flex items-start space-x-3 mb-3">
@@ -212,32 +222,40 @@ export function ResultsPage() {
                 <HeartIcon className="w-5 h-5 text-rose-500 mt-1 flex-shrink-0" />
                 <p className="text-gray-600">{topRecommendation.matchReason}</p>
               </div>
-              {/* Button Section */}
-              <div className="flex gap-3">
+              {/* Button Section - Responsive layout */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <motion.button whileHover={{
                 scale: 1.02
               }} whileTap={{
                 scale: 0.98
-              }} className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center">
+              }} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center">
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
                   Show on Amazon
                 </motion.button>
-                <motion.button whileHover={{
-                scale: 1.05
-              }} whileTap={{
-                scale: 0.95
-              }} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-colors flex items-center gap-2">
-                  <ThumbsUpIcon className="w-5 h-5" />
-                  <span className="font-medium">Good</span>
-                </motion.button>
-                <motion.button whileHover={{
-                scale: 1.05
-              }} whileTap={{
-                scale: 0.95
-              }} className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-colors flex items-center gap-2">
-                  <ThumbsDownIcon className="w-5 h-5" />
-                  <span className="font-medium">Bad</span>
-                </motion.button>
+                <div className="flex gap-2 sm:gap-3">
+                  <motion.button whileHover={{
+                  scale: productFeedback[0] !== 'down' ? 1.05 : 1
+                }} whileTap={{
+                  scale: productFeedback[0] !== 'down' ? 0.95 : 1
+                }} onClick={() => productFeedback[0] !== 'down' && setProductFeedback(prev => ({
+                  ...prev,
+                  0: 'up'
+                }))} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'down'}>
+                    <ThumbsUpIcon className="w-5 h-5" />
+                    <span className="font-medium">Good</span>
+                  </motion.button>
+                  <motion.button whileHover={{
+                  scale: productFeedback[0] !== 'up' ? 1.05 : 1
+                }} whileTap={{
+                  scale: productFeedback[0] !== 'up' ? 0.95 : 1
+                }} onClick={() => productFeedback[0] !== 'up' && setProductFeedback(prev => ({
+                  ...prev,
+                  0: 'down'
+                }))} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'up'}>
+                    <ThumbsDownIcon className="w-5 h-5" />
+                    <span className="font-medium">Bad</span>
+                  </motion.button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -256,63 +274,84 @@ export function ResultsPage() {
             More Great Options
           </h3>
           <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {otherRecommendations.map((item, index) => <motion.div key={index} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
-                <div className="relative">
-                  <img src={item.image} alt={item.title} className="w-full h-48 object-cover" />
-                  <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-md">
-                    <span className="text-purple-600 font-semibold">
-                      £{item.price}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <h4 className="text-lg font-bold text-gray-900 mb-2">
-                    {item.title}
-                  </h4>
-                  <div className="mb-3">
-                    <StarRating rating={item.rating} />
-                  </div>
-                  <div className="flex items-start space-x-2 mb-2">
-                    <TagIcon className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
-                    <p className="text-sm text-gray-700">{item.description}</p>
-                  </div>
-                  <div className="flex items-start space-x-2 mb-4 flex-1">
-                    <HeartIcon className="w-4 h-4 text-rose-500 mt-1 flex-shrink-0" />
-                    <p className="text-sm text-gray-600">{item.matchReason}</p>
-                  </div>
-                  {/* Button Section - Two Rows - Always at bottom */}
-                  <div className="space-y-2 mt-auto">
-                    {/* Row 1: Amazon button */}
-                    <motion.button whileHover={{
-                  scale: 1.02
-                }} whileTap={{
-                  scale: 0.98
-                }} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm">
-                      <ShoppingCartIcon className="w-4 h-4 mr-2" />
-                      Show on Amazon
-                    </motion.button>
-                    {/* Row 2: Good and Bad buttons */}
-                    <div className="flex gap-2">
-                      <motion.button whileHover={{
-                    scale: 1.05
-                  }} whileTap={{
-                    scale: 0.95
-                  }} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
-                        <ThumbsUpIcon className="w-4 h-4" />
-                        <span className="text-xs font-medium">Good</span>
-                      </motion.button>
-                      <motion.button whileHover={{
-                    scale: 1.05
-                  }} whileTap={{
-                    scale: 0.95
-                  }} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1">
-                        <ThumbsDownIcon className="w-4 h-4" />
-                        <span className="text-xs font-medium">Bad</span>
-                      </motion.button>
+            {otherRecommendations.map((item, index) => {
+            const feedbackIndex = index + 1;
+            return <motion.div key={index} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
+                  <div className="relative">
+                    <img src={item.image} alt={item.title} className="w-full h-48 object-cover" />
+                    <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-md">
+                      <span className="text-purple-600 font-semibold">
+                        £{item.price}
+                      </span>
                     </div>
                   </div>
-                </div>
-              </motion.div>)}
+                  <div className="p-4 flex flex-col flex-1">
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">
+                      {item.title}
+                    </h4>
+                    <div className="mb-3">
+                      <StarRating rating={item.rating} />
+                    </div>
+                    <div className="flex items-start space-x-2 mb-2">
+                      <TagIcon className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
+                      <p className="text-sm text-gray-700">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div className="flex items-start space-x-2 mb-4 flex-1">
+                      <HeartIcon className="w-4 h-4 text-rose-500 mt-1 flex-shrink-0" />
+                      <p className="text-sm text-gray-600">
+                        {item.matchReason}
+                      </p>
+                    </div>
+                    {/* Button Section - Two Rows - Always at bottom */}
+                    <div className="space-y-2 mt-auto">
+                      {/* Row 1: Amazon button */}
+                      <motion.button whileHover={{
+                    scale: 1.02
+                  }} whileTap={{
+                    scale: 0.98
+                  }} onClick={() => window.open('https://amazon.co.uk', '_blank')} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm">
+                        <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                        Show on Amazon
+                      </motion.button>
+                      {/* Row 2: Good and Bad buttons */}
+                      <div className="flex gap-2">
+                        <motion.button whileHover={{
+                      scale: productFeedback[feedbackIndex] !== 'down' ? 1.05 : 1
+                    }} whileTap={{
+                      scale: productFeedback[feedbackIndex] !== 'down' ? 0.95 : 1
+                    }} onClick={() => {
+                      if (productFeedback[feedbackIndex] !== 'down') {
+                        setProductFeedback(prev => ({
+                          ...prev,
+                          [feedbackIndex]: 'up'
+                        }));
+                      }
+                    }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
+                          <ThumbsUpIcon className="w-4 h-4" />
+                          <span className="text-xs font-medium">Good</span>
+                        </motion.button>
+                        <motion.button whileHover={{
+                      scale: productFeedback[feedbackIndex] !== 'up' ? 1.05 : 1
+                    }} whileTap={{
+                      scale: productFeedback[feedbackIndex] !== 'up' ? 0.95 : 1
+                    }} onClick={() => {
+                      if (productFeedback[feedbackIndex] !== 'up') {
+                        setProductFeedback(prev => ({
+                          ...prev,
+                          [feedbackIndex]: 'down'
+                        }));
+                      }
+                    }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
+                          <ThumbsDownIcon className="w-4 h-4" />
+                          <span className="text-xs font-medium">Bad</span>
+                        </motion.button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>;
+          })}
           </motion.div>
         </motion.div>
         {/* Request New Recommendations Button */}
@@ -373,15 +412,15 @@ export function ResultsPage() {
                     <label className="block text-sm font-medium text-gray-700 mb-3">
                       Tell us what we can do differently...
                     </label>
-                    <textarea value={feedback} onChange={e => {
-                setFeedback(e.target.value);
+                    <textarea value={modalFeedback} onChange={e => {
+                setModalFeedback(e.target.value);
                 if (e.target.value.length >= 10) {
                   setModalError('');
                 }
               }} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-none ${modalError ? 'border-red-300' : 'border-gray-200'}`} rows={4} placeholder="Share your feedback to help us improve our recommendations..." />
                     {modalError && <p className="text-red-500 text-sm mt-2">{modalError}</p>}
                     <p className="text-gray-500 text-sm mt-2">
-                      {feedback.length}/10 characters minimum
+                      {modalFeedback.length}/10 characters minimum
                     </p>
                   </div>
                   <div className="flex gap-3">
