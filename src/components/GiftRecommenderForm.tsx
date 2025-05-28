@@ -11,18 +11,15 @@ interface FormData {
   minBudget: number | null;
   maxBudget: number | null;
 }
-interface ApiResponse {
-  id: string;
-  products: {
-    asin: string;
-    name: string;
-    description: string;
-    average_star_rating: number;
-    price: number;
-    url: string;
-    image_url: string;
-  }[];
-}
+interface ApiResponse extends Array<{
+  recommendation_id: string;
+  name: string;
+  description: string;
+  average_star_rating: number;
+  price: number;
+  url: string;
+  image_url: string;
+}> {}
 const interestOptions = ['Tech', 'Golf', 'Fishing', 'Hiking', 'Camping', 'Cycling', 'Running', 'Swimming', 'Weightlifting', 'Yoga', 'Martial Arts', 'Boxing', 'CrossFit', 'Rowing', 'Rock Climbing', 'Kayaking', 'Sailing', 'Surfing', 'Skiing', 'Snowboarding', 'Archery', 'Hunting', 'Gardening', 'Woodworking', 'Car Restoration', 'Home Improvement', 'Leatherworking', 'Metalworking', 'Model Building', 'Electronics', '3D Printing', 'Drone Flying', 'Coding', 'Video Gaming', 'Board Games', 'Chess', 'Photography', 'Painting', 'Drawing', 'Sculpting', 'Calligraphy', 'Music (Playing Instruments)', 'Writing', 'Reading', 'Film Watching', 'Theatre', 'Magic Tricks', 'Cooking', 'Baking', 'Grilling/BBQ', 'Home Brewing', 'Wine Tasting', 'Coffee Brewing', 'Cheesemaking', 'Stamp Collecting', 'Coin Collecting', 'Vintage Cars', 'Antique Collecting', 'Action Figures', 'Comic Books', 'Watches', 'Vinyl Records', 'Sports Memorabilia', 'Model Trains', 'Road Trips', 'Backpacking', 'Scuba Diving', 'Geocaching', 'Motorcycling', 'Off-Roading', 'Genealogy', 'Bird Watching', 'Astronomy', 'Language Learning', 'Meditation', 'Podcasting', 'Blogging', 'Home Automation', 'Virtual Reality', 'Retro Gaming', 'Pet Training', 'Storytelling', 'Volunteering', 'Landscaping', 'Interior Design', 'Tattooing', 'Soap Making', 'Stock Market Trading', 'Leather Craft', 'Knife Making', 'RC Planes', 'RC Boats', 'RC Cars', 'Metal Detecting', 'Treasure Hunting', 'Beekeeping', 'Aquarium Keeping', 'Origami', 'Kite Flying', 'Astrophotography'];
 export function GiftRecommenderForm() {
   const navigate = useNavigate();
@@ -127,7 +124,7 @@ export function GiftRecommenderForm() {
       navigate('/products', {
         state: {
           formData,
-          recommendations: data.products
+          recommendations: data // Pass the array directly
         }
       });
     } catch (error) {

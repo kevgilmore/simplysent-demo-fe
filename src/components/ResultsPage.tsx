@@ -17,7 +17,7 @@ export function ResultsPage() {
   const [modalFeedback, setModalFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [modalError, setModalError] = useState('');
-  // Get products from recommendations
+  // Get products from recommendations (recommendations is now the array directly)
   const products = recommendations || [];
   const topRecommendation = products[0];
   const otherRecommendations = products.slice(1);
@@ -98,7 +98,7 @@ export function ResultsPage() {
       setIsSubmitted(false);
     }, 2000);
   };
-  if (!formData || !topRecommendation) {
+  if (!formData || !recommendations || recommendations.length === 0) {
     return <motion.div initial={{
       opacity: 0
     }} animate={{
@@ -242,7 +242,7 @@ export function ResultsPage() {
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {otherRecommendations.map((item, index) => {
             const feedbackIndex = index + 1;
-            return <motion.div key={item.asin} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
+            return <motion.div key={item.recommendation_id} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
                     {/* Add image section at the top */}
                     <div className="relative">
                       <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover" onError={handleImageError} />
