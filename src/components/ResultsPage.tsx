@@ -203,13 +203,7 @@ export function ResultsPage() {
               </div>
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href={topRecommendation.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => handleLinkClick(topRecommendation.recommendation_id)}
-                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline"
-                >
+                <a href={topRecommendation.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.recommendation_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
                   Show on Amazon
                 </a>
@@ -293,13 +287,7 @@ export function ResultsPage() {
                       </div>
                       {/* Buttons */}
                       <div className="space-y-2 mt-auto">
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => handleLinkClick(item.recommendation_id)}
-                          className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline"
-                        >
+                        <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(item.recommendation_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
                           <ShoppingCartIcon className="w-4 h-4 mr-2" />
                           Show on Amazon
                         </a>

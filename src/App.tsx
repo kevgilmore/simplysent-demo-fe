@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { GiftRecommenderForm } from './components/GiftRecommenderForm';
 import { ResultsPage } from './components/ResultsPage';
+import { Footer } from './components/Footer';
 import { AnimatePresence } from 'framer-motion';
 function AnimatedRoutes() {
   const location = useLocation();
@@ -25,6 +26,7 @@ export function App() {
             </p>
           </div>
           <AnimatedRoutes />
+          <Footer />
         </div>
       </div>
     </BrowserRouter>;
