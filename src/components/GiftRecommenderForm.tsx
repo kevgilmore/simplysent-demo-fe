@@ -1,7 +1,7 @@
 import React, { useEffect, useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, DollarSignIcon, SparklesIcon, ShirtIcon } from 'lucide-react';
+import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon } from 'lucide-react';
 interface FormData {
   personName: string;
   personAge: string;
@@ -226,7 +226,7 @@ export function GiftRecommenderForm() {
         </div>
         <div className="relative">
           <div className="flex items-center space-x-2 mb-6">
-            <div className="w-6 h-6 text-blue-600" />
+            <BeerIcon className="w-6 h-6 text-blue-600" />
             <h2 className="text-xl font-semibold text-gray-800">
               What's their favorite drink?
             </h2>
