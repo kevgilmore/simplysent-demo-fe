@@ -85,7 +85,7 @@ export function ResultsPage() {
     3: null,
     4: null
   });
-  const handleFeedback = async (recommendationItemId: string, isGood: boolean) => {
+  const handleFeedback = async (ASIN: string, isGood: boolean) => {
     try {
       const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
         method: 'POST',
@@ -93,8 +93,9 @@ export function ResultsPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          recommendation_id: recommendationId,
           item_feedback: {
-            recommendation_item_id: recommendationItemId,
+            ASIN: ASIN,
             feedback_label: isGood ? 1 : 0
           }
         })
@@ -106,7 +107,7 @@ export function ResultsPage() {
       console.error('Error sending feedback:', error);
     }
   };
-  const handleLinkClick = async (recommendationItemId: string) => {
+  const handleLinkClick = async (ASIN: string) => {
     try {
       await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
         method: 'POST',
@@ -114,8 +115,9 @@ export function ResultsPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          recommendation_id: recommendationId,
           item_feedback: {
-            recommendation_item_id: recommendationItemId,
+            ASIN: ASIN,
             clicked: true
           }
         })
@@ -242,7 +244,7 @@ export function ResultsPage() {
               </div>
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <a href={topRecommendation.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.recommendation_item_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
+                <a href={topRecommendation.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.ASIN)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
                   Show on Amazon
                 </a>
@@ -258,7 +260,7 @@ export function ResultsPage() {
                       ...prev,
                       0: 'up'
                     }));
-                    handleFeedback(topRecommendation.recommendation_item_id, true);
+                    handleFeedback(topRecommendation.ASIN, true);
                   }
                 }} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'down'}>
                     <ThumbsUpIcon className="w-5 h-5" />
@@ -274,7 +276,7 @@ export function ResultsPage() {
                       ...prev,
                       0: 'down'
                     }));
-                    handleFeedback(topRecommendation.recommendation_item_id, false);
+                    handleFeedback(topRecommendation.ASIN, false);
                   }
                 }} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'up'}>
                     <ThumbsDownIcon className="w-5 h-5" />
@@ -326,7 +328,7 @@ export function ResultsPage() {
                       </div>
                       {/* Buttons */}
                       <div className="space-y-2 mt-auto">
-                        <a href={item.url} onClick={() => handleLinkClick(item.recommendation_item_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
+                        <a href={item.url} onClick={() => handleLinkClick(item.ASIN)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
                           <ShoppingCartIcon className="w-4 h-4 mr-2" />
                           Show on Amazon
                         </a>
@@ -342,7 +344,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'up'
                         }));
-                        handleFeedback(item.recommendation_item_id, true);
+                        handleFeedback(item.ASIN, true);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsUpIcon className="w-4 h-4" />
@@ -358,7 +360,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'down'
                         }));
-                        handleFeedback(item.recommendation_item_id, false);
+                        handleFeedback(item.ASIN, false);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsDownIcon className="w-4 h-4" />
