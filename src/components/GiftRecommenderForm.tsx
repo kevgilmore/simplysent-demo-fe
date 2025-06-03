@@ -34,6 +34,34 @@ export function GiftRecommenderForm() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
+  // Remove these states and effects as they're no longer needed
+  // const [loadingMessage, setLoadingMessage] = useState(0);
+  // useEffect(() => {
+  //   let interval: NodeJS.Timeout;
+  //   if (isLoading) {
+  //     interval = setInterval(() => {
+  //       setLoadingMessage((prev) => (prev + 1) % 4);
+  //     }, 3000);
+  //   }
+  //   return () => clearInterval(interval);
+  // }, [isLoading]);
+  const loadingMessages = [{
+    icon: '✨',
+    title: 'Analyzing interests...',
+    subtitle: 'Finding gifts that match their hobbies'
+  }, {
+    icon: '🎯',
+    title: 'Checking preferences...',
+    subtitle: "Making sure it's within your budget"
+  }, {
+    icon: '🔍',
+    title: 'Searching products...',
+    subtitle: 'Looking for the best matches'
+  }, {
+    icon: '⭐',
+    title: 'Almost there...',
+    subtitle: 'Ranking the best recommendations'
+  }];
   const validateForm = () => {
     const newErrors: Partial<FormData> = {};
     // Name validation - letters only, max 25 characters
@@ -375,14 +403,14 @@ export function GiftRecommenderForm() {
           </ul>
         </motion.div>}
       {/* Submit Button */}
-      <button type="button" onClick={handleSubmit} disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-400 disabled:to-indigo-400 text-white font-semibold py-6 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] flex items-center justify-center">
-        {isLoading ? <>
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-            Finding Perfect Gifts...
-          </> : <>
+      <motion.button type="button" onClick={handleSubmit} disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-400 disabled:to-indigo-400 text-white font-semibold py-6 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">
+        {isLoading ? <div className="flex items-center justify-center space-x-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            <span className="text-lg">Finding Perfect Gifts...</span>
+          </div> : <div className="flex items-center justify-center">
             <GiftIcon className="w-6 h-6 mr-3" />
             Find Perfect Gifts
-          </>}
-      </button>
+          </div>}
+      </motion.button>
     </motion.div>;
 }
