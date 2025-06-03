@@ -2,18 +2,25 @@ import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, HeartIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, BeerIcon } from 'lucide-react';
+import { ErrorPage } from './ErrorPage';
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const {
     formData,
     recommendations,
-    recommendationId
+    recommendationId,
+    error: routeError
   } = location.state || {};
+  const [error, setError] = useState(routeError || false);
   // Add useEffect to scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+  // If there's an error or no data, show the error page
+  if (error || !formData || !recommendations || recommendations.length === 0) {
+    return <ErrorPage />;
+  }
   const [showModal, setShowModal] = useState(false);
   const [modalFeedback, setModalFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);

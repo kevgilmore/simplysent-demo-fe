@@ -33,7 +33,7 @@ export function GiftRecommenderForm() {
     favoritedrink: '',
     clothesSize: '',
     minBudget: 10,
-    maxBudget: 20 // Set default value
+    maxBudget: 20
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
@@ -147,12 +147,16 @@ export function GiftRecommenderForm() {
         state: {
           formData,
           recommendations: data.products,
-          recommendationId: data.recommendation_id // Pass the top-level recommendation_id
+          recommendationId: data.recommendation_id
         }
       });
     } catch (error) {
       console.error('Error getting recommendations:', error);
-      alert('Sorry, there was an error getting recommendations. Please try again.');
+      navigate('/products', {
+        state: {
+          error: true
+        }
+      });
     } finally {
       setIsLoading(false);
     }
