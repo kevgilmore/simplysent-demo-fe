@@ -34,33 +34,24 @@ export function GiftRecommenderForm() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
-  // Remove these states and effects as they're no longer needed
-  // const [loadingMessage, setLoadingMessage] = useState(0);
-  // useEffect(() => {
-  //   let interval: NodeJS.Timeout;
-  //   if (isLoading) {
-  //     interval = setInterval(() => {
-  //       setLoadingMessage((prev) => (prev + 1) % 4);
-  //     }, 3000);
-  //   }
-  //   return () => clearInterval(interval);
-  // }, [isLoading]);
+  const [loadingStage, setLoadingStage] = useState(0);
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (isLoading) {
+      timeout = setTimeout(() => {
+        setLoadingStage(1);
+      }, 4000); // Show second message after 4 seconds
+    } else {
+      setLoadingStage(0);
+    }
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
   const loadingMessages = [{
     icon: '✨',
-    title: 'Analyzing interests...',
-    subtitle: 'Finding gifts that match their hobbies'
+    message: 'Analyzing interests and preferences...'
   }, {
     icon: '🎯',
-    title: 'Checking preferences...',
-    subtitle: "Making sure it's within your budget"
-  }, {
-    icon: '🔍',
-    title: 'Searching products...',
-    subtitle: 'Looking for the best matches'
-  }, {
-    icon: '⭐',
-    title: 'Almost there...',
-    subtitle: 'Ranking the best recommendations'
+    message: 'Finding the perfect gifts for you...'
   }];
   const validateForm = () => {
     const newErrors: Partial<FormData> = {};
@@ -404,10 +395,30 @@ export function GiftRecommenderForm() {
         </motion.div>}
       {/* Submit Button */}
       <motion.button type="button" onClick={handleSubmit} disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-400 disabled:to-indigo-400 text-white font-semibold py-6 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">
-        {isLoading ? <div className="flex items-center justify-center space-x-3">
+        {isLoading ? <motion.div className="flex items-center justify-center space-x-3" initial={{
+        opacity: 0
+      }} animate={{
+        opacity: 1
+      }} transition={{
+        duration: 0.3
+      }}>
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            <span className="text-lg">Finding Perfect Gifts...</span>
-          </div> : <div className="flex items-center justify-center">
+            <motion.span key={loadingStage} initial={{
+          opacity: 0,
+          y: 10
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} exit={{
+          opacity: 0,
+          y: -10
+        }} transition={{
+          duration: 0.5
+        }} className="text-lg">
+              {loadingMessages[loadingStage].icon}{' '}
+              {loadingMessages[loadingStage].message}
+            </motion.span>
+          </motion.div> : <div className="flex items-center justify-center">
             <GiftIcon className="w-6 h-6 mr-3" />
             Find Perfect Gifts
           </div>}
