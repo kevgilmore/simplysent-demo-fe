@@ -131,7 +131,7 @@ export function GiftRecommenderForm() {
         budget_min: formData.minBudget,
         budget_max: formData.maxBudget
       };
-      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/recommend', {
+      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/recommend?use_llm=true', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
