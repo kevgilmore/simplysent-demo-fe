@@ -7,7 +7,8 @@ export function ResultsPage() {
   const navigate = useNavigate();
   const {
     formData,
-    recommendations
+    recommendations,
+    recommendationId
   } = location.state || {};
   // Add useEffect to scroll to top on mount
   useEffect(() => {
@@ -84,6 +85,45 @@ export function ResultsPage() {
     3: null,
     4: null
   });
+  const handleFeedback = async (recommendationItemId: string, isGood: boolean) => {
+    try {
+      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          item_feedback: {
+            recommendation_item_id: recommendationItemId,
+            feedback_label: isGood ? 1 : 0
+          }
+        })
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error sending feedback:', error);
+    }
+  };
+  const handleLinkClick = async (recommendationItemId: string) => {
+    try {
+      await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          item_feedback: {
+            recommendation_item_id: recommendationItemId,
+            clicked: true
+          }
+        })
+      });
+    } catch (error) {
+      console.error('Error sending link click feedback:', error);
+    }
+  };
   const handleModalSubmit = async () => {
     if (modalFeedback.length < 10) {
       setModalError('Please provide at least 10 characters of feedback');
@@ -96,12 +136,12 @@ export function ResultsPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          feedback_text: modalFeedback
+          recommendation_id: recommendationId,
+          feedback_comment: modalFeedback
         })
       });
       setModalError('');
       setIsSubmitted(true);
-      // Reset after 2 seconds
       setTimeout(() => {
         setShowModal(false);
         setModalFeedback('');
@@ -109,7 +149,6 @@ export function ResultsPage() {
       }, 2000);
     } catch (error) {
       console.error('Error sending feedback:', error);
-      // Optionally show an error message to the user
     }
   };
   if (!formData || !recommendations || recommendations.length === 0) {
@@ -203,7 +242,7 @@ export function ResultsPage() {
               </div>
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <a href={topRecommendation.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.recommendation_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
+                <a href={topRecommendation.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.recommendation_item_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
                   Show on Amazon
                 </a>
@@ -219,7 +258,7 @@ export function ResultsPage() {
                       ...prev,
                       0: 'up'
                     }));
-                    handleFeedback(topRecommendation.recommendation_id, true);
+                    handleFeedback(topRecommendation.recommendation_item_id, true);
                   }
                 }} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'down'}>
                     <ThumbsUpIcon className="w-5 h-5" />
@@ -235,7 +274,7 @@ export function ResultsPage() {
                       ...prev,
                       0: 'down'
                     }));
-                    handleFeedback(topRecommendation.recommendation_id, false);
+                    handleFeedback(topRecommendation.recommendation_item_id, false);
                   }
                 }} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'up'}>
                     <ThumbsDownIcon className="w-5 h-5" />
@@ -262,7 +301,7 @@ export function ResultsPage() {
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {otherRecommendations.map((item, index) => {
             const feedbackIndex = index + 1;
-            return <motion.div key={item.recommendation_id} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
+            return <motion.div key={item.recommendation_item_id} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
                     {/* Add image section at the top */}
                     <div className="relative">
                       <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover" onError={handleImageError} />
@@ -287,7 +326,7 @@ export function ResultsPage() {
                       </div>
                       {/* Buttons */}
                       <div className="space-y-2 mt-auto">
-                        <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(item.recommendation_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
+                        <a href={item.url} onClick={() => handleLinkClick(item.recommendation_item_id)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
                           <ShoppingCartIcon className="w-4 h-4 mr-2" />
                           Show on Amazon
                         </a>
@@ -303,7 +342,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'up'
                         }));
-                        handleFeedback(item.recommendation_id, true);
+                        handleFeedback(item.recommendation_item_id, true);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsUpIcon className="w-4 h-4" />
@@ -319,7 +358,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'down'
                         }));
-                        handleFeedback(item.recommendation_id, false);
+                        handleFeedback(item.recommendation_item_id, false);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsDownIcon className="w-4 h-4" />
@@ -435,42 +474,4 @@ const truncateText = (text: string, maxLength: number) => {
 // Add image error handling function at the top
 const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
   e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
-};
-// Add new function near the top of the component
-const handleFeedback = async (recommendationId: string, isGood: boolean) => {
-  try {
-    const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        recommendation_id: recommendationId,
-        label: isGood ? 1 : 0
-      })
-    });
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-  } catch (error) {
-    console.error('Error sending feedback:', error);
-    // Optionally show an error message to the user
-  }
-};
-// Add new function near the top of the component, next to the existing handleFeedback function
-const handleLinkClick = async (recommendationId: string) => {
-  try {
-    await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        recommendation_id: recommendationId,
-        link_clicked: true
-      })
-    });
-  } catch (error) {
-    console.error('Error sending link click feedback:', error);
-  }
 };
