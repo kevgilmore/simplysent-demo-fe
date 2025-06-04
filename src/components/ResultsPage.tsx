@@ -102,7 +102,7 @@ export function ResultsPage() {
         body: JSON.stringify({
           recommendation_id: recommendationId,
           item_feedback: {
-            ASIN: ASIN,
+            asin: ASIN,
             feedback_label: isGood ? 1 : 0
           }
         })
@@ -124,7 +124,7 @@ export function ResultsPage() {
         body: JSON.stringify({
           recommendation_id: recommendationId,
           item_feedback: {
-            ASIN: ASIN,
+            asin: ASIN,
             clicked: true
           }
         })
