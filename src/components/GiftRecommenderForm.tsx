@@ -131,6 +131,14 @@ export function GiftRecommenderForm() {
         budget_min: formData.minBudget,
         budget_max: formData.maxBudget
       };
+
+      // Track form submission with Meta Pixel
+      if (window.fbq) {
+        window.fbq('track', 'FormCompletion', {
+          form_name: 'fday-demo'
+        });
+      }
+
       const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/recommend?use_llm=true', {
         method: 'POST',
         headers: {
@@ -138,9 +146,11 @@ export function GiftRecommenderForm() {
         },
         body: JSON.stringify(requestData)
       });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+
       const data: ApiResponse = await response.json();
       console.log('API Response:', data);
       navigate('/products', {
