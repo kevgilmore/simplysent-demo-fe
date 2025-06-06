@@ -2,6 +2,7 @@ import React, { useEffect, useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 interface FormData {
   personName: string;
   personAge: string;
@@ -131,7 +132,8 @@ export function GiftRecommenderForm() {
         budget_min: formData.minBudget,
         budget_max: formData.maxBudget
       };
-      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/recommend?use_llm=true', {
+      const reqId = uuidv4();
+      const response = await fetch(`https://gift-api-973409790816.europe-west1.run.app/recommend?use_llm=true&reqId=${reqId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
