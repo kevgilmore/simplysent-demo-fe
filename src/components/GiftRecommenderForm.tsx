@@ -139,7 +139,15 @@ export function GiftRecommenderForm() {
         });
       }
       const reqId = uuidv4();
-      const response = await fetch(`https://gift-api-973409790816.europe-west1.run.app/recommend?use_llm=true&reqId=${reqId}`, {
+      const urlParams = new URLSearchParams(window.location.search);
+      const origin = urlParams.get('origin');
+      const apiUrl = new URL('https://gift-api-973409790816.europe-west1.run.app/recommend');
+      apiUrl.searchParams.append('use_llm', 'true');
+      apiUrl.searchParams.append('reqId', reqId);
+      if (origin) {
+        apiUrl.searchParams.append('origin', origin);
+      }
+      const response = await fetch(apiUrl.toString(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
