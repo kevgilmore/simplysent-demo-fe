@@ -23,6 +23,8 @@ export function ResultsPage() {
   const [modalFeedback, setModalFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [modalError, setModalError] = useState('');
+  const [hasMadeRequest, setHasMadeRequest] = useState(false);
+  const [submissionCount, setSubmissionCount] = useState(0);
   // Get top recommendation and other recommendations from products state
   const topRecommendation = products[0];
   const otherRecommendations = products.slice(1);
@@ -135,9 +137,13 @@ export function ResultsPage() {
       setModalError('Please provide at least 10 characters of feedback');
       return;
     }
+    // If we've already made 2 requests, don't proceed
+    if (submissionCount >= 2) {
+      return;
+    }
     setIsLoading(true);
     try {
-      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/comment', {
+      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/comment?usellm=false', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -150,9 +156,9 @@ export function ResultsPage() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      setSubmissionCount(prev => prev + 1);
       const text = await response.text();
       setModalFeedback('');
-      // If we got new recommendations, update products and close modal
       if (text) {
         try {
           const data = JSON.parse(text);
@@ -162,7 +168,6 @@ export function ResultsPage() {
             setShowModal(false);
           }
         } catch (e) {
-          // If parsing fails, show thank you message
           setIsSubmitted(true);
           setTimeout(() => {
             setIsSubmitted(false);
@@ -170,7 +175,6 @@ export function ResultsPage() {
           }, 1000);
         }
       } else {
-        // Empty response case - show thank you message
         setIsSubmitted(true);
         setTimeout(() => {
           setIsSubmitted(false);
@@ -414,8 +418,8 @@ export function ResultsPage() {
       }} transition={{
         delay: 0.7
       }}>
-          <button onClick={() => setShowModal(true)} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">
-            Request New Recommendations
+          <button onClick={() => submissionCount < 2 && setShowModal(true)} className={`w-full font-semibold py-3 px-8 rounded-xl shadow-lg transition-all transform ${submissionCount >= 2 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-600 hover:bg-gray-700 hover:scale-[1.02]'} text-white`} disabled={submissionCount >= 2}>
+            {submissionCount >= 2 ? 'Maximum recommendations reached' : 'Request New Recommendations'}
           </button>
         </motion.div>
       </motion.div>
