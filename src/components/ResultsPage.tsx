@@ -6,6 +6,10 @@ import { ErrorPage } from './ErrorPage';
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  // Add useEffect at the top of the component
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const {
     formData,
     recommendations,
@@ -13,20 +17,13 @@ export function ResultsPage() {
     error: routeError
   } = location.state || {};
   const [error, setError] = useState(routeError || false);
-  // Add useEffect to scroll to top on mount
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-  // If there's an error or no data, show the error page
-  if (error || !formData || !recommendations || recommendations.length === 0) {
-    return <ErrorPage />;
-  }
+  const [products, setProducts] = useState(recommendations || []);
+  const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalFeedback, setModalFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [modalError, setModalError] = useState('');
-  // Get products from recommendations (recommendations is now the array directly)
-  const products = recommendations || [];
+  // Get top recommendation and other recommendations from products state
   const topRecommendation = products[0];
   const otherRecommendations = products.slice(1);
   const StarRating = ({
@@ -94,7 +91,7 @@ export function ResultsPage() {
   });
   const handleFeedback = async (ASIN: string, isGood: boolean) => {
     try {
-      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/label', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -116,7 +113,7 @@ export function ResultsPage() {
   };
   const handleLinkClick = async (ASIN: string) => {
     try {
-      await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+      await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -138,8 +135,9 @@ export function ResultsPage() {
       setModalError('Please provide at least 10 characters of feedback');
       return;
     }
+    setIsLoading(true);
     try {
-      await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback', {
+      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -149,15 +147,41 @@ export function ResultsPage() {
           feedback_comment: modalFeedback
         })
       });
-      setModalError('');
-      setIsSubmitted(true);
-      setTimeout(() => {
-        setShowModal(false);
-        setModalFeedback('');
-        setIsSubmitted(false);
-      }, 2000);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const text = await response.text();
+      setModalFeedback('');
+      // If we got new recommendations, update products and close modal
+      if (text) {
+        try {
+          const data = JSON.parse(text);
+          if (data && data.products) {
+            setProducts(data.products);
+            window.scrollTo(0, 0);
+            setShowModal(false);
+          }
+        } catch (e) {
+          // If parsing fails, show thank you message
+          setIsSubmitted(true);
+          setTimeout(() => {
+            setIsSubmitted(false);
+            setShowModal(false);
+          }, 1000);
+        }
+      } else {
+        // Empty response case - show thank you message
+        setIsSubmitted(true);
+        setTimeout(() => {
+          setIsSubmitted(false);
+          setShowModal(false);
+        }, 1000);
+      }
     } catch (error) {
       console.error('Error sending feedback:', error);
+      setModalError('Failed to submit feedback. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
   if (!formData || !recommendations || recommendations.length === 0) {
@@ -414,7 +438,27 @@ export function ResultsPage() {
           opacity: 0,
           scale: 0.95
         }} className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-              {isSubmitted ? <motion.div initial={{
+              {isLoading ? <motion.div initial={{
+            opacity: 0
+          }} animate={{
+            opacity: 1
+          }} className="flex flex-col items-center justify-center py-8">
+                  <div className="w-16 h-16 mb-8">
+                    <motion.div animate={{
+                rotate: 360
+              }} transition={{
+                duration: 1.5,
+                repeat: Infinity,
+                ease: 'linear'
+              }} className="w-full h-full border-4 border-purple-200 border-t-purple-600 rounded-full" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
+                    Finding New Recommendations
+                  </h3>
+                  <p className="text-gray-600 text-center">
+                    We're analyzing your feedback to find better gift options...
+                  </p>
+                </motion.div> : isSubmitted ? <motion.div initial={{
             opacity: 0,
             scale: 0.9
           }} animate={{
