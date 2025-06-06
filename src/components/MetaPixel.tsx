@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
-
 declare global {
   interface Window {
     fbq: (...args: any[]) => void;
   }
 }
-
-export function MetaPixel({ pixelId }: { pixelId: string }) {
+export function MetaPixel({
+  pixelId
+}: {
+  pixelId: string;
+}) {
   useEffect(() => {
     // Initialize Meta Pixel
     const script1 = document.createElement('script');
@@ -23,7 +25,6 @@ export function MetaPixel({ pixelId }: { pixelId: string }) {
       fbq('track', 'PageView');
     `;
     document.head.appendChild(script1);
-
     const noscript = document.createElement('noscript');
     const img = document.createElement('img');
     img.height = 1;
@@ -33,6 +34,5 @@ export function MetaPixel({ pixelId }: { pixelId: string }) {
     noscript.appendChild(img);
     document.body.appendChild(noscript);
   }, [pixelId]);
-
   return null;
-} 
+}

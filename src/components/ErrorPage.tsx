@@ -1,9 +1,56 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon, WrenchIcon } from 'lucide-react';
+interface ErrorPageProps {
+  formData?: {
+    interests: string[];
+    favoritedrink: string;
+    clothesSize: string;
+    personAge: string;
+    minBudget: number | null;
+    maxBudget: number | null;
+  };
+  reqId?: string;
+}
 export function ErrorPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as ErrorPageProps;
+  useEffect(() => {
+    const reportError = async () => {
+      try {
+        const errorPayload = {
+          message: "TypeError: Cannot read property 'products' of undefined",
+          stack: "TypeError: Cannot read property 'products' of undefined\n    at RecommendationCard.render (RecommendationCard.js:42:17)",
+          componentStack: '    in RecommendationCard (at RecommendationList.js:23)\n    in RecommendationList',
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          reqId: state?.reqId || 'unknown',
+          llmEnabled: true,
+          recommendation: state?.formData ? {
+            interests: state.formData.interests,
+            budget_min: state.formData.minBudget,
+            budget_max: state.formData.maxBudget,
+            age: parseInt(state.formData.personAge),
+            drink: state.formData.favoritedrink.toLowerCase(),
+            size: state.formData.clothesSize
+          } : undefined
+        };
+        await fetch('https://gift-api-973409790816.europe-west1.run.app/error', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(errorPayload)
+        });
+      } catch (error) {
+        console.error('Failed to report error:', error);
+      }
+    };
+    reportError();
+  }, [state]);
   return <motion.div initial={{
     opacity: 0,
     y: 20

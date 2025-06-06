@@ -132,7 +132,6 @@ export function GiftRecommenderForm() {
         budget_min: formData.minBudget,
         budget_max: formData.maxBudget
       };
-
       // Track form submission with Meta Pixel
       if (window.fbq) {
         window.fbq('track', 'FormCompletion', {
@@ -147,11 +146,9 @@ export function GiftRecommenderForm() {
         },
         body: JSON.stringify(requestData)
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data: ApiResponse = await response.json();
       console.log('API Response:', data);
       navigate('/products', {
@@ -165,7 +162,9 @@ export function GiftRecommenderForm() {
       console.error('Error getting recommendations:', error);
       navigate('/products', {
         state: {
-          error: true
+          error: true,
+          formData,
+          reqId: reqId
         }
       });
     } finally {
