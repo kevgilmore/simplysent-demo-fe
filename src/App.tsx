@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { GiftRecommenderForm } from './components/GiftRecommenderForm';
 import { ResultsPage } from './components/ResultsPage';
 import { Footer } from './components/Footer';
+import { LandingPage } from './components/LandingPage';
+import { GiftsForHimPage } from './components/GiftsForHimPage';
+import { GiftsForHerPage } from './components/GiftsForHerPage';
 import { AnimatePresence } from 'framer-motion';
 import { Analytics } from './components/Analytics';
 import { MetaPixel } from './components/MetaPixel';
@@ -12,7 +15,10 @@ function AnimatedRoutes() {
   const location = useLocation();
   return <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<GiftRecommenderForm />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/fathers-day" element={<GiftRecommenderForm />} />
+        <Route path="/for-him" element={<GiftsForHimPage />} />
+        <Route path="/for-her" element={<GiftsForHerPage />} />
         <Route path="/products" element={<ResultsPage />} />
       </Routes>
     </AnimatePresence>;
@@ -23,14 +29,6 @@ export function App() {
       <MetaPixel pixelId={META_PIXEL_ID} />
       <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-8 px-4">
         <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Father's Day Gift Recommender
-            </h1>
-            <p className="text-gray-600">
-              Find the perfect gift with our AI-powered recommendations
-            </p>
-          </div>
           <AnimatedRoutes />
           <Footer />
         </div>
