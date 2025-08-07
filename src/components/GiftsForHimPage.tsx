@@ -70,7 +70,7 @@ export function GiftsForHimPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`https://gift-api-973409790816.europe-west1.run.app/gifts-for-him?page=${page}&per_page=10`);
+      const response = await fetch(`https://gift-api-973409790816.europe-west1.run.app/gifts-for-him?page=${page}&per_page=12`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -125,7 +125,7 @@ export function GiftsForHimPage() {
     y: -20
   }} transition={{
     duration: 0.4
-  }} className="space-y-8">
+  }} className="space-y-8 w-full">
       <div className="flex items-center mb-6">
         <motion.button initial={{
         opacity: 0,
@@ -162,7 +162,7 @@ export function GiftsForHimPage() {
 
       {/* Product Grid */}
       {!loading && !error && products.length > 0 && <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             {products.map(product => <motion.div key={product.ASIN} initial={{
           opacity: 0,
           y: 20
@@ -172,7 +172,7 @@ export function GiftsForHimPage() {
         }} transition={{
           duration: 0.5,
           delay: products.indexOf(product) * 0.1
-        }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+        }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
                 <div className="relative">
                   <img src={product.image_url} alt={product.name} className="w-full h-72 object-contain bg-white p-4" onError={handleImageError} />
                   <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
@@ -181,7 +181,7 @@ export function GiftsForHimPage() {
                     </span>
                   </div>
                 </div>
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">
                     {formatProductName(product.name)}
                   </h3>
@@ -203,10 +203,12 @@ export function GiftsForHimPage() {
                           </li>)}
                     </ul>
                   </div>
-                  <a href={product.url} target="_blank" rel="noopener noreferrer" className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
-                    <ShoppingCartIcon className="w-5 h-5 mr-2" />
-                    View on Amazon
-                  </a>
+                  <div className="mt-auto">
+                    <a href={product.url} target="_blank" rel="noopener noreferrer" className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
+                      <ShoppingCartIcon className="w-5 h-5 mr-2" />
+                      View on Amazon
+                    </a>
+                  </div>
                 </div>
               </motion.div>)}
           </div>

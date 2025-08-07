@@ -17,10 +17,11 @@ export function LandingPage() {
   }} className="space-y-8">
       <div className="text-center mb-8">
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Find the Perfect Gift
+          SimplySent. Gifting made easy with AI
         </h1>
         <p className="text-xl text-gray-600">
-          AI-powered recommendations for your loved ones
+          Discover thoughtful, personalized gifts for every occasion without the
+          stress
         </p>
       </div>
       {/* Gifts for Him Card - Now full width */}

@@ -28,7 +28,7 @@ export function App() {
       <Analytics measurementId={GA_MEASUREMENT_ID} />
       <MetaPixel pixelId={META_PIXEL_ID} />
       <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-8 px-4">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <AnimatedRoutes />
           <Footer />
         </div>
