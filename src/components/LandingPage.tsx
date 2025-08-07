@@ -17,7 +17,7 @@ export function LandingPage() {
   }} className="space-y-8">
       <div className="text-center mb-8">
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          SimplySent. Gifting made easy with AI
+          AI Gifting from SimplySent
         </h1>
         <p className="text-xl text-gray-600">
           Discover thoughtful, personalized gifts for every occasion without the
