@@ -62,10 +62,75 @@ export function GiftsForHimPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  // Add a separate useEffect to scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+  // Add state for budget range (not functional yet)
+  const [budgetRange, setBudgetRange] = useState([10, 300]);
+  // Add state for selected sentiment
+  const [selectedSentiment, setSelectedSentiment] = useState<string | null>(null);
+  // Add state for slider dragging
+  const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
+  useEffect(() => {
     fetchProducts(currentPage);
   }, [currentPage]);
+  // Handle sentiment selection
+  const handleSentimentSelect = (sentiment: string) => {
+    setSelectedSentiment(selectedSentiment === sentiment ? null : sentiment);
+  };
+  // Handle slider mouse events
+  const handleMouseDown = (handle: 'min' | 'max') => (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(handle);
+  };
+  // Handle slider touch events
+  const handleTouchStart = (handle: 'min' | 'max') => (e: React.TouchEvent) => {
+    e.preventDefault();
+    setIsDragging(handle);
+  };
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    updateSliderPosition(e.clientX, e.currentTarget.getBoundingClientRect());
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !e.touches[0]) return;
+    updateSliderPosition(e.touches[0].clientX, e.currentTarget.getBoundingClientRect());
+  };
+  const updateSliderPosition = (clientX: number, rect: DOMRect) => {
+    const newPosition = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100));
+    const newValue = Math.round(newPosition / 100 * 300);
+    // Ensure minimum value is 10
+    const adjustedValue = Math.max(10, newValue);
+    if (isDragging === 'min') {
+      if (adjustedValue < budgetRange[1]) {
+        setBudgetRange([adjustedValue, budgetRange[1]]);
+      }
+    } else {
+      if (adjustedValue > budgetRange[0]) {
+        setBudgetRange([budgetRange[0], adjustedValue]);
+      }
+    }
+  };
+  const handleMouseUp = () => {
+    setIsDragging(null);
+  };
+  const handleTouchEnd = () => {
+    setIsDragging(null);
+  };
+  // Add event listeners for mouse up and touch end outside the slider
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseUp = () => setIsDragging(null);
+      const handleGlobalTouchEnd = () => setIsDragging(null);
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      window.addEventListener('touchend', handleGlobalTouchEnd);
+      return () => {
+        window.removeEventListener('mouseup', handleGlobalMouseUp);
+        window.removeEventListener('touchend', handleGlobalTouchEnd);
+      };
+    }
+  }, [isDragging]);
   const fetchProducts = async (page: number) => {
     setLoading(true);
     setError(null);
@@ -125,8 +190,8 @@ export function GiftsForHimPage() {
     y: -20
   }} transition={{
     duration: 0.4
-  }} className="space-y-8 w-full">
-      <div className="flex items-center mb-6">
+  }} className="space-y-6 w-full">
+      <div className="flex items-center mb-4">
         <motion.button initial={{
         opacity: 0,
         x: -20
@@ -140,7 +205,7 @@ export function GiftsForHimPage() {
           Back to Home
         </motion.button>
       </div>
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h1 className="text-3xl font-bold mb-2 relative inline-block">
           <span className="absolute inset-x-0 inset-y-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 transform -rotate-1 rounded-xl"></span>
           <span className="relative bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent px-6 py-2">
@@ -153,6 +218,55 @@ export function GiftsForHimPage() {
         <p className="text-gray-600">
           Curated selection of perfect gifts for the special man in your life
         </p>
+      </div>
+
+      {/* Simplified filtering section - centered with no card */}
+      <div className="flex flex-col items-center space-y-4 mb-6">
+        {/* Sentiment Pills - centered with selectable state */}
+        <div className="flex justify-center w-full pt-2">
+          <div className="flex flex-wrap justify-center gap-2">
+            <button onClick={() => handleSentimentSelect('Practical')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Practical' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
+              Practical
+            </button>
+            <button onClick={() => handleSentimentSelect('Luxury')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Luxury' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
+              Luxury
+            </button>
+            <button onClick={() => handleSentimentSelect('Thoughtful')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Thoughtful' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
+              Thoughtful
+            </button>
+            <button onClick={() => handleSentimentSelect('Fun')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Fun' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
+              Fun
+            </button>
+          </div>
+        </div>
+        {/* Budget Range - single slider with two handles */}
+        <div className="w-full max-w-md px-4">
+          <div className="flex justify-between mb-1">
+            <p className="text-sm font-medium text-blue-600">
+              £{budgetRange[0]}
+            </p>
+            <p className="text-sm font-medium text-blue-600">
+              £{budgetRange[1]}
+            </p>
+          </div>
+          <div className="relative h-12 flex items-center cursor-pointer touch-none" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+            {/* Track background */}
+            <div className="absolute w-full h-2 bg-gray-200 rounded-full"></div>
+            {/* Colored track between handles */}
+            <div className="absolute h-2 bg-gradient-to-r from-blue-300 to-indigo-300 rounded-full" style={{
+            left: `${budgetRange[0] / 300 * 100}%`,
+            width: `${(budgetRange[1] - budgetRange[0]) / 300 * 100}%`
+          }}></div>
+            {/* Min handle */}
+            <div className={`absolute w-7 h-7 bg-white border-2 ${isDragging === 'min' ? 'border-blue-500 scale-110' : 'border-blue-400'} rounded-full shadow-md cursor-grab ${isDragging === 'min' ? 'cursor-grabbing' : ''} transition-transform`} style={{
+            left: `calc(${budgetRange[0] / 300 * 100}% - 14px)`
+          }} onMouseDown={handleMouseDown('min')} onTouchStart={handleTouchStart('min')}></div>
+            {/* Max handle */}
+            <div className={`absolute w-7 h-7 bg-white border-2 ${isDragging === 'max' ? 'border-indigo-500 scale-110' : 'border-indigo-400'} rounded-full shadow-md cursor-grab ${isDragging === 'max' ? 'cursor-grabbing' : ''} transition-transform`} style={{
+            left: `calc(${budgetRange[1] / 300 * 100}% - 14px)`
+          }} onMouseDown={handleMouseDown('max')} onTouchStart={handleTouchStart('max')}></div>
+          </div>
+        </div>
       </div>
 
       {/* Loading State */}
@@ -212,7 +326,7 @@ export function GiftsForHimPage() {
                     </ul>
                   </div>
                   <div className="mt-auto flex justify-center w-full">
-                    <a href={product.url} target="_blank" rel="noopener noreferrer" className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
+                    <a href={product.url} target="_blank" rel="noopener noreferrer" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
                       <ShoppingCartIcon className="w-5 h-5 mr-2" />
                       View on Amazon
                     </a>

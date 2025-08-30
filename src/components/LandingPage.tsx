@@ -82,7 +82,7 @@ export function LandingPage() {
       </header>
 
       {/* Hero Section with darker purple company colors */}
-      <section className="py-16 md:py-24 relative overflow-hidden">
+      <section className="py-16 md:py-24 relative overflow-hidden -mx-4 md:mx-0">
         {/* Enhanced background design with darker purple colors */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900"></div>
         {/* Animated gradient overlay with pink/purple colors */}
@@ -129,7 +129,7 @@ export function LandingPage() {
           </svg>
         </motion.div>
         {/* Repositioned floating sparkle elements with pink colors */}
-        <motion.div className="absolute left-[2%] md:left-[5%] top-[15%] w-10 h-10 md:w-14 md:h-14" initial={{
+        <motion.div className="absolute left-[2%] md:left-[5%] top-[25%] md:top-[15%] w-10 h-10 md:w-14 md:h-14" initial={{
         opacity: 0,
         scale: 0
       }} animate={{
@@ -212,8 +212,8 @@ export function LandingPage() {
             </svg>
           </motion.div>
         </div>
-        {/* Content container with enhanced styling */}
-        <div className="container mx-auto px-4 relative z-10">
+        {/* Content container with enhanced styling - adjusted for full width on mobile */}
+        <div className="w-full px-4 md:container md:mx-auto md:px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div initial={{
             opacity: 0,
