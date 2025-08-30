@@ -255,10 +255,10 @@ export function ResultsPage() {
           scale: 1
         }} transition={{
           delay: 0.4
-        }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 max-w-2xl mx-auto">
+        }} className="bg-gradient-to-b from-purple-50 to-pink-50 rounded-xl shadow-lg overflow-hidden border border-gray-200 max-w-2xl mx-auto">
             <div className="relative">
               <img src={topRecommendation.image_url} alt={topRecommendation.name} className="w-full h-64 object-cover" onError={handleImageError} />
-              <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
+              <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-2 rounded-full shadow-md">
                 <span className="text-purple-600 font-bold text-lg">
                   £{topRecommendation.price.toFixed(2)}
                 </span>
@@ -331,18 +331,18 @@ export function ResultsPage() {
         y: 0
       }} transition={{
         delay: 0.5
-      }} className="bg-white rounded-2xl shadow-xl p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+      }} className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl shadow-xl p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center font-heading">
               More Great Options
             </h3>
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {otherRecommendations.map((item, index) => {
             const feedbackIndex = index + 1;
-            return <motion.div key={item.recommendation_item_id} variants={itemVariants} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
+            return <motion.div key={item.recommendation_item_id} variants={itemVariants} className="bg-gradient-to-b from-purple-50 to-pink-50 rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
                     {/* Add image section at the top */}
                     <div className="relative">
                       <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover" onError={handleImageError} />
-                      <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-md">
+                      <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-50 to-pink-50 px-3 py-1 rounded-full shadow-md">
                         <span className="text-purple-600 font-semibold">
                           £{item.price.toFixed(2)}
                         </span>
@@ -441,7 +441,7 @@ export function ResultsPage() {
         }} exit={{
           opacity: 0,
           scale: 0.95
-        }} className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+        }} className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
               {isLoading ? <motion.div initial={{
             opacity: 0
           }} animate={{

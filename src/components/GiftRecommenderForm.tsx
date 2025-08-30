@@ -1,7 +1,7 @@
 import React, { useEffect, useState, memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon } from 'lucide-react';
+import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon, UsersIcon, PartyPopperIcon, SmileIcon } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 interface FormData {
   personName: string;
@@ -11,6 +11,9 @@ interface FormData {
   clothesSize: string;
   minBudget: number | null;
   maxBudget: number | null;
+  relationship: string;
+  occasion: string;
+  sentiment: string;
 }
 interface ApiResponse {
   products: Array<{
@@ -35,7 +38,10 @@ export function GiftRecommenderForm() {
     favoritedrink: '',
     clothesSize: '',
     minBudget: 10,
-    maxBudget: 20
+    maxBudget: 20,
+    relationship: '',
+    occasion: '',
+    sentiment: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Partial<FormData>>({});
@@ -75,13 +81,25 @@ export function GiftRecommenderForm() {
     if (formData.interests.length === 0) {
       newErrors.interests = ['Please select at least one interest'];
     }
-    // New drink validation
+    // Drink validation
     if (!formData.favoritedrink) {
       newErrors.favoritedrink = 'Please select their favorite drink';
     }
-    // New clothes size validation
+    // Clothes size validation
     if (!formData.clothesSize) {
       newErrors.clothesSize = 'Please select their clothes size';
+    }
+    // New relationship validation
+    if (!formData.relationship) {
+      newErrors.relationship = 'Please select your relationship';
+    }
+    // New occasion validation
+    if (!formData.occasion) {
+      newErrors.occasion = 'Please select the occasion';
+    }
+    // New sentiment validation
+    if (!formData.sentiment) {
+      newErrors.sentiment = 'Please select the gift sentiment';
     }
     // Budget validation - only validate if values are provided
     if (formData.minBudget !== null && (formData.minBudget < 10 || formData.minBudget > 490)) {
@@ -131,7 +149,10 @@ export function GiftRecommenderForm() {
         size: formData.clothesSize,
         age: parseInt(formData.personAge),
         budget_min: formData.minBudget,
-        budget_max: formData.maxBudget
+        budget_max: formData.maxBudget,
+        relationship: formData.relationship,
+        occasion: formData.occasion,
+        sentiment: formData.sentiment
       };
       // Track form submission with Meta Pixel
       if (window.fbq) {
@@ -221,7 +242,7 @@ export function GiftRecommenderForm() {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {/* Person's Name */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
               <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                 <UserIcon className="w-4 h-4 mr-2 text-purple-600" />
                 Who's the lucky person?
@@ -232,14 +253,14 @@ export function GiftRecommenderForm() {
                 ...prev,
                 personName: value
               }));
-            }} className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="Enter their name" />
+            }} className="w-full px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="Enter their name" />
               <div className="text-xs text-gray-500 mt-1">
                 {formData.personName.length}/25 characters
               </div>
               {errors.personName && <p className="text-red-500 text-sm mt-1">{errors.personName}</p>}
             </div>
             {/* Person's Age */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
               <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                 <CalendarIcon className="w-4 h-4 mr-2 text-purple-600" />
                 How old are they?
@@ -247,9 +268,116 @@ export function GiftRecommenderForm() {
               <input type="number" min="18" max="99" value={formData.personAge} onChange={e => setFormData(prev => ({
               ...prev,
               personAge: e.target.value
-            }))} className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="Enter their age" />
+            }))} className="w-full px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="Enter their age" />
               {errors.personAge && <p className="text-red-500 text-sm mt-1">{errors.personAge}</p>}
             </div>
+          </div>
+        </div>
+      </div>
+      {/* New Card - Relationship */}
+      <div className="bg-gradient-to-r from-indigo-50 to-blue-50 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/40">
+        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
+          <div className="absolute inset-0 bg-indigo-100 opacity-30 rounded-full"></div>
+        </div>
+        <div className="relative">
+          <div className="flex items-center space-x-2 mb-6">
+            <UsersIcon className="w-6 h-6 text-indigo-600" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              What's your relationship to them?
+            </h2>
+          </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
+            <select value={formData.relationship} onChange={e => setFormData(prev => ({
+            ...prev,
+            relationship: e.target.value
+          }))} className="w-full px-4 py-3 bg-gradient-to-r from-indigo-50/80 to-blue-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-colors">
+              <option value="">Select relationship...</option>
+              <option value="Father">Father</option>
+              <option value="Mother">Mother</option>
+              <option value="Husband">Husband</option>
+              <option value="Wife">Wife</option>
+              <option value="Boyfriend">Boyfriend</option>
+              <option value="Girlfriend">Girlfriend</option>
+              <option value="Son">Son</option>
+              <option value="Daughter">Daughter</option>
+              <option value="Brother">Brother</option>
+              <option value="Sister">Sister</option>
+              <option value="Friend">Friend</option>
+              <option value="Colleague">Colleague</option>
+              <option value="Boss">Boss</option>
+              <option value="Grandparent">Grandparent</option>
+            </select>
+            {errors.relationship && <p className="text-red-500 text-sm mt-1">{errors.relationship}</p>}
+          </div>
+        </div>
+      </div>
+      {/* New Card - Occasion */}
+      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/40">
+        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
+          <div className="absolute inset-0 bg-amber-100 opacity-30 rounded-full"></div>
+        </div>
+        <div className="relative">
+          <div className="flex items-center space-x-2 mb-6">
+            <PartyPopperIcon className="w-6 h-6 text-amber-600" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              What's the occasion?
+            </h2>
+          </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
+            <select value={formData.occasion} onChange={e => setFormData(prev => ({
+            ...prev,
+            occasion: e.target.value
+          }))} className="w-full px-4 py-3 bg-gradient-to-r from-amber-50/80 to-yellow-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-colors">
+              <option value="">Select occasion...</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Christmas">Christmas</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Valentine's Day">Valentine's Day</option>
+              <option value="Father's Day">Father's Day</option>
+              <option value="Mother's Day">Mother's Day</option>
+              <option value="Graduation">Graduation</option>
+              <option value="Wedding">Wedding</option>
+              <option value="Retirement">Retirement</option>
+              <option value="Housewarming">Housewarming</option>
+              <option value="New Baby">New Baby</option>
+              <option value="Just Because">Just Because</option>
+              <option value="Thank You">Thank You</option>
+            </select>
+            {errors.occasion && <p className="text-red-500 text-sm mt-1">{errors.occasion}</p>}
+          </div>
+        </div>
+      </div>
+      {/* New Card - Sentiment */}
+      <div className="bg-gradient-to-r from-rose-50 to-red-50 backdrop-blur-sm rounded-2xl p-4 shadow-sm border border-white/40">
+        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
+          <div className="absolute inset-0 bg-rose-100 opacity-30 rounded-full"></div>
+        </div>
+        <div className="relative">
+          <div className="flex items-center space-x-2 mb-6">
+            <SmileIcon className="w-6 h-6 text-rose-600" />
+            <h2 className="text-xl font-semibold text-gray-800">
+              What sentiment would you like the gift to convey?
+            </h2>
+          </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
+            <select value={formData.sentiment} onChange={e => setFormData(prev => ({
+            ...prev,
+            sentiment: e.target.value
+          }))} className="w-full px-4 py-3 bg-gradient-to-r from-rose-50/80 to-red-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-400 focus:border-transparent transition-colors">
+              <option value="">Select sentiment...</option>
+              <option value="Funny">Funny</option>
+              <option value="Sentimental">Sentimental</option>
+              <option value="Romantic">Romantic</option>
+              <option value="Practical">Practical</option>
+              <option value="Luxurious">Luxurious</option>
+              <option value="Thoughtful">Thoughtful</option>
+              <option value="Unique">Unique</option>
+              <option value="Adventurous">Adventurous</option>
+              <option value="Relaxing">Relaxing</option>
+              <option value="Nostalgic">Nostalgic</option>
+              <option value="Educational">Educational</option>
+            </select>
+            {errors.sentiment && <p className="text-red-500 text-sm mt-1">{errors.sentiment}</p>}
           </div>
         </div>
       </div>
@@ -280,8 +408,8 @@ export function GiftRecommenderForm() {
             </p>}
         </div>
       </div>
-      {/* New Favorite Drink Card */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-xl p-8 relative overflow-hidden">
+      {/* Favorite Drink Card */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-xl p-4 shadow-sm border border-white/40">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
           <div className="absolute inset-0 bg-blue-100 opacity-30 rounded-full"></div>
         </div>
@@ -296,7 +424,7 @@ export function GiftRecommenderForm() {
             <select value={formData.favoritedrink} onChange={e => setFormData(prev => ({
             ...prev,
             favoritedrink: e.target.value
-          }))} className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors">
+          }))} className="w-full px-4 py-3 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-colors">
               <option value="">Select a drink...</option>
               <option value="Wine">Wine</option>
               <option value="Beer">Beer</option>
@@ -310,8 +438,8 @@ export function GiftRecommenderForm() {
           </div>
         </div>
       </div>
-      {/* New Clothes Size Card */}
-      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl shadow-xl p-8 relative overflow-hidden">
+      {/* Clothes Size Card */}
+      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl shadow-xl p-4 shadow-sm border border-white/40">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
           <div className="absolute inset-0 bg-orange-100 opacity-30 rounded-full"></div>
         </div>
@@ -326,7 +454,7 @@ export function GiftRecommenderForm() {
             <select value={formData.clothesSize} onChange={e => setFormData(prev => ({
             ...prev,
             clothesSize: e.target.value
-          }))} className="w-full px-4 py-3 bg-white/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-colors">
+          }))} className="w-full px-4 py-3 bg-gradient-to-r from-orange-50/80 to-amber-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-colors">
               <option value="">Select a size...</option>
               <option value="S">S</option>
               <option value="M">M</option>
@@ -338,58 +466,41 @@ export function GiftRecommenderForm() {
           </div>
         </div>
       </div>
-      {/* Third Card - Change to subtle green theme */}
-      <div className="bg-gradient-to-r from-green-50 to-lime-50 rounded-2xl shadow-xl p-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
-          <div className="absolute inset-0 bg-green-100 opacity-30 rounded-full"></div>
-        </div>
-        <div className="relative">
-          <div className="flex items-center space-x-2 mb-6">
-            <DollarSignIcon className="w-6 h-6 text-green-600" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              What's your budget range?
-            </h2>
+      {/* Budget Card */}
+      <div className="bg-gradient-to-r from-green-50 to-lime-50 rounded-2xl shadow-xl p-6 shadow-sm border border-white/40">
+        <div className="grid grid-cols-2 gap-6">
+          {/* Min Budget Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum Budget
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                £
+              </span>
+              <input type="number" min="10" max="490" value={formData.minBudget === 0 ? '' : formData.minBudget} onChange={e => handleBudgetChange('minBudget', e.target.value)} className="w-full pl-8 pr-4 py-3 bg-gradient-to-r from-green-50/80 to-lime-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-colors" placeholder="10" />
+            </div>
+            {errors.minBudget && <p className="text-red-500 text-sm mt-1">{errors.minBudget}</p>}
           </div>
-          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm border border-white/40">
-            <div className="grid grid-cols-2 gap-6">
-              {/* Min Budget Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Minimum Budget
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    £
-                  </span>
-                  <input type="number" min="10" max="490" value={formData.minBudget === 0 ? '' : formData.minBudget} onChange={e => handleBudgetChange('minBudget', e.target.value)} className="w-full pl-8 pr-4 py-3 bg-white/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-colors" placeholder="10" />
-                </div>
-                {errors.minBudget && <p className="text-red-500 text-sm mt-1">
-                    {errors.minBudget}
-                  </p>}
-              </div>
-              {/* Max Budget Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Maximum Budget
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                    £
-                  </span>
-                  <input type="number" min="15" max="500" value={formData.maxBudget === 0 ? '' : formData.maxBudget} onChange={e => handleBudgetChange('maxBudget', e.target.value)} className="w-full pl-8 pr-4 py-3 bg-white/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-colors" placeholder="15" />
-                </div>
-                {errors.maxBudget && <p className="text-red-500 text-sm mt-1">
-                    {errors.maxBudget}
-                  </p>}
-              </div>
+          {/* Max Budget Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Budget
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                £
+              </span>
+              <input type="number" min="15" max="500" value={formData.maxBudget === 0 ? '' : formData.maxBudget} onChange={e => handleBudgetChange('maxBudget', e.target.value)} className="w-full pl-8 pr-4 py-3 bg-gradient-to-r from-green-50/80 to-lime-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-400 focus:border-transparent transition-colors" placeholder="15" />
             </div>
-            {/* Budget Display */}
-            <div className="text-center mt-4 p-4 bg-green-50 rounded-lg">
-              <div className="text-lg font-semibold text-green-700">
-                Budget Range: £{formData.minBudget ?? '-'} - £
-                {formData.maxBudget ?? '-'}
-              </div>
-            </div>
+            {errors.maxBudget && <p className="text-red-500 text-sm mt-1">{errors.maxBudget}</p>}
+          </div>
+        </div>
+        {/* Budget Display */}
+        <div className="text-center mt-4 p-4 bg-gradient-to-r from-green-100/60 to-lime-100/60 rounded-lg">
+          <div className="text-lg font-semibold text-green-700">
+            Budget Range: £{formData.minBudget ?? '-'} - £
+            {formData.maxBudget ?? '-'}
           </div>
         </div>
       </div>
@@ -424,6 +535,18 @@ export function GiftRecommenderForm() {
             {errors.clothesSize && <li className="flex items-start text-red-700">
                 <span className="text-red-500 mr-2">•</span>
                 Please select their clothes size
+              </li>}
+            {errors.relationship && <li className="flex items-start text-red-700">
+                <span className="text-red-500 mr-2">•</span>
+                {errors.relationship}
+              </li>}
+            {errors.occasion && <li className="flex items-start text-red-700">
+                <span className="text-red-500 mr-2">•</span>
+                {errors.occasion}
+              </li>}
+            {errors.sentiment && <li className="flex items-start text-red-700">
+                <span className="text-red-500 mr-2">•</span>
+                {errors.sentiment}
               </li>}
             {errors.minBudget && <li className="flex items-start text-red-700">
                 <span className="text-red-500 mr-2">•</span>

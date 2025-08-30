@@ -149,7 +149,15 @@ export function GiftsForHerPage() {
         </motion.button>
       </div>
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Gifts for Her</h1>
+        <h1 className="text-3xl font-bold mb-2 relative inline-block">
+          <span className="absolute inset-x-0 inset-y-0 bg-gradient-to-r from-pink-500/10 to-rose-500/10 transform -rotate-1 rounded-xl"></span>
+          <span className="relative bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent px-6 py-2">
+            Gifts for Her
+          </span>
+          <div className="absolute -top-4 -right-6 text-pink-400 opacity-60 transform rotate-12 text-2xl">
+            ♀
+          </div>
+        </h1>
         <p className="text-gray-600">
           Curated selection of perfect gifts for the special woman in your life
         </p>
@@ -164,17 +172,17 @@ export function GiftsForHerPage() {
       }} transition={{
         duration: 0.5,
         delay: gift.id * 0.1
-      }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+      }} className="bg-gradient-to-b from-pink-50 to-purple-50 rounded-xl shadow-lg overflow-hidden border border-gray-100">
             <div className="relative">
               <img src={gift.image_url} alt={gift.name} className="w-full h-72 object-cover" onError={handleImageError} />
-              <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
+              <div className="absolute top-4 right-4 bg-gradient-to-r from-pink-50 to-purple-50 px-4 py-2 rounded-full shadow-md">
                 <span className="text-purple-600 font-bold text-lg">
                   £{gift.price.toFixed(2)}
                 </span>
               </div>
             </div>
             <div className="p-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              <h3 className="text-2xl font-bold text-gray-900 mb-2 font-heading">
                 {gift.name}
               </h3>
               <div className="mb-4">
@@ -190,10 +198,12 @@ export function GiftsForHerPage() {
                     </li>)}
                 </ul>
               </div>
-              <a href="#" className="w-full bg-pink-400 hover:bg-pink-500 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
-                <ShoppingCartIcon className="w-5 h-5 mr-2" />
-                View on Amazon
-              </a>
+              <div className="flex justify-center w-full">
+                <a href="#" className="w-full bg-pink-400 hover:bg-pink-500 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
+                  <ShoppingCartIcon className="w-5 h-5 mr-2" />
+                  View on Amazon
+                </a>
+              </div>
             </div>
           </motion.div>)}
       </div>

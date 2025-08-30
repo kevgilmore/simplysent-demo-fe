@@ -141,7 +141,15 @@ export function GiftsForHimPage() {
         </motion.button>
       </div>
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Gifts for Him</h1>
+        <h1 className="text-3xl font-bold mb-2 relative inline-block">
+          <span className="absolute inset-x-0 inset-y-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 transform -rotate-1 rounded-xl"></span>
+          <span className="relative bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent px-6 py-2">
+            Gifts for Him
+          </span>
+          <div className="absolute -top-4 -right-6 text-blue-400 opacity-60 transform rotate-12 text-2xl">
+            ♂
+          </div>
+        </h1>
         <p className="text-gray-600">
           Curated selection of perfect gifts for the special man in your life
         </p>
@@ -203,7 +211,7 @@ export function GiftsForHimPage() {
                           </li>)}
                     </ul>
                   </div>
-                  <div className="mt-auto">
+                  <div className="mt-auto flex justify-center w-full">
                     <a href={product.url} target="_blank" rel="noopener noreferrer" className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
                       <ShoppingCartIcon className="w-5 h-5 mr-2" />
                       View on Amazon
