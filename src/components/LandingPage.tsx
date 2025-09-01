@@ -108,6 +108,31 @@ export function LandingPage() {
         backgroundImage: "url('https://www.transparenttextures.com/patterns/diamond-upholstery.png')",
         backgroundRepeat: 'repeat'
       }}></div>
+        {/* Extra animated gradient blobs for depth */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <motion.div
+            className="absolute -top-16 -left-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-fuchsia-500/30 to-purple-500/30 blur-3xl"
+            animate={{ y: [0, 12, 0], x: [0, 8, 0] }}
+            transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute -bottom-16 -right-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-indigo-500/30 to-pink-500/30 blur-3xl"
+            animate={{ y: [0, -12, 0], x: [0, -8, 0] }}
+            transition={{ repeat: Infinity, duration: 12, ease: 'easeInOut' }}
+          />
+        </div>
+        {/* Subtle animated grid overlay (desktop only) */}
+        <div
+          className="hidden md:block absolute inset-0 z-0"
+          style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+            maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
+            WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
+            animation: 'grid-pan 18s linear infinite'
+          }}
+        ></div>
+        <style>{`@keyframes grid-pan { from { background-position: 0px 0px, 0px 0px; } to { background-position: 120px 60px, 60px 120px; } }`}</style>
         {/* Repositioned floating sparkle elements with pink colors - moved up on mobile */}
         <motion.div className="absolute left-[2%] md:left-[5%] top-[15%] md:top-[15%] w-10 h-10 md:w-14 md:h-14" initial={{
         opacity: 0,

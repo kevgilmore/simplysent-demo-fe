@@ -24,26 +24,27 @@ export function GiftCarousel({
   // Minimum swipe distance (in px)
   const minSwipeDistance = 50;
   const slideVariants = {
-    hiddenRight: {
-      x: '100%',
-      opacity: 0
-    },
-    hiddenLeft: {
-      x: '-100%',
-      opacity: 0
-    },
-    visible: {
-      x: '0',
+    enter: (dir: number) => ({
+      x: dir > 0 ? 40 : -40,
+      opacity: 0,
+      scale: 0.995
+    }),
+    center: {
+      x: 0,
       opacity: 1,
+      scale: 1,
       transition: {
-        duration: 0.3
+        duration: 0.35,
+        ease: 'easeOut'
       }
     },
-    exit: (direction: number) => ({
-      x: direction > 0 ? '-100%' : '100%',
+    exit: (dir: number) => ({
+      x: dir > 0 ? -40 : 40,
       opacity: 0,
+      scale: 0.995,
       transition: {
-        duration: 0.3
+        duration: 0.28,
+        ease: 'easeInOut'
       }
     })
   };
@@ -81,70 +82,101 @@ export function GiftCarousel({
     }, 6000);
     return () => clearInterval(interval);
   }, [currentIndex]);
-  const gradientFrom = theme === 'purple' ? 'from-purple-50' : 'from-pink-50';
-  const gradientTo = theme === 'purple' ? 'to-purple-100' : 'to-purple-100';
   const dotActiveClass = theme === 'purple' ? 'bg-purple-600' : 'bg-pink-500';
   const buttonGradient = theme === 'purple' ? 'bg-gradient-to-r from-purple-500 to-indigo-600' : 'bg-gradient-to-r from-pink-500 to-purple-600';
   const buttonHoverGradient = theme === 'purple' ? 'hover:from-purple-600 hover:to-indigo-700' : 'hover:from-pink-600 hover:to-purple-700';
   return <div className="relative w-full mb-4">
-      <div className="overflow-hidden rounded-2xl relative" ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-        <div className="flex justify-between absolute top-1/2 transform -translate-y-1/2 left-2 right-2 z-10">
-          <motion.button onClick={handlePrevious} className={`${buttonGradient} ${buttonHoverGradient} text-white p-3 rounded-full shadow-lg transition-all`} whileHover={{
-          scale: 1.1
-        }} whileTap={{
-          scale: 0.95
-        }} aria-label="Previous item">
-            <div className="w-6 h-6 flex items-center justify-center">
-              <ChevronLeftIcon className="w-5 h-5" />
+      <div
+        className="relative rounded-2xl overflow-visible"
+        ref={carouselRef}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowRight') handleNext();
+          if (e.key === 'ArrowLeft') handlePrevious();
+        }}
+      >
+        {/* Overlay navigation buttons in the classic position (desktop/tablet only) */}
+        <div className="hidden sm:flex justify-between items-center absolute top-1/2 -translate-y-1/2 left-2 right-2 z-20 pointer-events-none">
+          <motion.button
+            onClick={handlePrevious}
+            className={`${buttonGradient} ${buttonHoverGradient} text-white p-2 md:p-3 rounded-full shadow-lg transition-all pointer-events-auto`}
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.96 }}
+            aria-label="Previous item"
+          >
+            <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
+              <ChevronLeftIcon className="w-4 h-4 md:w-5 md:h-5" />
             </div>
           </motion.button>
-          <motion.button onClick={handleNext} className={`${buttonGradient} ${buttonHoverGradient} text-white p-3 rounded-full shadow-lg transition-all`} whileHover={{
-          scale: 1.1
-        }} whileTap={{
-          scale: 0.95
-        }} aria-label="Next item">
-            <div className="w-6 h-6 flex items-center justify-center">
-              <ChevronRightIcon className="w-5 h-5" />
+          <motion.button
+            onClick={handleNext}
+            className={`${buttonGradient} ${buttonHoverGradient} text-white p-2 md:p-3 rounded-full shadow-lg transition-all pointer-events-auto`}
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.96 }}
+            aria-label="Next item"
+          >
+            <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center">
+              <ChevronRightIcon className="w-4 h-4 md:w-5 md:h-5" />
             </div>
           </motion.button>
         </div>
         <AnimatePresence custom={direction} initial={false} mode="wait">
-          <motion.div key={currentIndex} custom={direction} variants={slideVariants} initial={direction > 0 ? 'hiddenRight' : 'hiddenLeft'} animate="visible" exit="exit" className={`bg-gradient-to-b ${gradientFrom} ${gradientTo} rounded-2xl shadow-md overflow-hidden border border-gray-100 w-full`}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4">
-              <div className="relative">
-                <img src={items[currentIndex].image} alt={items[currentIndex].name} className="w-full h-48 object-cover rounded-xl" />
-                <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-50 to-pink-50 px-3 py-1 rounded-full shadow-md">
-                  <span className="text-purple-600 font-semibold">
-                    £{items[currentIndex].price}
-                  </span>
-                </div>
-              </div>
-              <div className="flex flex-col justify-between min-h-[200px]">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    {items[currentIndex].name}
-                  </h3>
-                  <div className="flex items-center mb-3">
-                    {[...Array(5)].map((_, i) => <StarIcon key={i} className={`w-4 h-4 ${i < Math.floor(items[currentIndex].rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />)}
-                    <span className="text-sm text-gray-600 ml-1">
-                      {items[currentIndex].rating.toFixed(1)}
+          <div className="group relative rounded-3xl p-[2px] bg-gradient-to-r from-fuchsia-400/60 to-purple-400/60 shadow-2xl">
+            <motion.div
+              key={currentIndex}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              whileHover={{ y: -2 }}
+              className="relative rounded-3xl overflow-hidden border border-white/40 backdrop-blur-md bg-white/60 w-full"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 md:p-6">
+                <div className="relative">
+                  <img src={items[currentIndex].image} alt={items[currentIndex].name} className="w-full h-56 sm:h-64 object-cover rounded-2xl transition-transform duration-300 group-hover:scale-[1.02]" />
+                  {/* Top Pick badge */}
+                  <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
+                    Top Pick
+                  </div>
+                  {/* Price pill */}
+                  <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 rounded-full shadow-md">
+                    <span className="text-white font-semibold">
+                      £{items[currentIndex].price}
                     </span>
                   </div>
                 </div>
-                <div className="flex flex-col">
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {items[currentIndex].description}
-                  </p>
-                  <div className="mt-auto">
-                    <a href="#" className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-xl transition-colors flex items-center justify-center text-sm">
-                      <ShoppingCartIcon className="w-4 h-4 mr-2" />
-                      View on Amazon
-                    </a>
+                <div className="flex flex-col justify-between min-h-[200px]">
+                  <div>
+                    <h3 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-pink-600 mb-2">
+                      {items[currentIndex].name}
+                    </h3>
+                    <div className="h-1 w-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-3"></div>
+                    <div className="flex items-center mb-3">
+                      {[...Array(5)].map((_, i) => <StarIcon key={i} className={`w-4 h-4 ${i < Math.floor(items[currentIndex].rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} />)}
+                      <span className="text-sm text-gray-600 ml-1">
+                        {items[currentIndex].rating.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-gray-700 text-sm md:text-base mb-4 line-clamp-3">
+                      {items[currentIndex].description}
+                    </p>
+                    <div className="mt-auto">
+                      <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-500 hover:to-amber-500 text-gray-900 font-semibold py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center text-sm md:text-base">
+                        <ShoppingCartIcon className="w-4 h-4 md:w-5 md:h-5 mr-2" />
+                        View on Amazon
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </AnimatePresence>
       </div>
       {/* Pagination dots */}
