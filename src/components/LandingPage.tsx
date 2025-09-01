@@ -58,7 +58,7 @@ export function LandingPage() {
               <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-gray-800 hover:text-purple-600 font-medium">
                 Blog
               </a>
-              <Link to="/fathers-day" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center">
+              <Link to="/results" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center">
                 <SparklesIcon className="w-4 h-4 mr-2 text-purple-200" />
                 AI Gift Finder
               </Link>

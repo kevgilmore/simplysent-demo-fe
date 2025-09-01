@@ -44,6 +44,27 @@ export function GiftRecommenderForm() {
   const [loadingStage, setLoadingStage] = useState(0);
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [budgetRange, setBudgetRange] = useState([10, 110]);
+  // Add the missing loadingMessages array
+  const loadingMessages = [{
+    icon: '🎁',
+    message: 'Analyzing your preferences...'
+  }, {
+    icon: '🤖',
+    message: 'Finding perfect matches...'
+  }, {
+    icon: '✨',
+    message: 'Curating recommendations...'
+  }, {
+    icon: '🎉',
+    message: 'Almost ready!'
+  }];
+  // Handle interest toggle function
+  const handleInterestToggle = (interest: string) => {
+    setFormData(prev => ({
+      ...prev,
+      interests: prev.interests.includes(interest) ? prev.interests.filter(i => i !== interest) : [...prev.interests, interest]
+    }));
+  };
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -65,92 +86,47 @@ export function GiftRecommenderForm() {
     };
     // Update budget range state
     setBudgetRange([10, 110]);
-    // Update form data and then submit after state is updated
+    // Update form data
     setFormData(newFormData);
-    // Use a promise to ensure state is updated before submitting
-    Promise.resolve().then(() => {
-      // Create a mock event
-      const mockEvent = {
-        preventDefault: () => {}
-      } as React.FormEvent;
-      // Force validation to pass by temporarily overriding the validation function
-      const originalValidateForm = validateForm;
-      (window as any).tempValidateFormOverride = true;
-      // Submit the form with the overridden validation
-      setTimeout(() => {
-        try {
-          // Skip validation and go straight to API call
-          setIsLoading(true);
-          if (window.fbq) {
-            window.fbq('track', 'FormCompletion', {
-              form_name: 'fday-demo'
-            });
-          }
-          const reqId = uuidv4();
-          const urlParams = new URLSearchParams(window.location.search);
-          const origin = urlParams.get('origin');
-          const apiUrl = new URL('https://gift-api-973409790816.europe-west1.run.app/recommend');
-          apiUrl.searchParams.append('use_llm', 'true');
-          apiUrl.searchParams.append('reqId', reqId);
-          if (origin) {
-            apiUrl.searchParams.append('origin', origin);
-          }
-          const requestData = {
-            age: 65,
-            gender: 'male',
-            relationship: 'father',
-            occasion: 'birthday',
-            sentiment: 'funny',
-            interests: ['Reading', 'Cooking'],
-            favourite_drink: 'beer',
-            size: 'M',
-            budget_min: 10,
-            budget_max: 110
-          };
-          fetch(apiUrl.toString(), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-          }).then(response => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-          }).then(data => {
-            console.log('API Response:', data);
-            if (data.products && data.products.length > 0) {
-              navigate('/products', {
-                state: {
-                  formData: newFormData,
-                  recommendations: data.products,
-                  recommendationId: data.recommendation_id
-                }
-              });
-            } else {
-              throw new Error('No product recommendations received');
-            }
-          }).catch(error => {
-            console.error('Error getting recommendations:', error);
-            navigate('/products', {
-              state: {
-                error: true,
-                formData: newFormData,
-                reqId: reqId
-              }
-            });
-          }).finally(() => {
-            setIsLoading(false);
-            (window as any).tempValidateFormOverride = false;
-          });
-        } catch (error) {
-          console.error('Error in test submit:', error);
-          setIsLoading(false);
-          (window as any).tempValidateFormOverride = false;
+    // Show loading state
+    setIsLoading(true);
+    // Track form submission with Meta Pixel
+    if (window.fbq) {
+      window.fbq('track', 'FormCompletion', {
+        form_name: 'fday-demo'
+      });
+    }
+    // Create a mock API response instead of making a real API call
+    setTimeout(() => {
+      // Create mock product recommendations
+      const mockProducts = [{
+        sku: 'B07X5JJFN7',
+        rank: '1'
+      }, {
+        sku: 'B08L5TNJHG',
+        rank: '2'
+      }, {
+        sku: 'B09B1W92LV',
+        rank: '3'
+      }, {
+        sku: 'B07XLML2YS',
+        rank: '4'
+      }, {
+        sku: 'B08MVDW846',
+        rank: '5'
+      }];
+      const mockRecommendationId = 'test-' + Math.random().toString(36).substring(2, 15);
+      // Navigate to results page with mock data
+      navigate('/products', {
+        state: {
+          formData: newFormData,
+          recommendations: mockProducts,
+          recommendationId: mockRecommendationId
         }
-      }, 100);
-    });
+      });
+      // Reset loading state
+      setIsLoading(false);
+    }, 1500); // Simulate API delay for realism
   };
   // Modify validateForm to respect test override
   const validateForm = () => {
@@ -361,6 +337,7 @@ export function GiftRecommenderForm() {
             Fill Form (Testing)
           </motion.button>
         </div>}
+
       {/* First Card - Keep purple gradient */}
       <div className="bg-gradient-to-r from-purple-100 to-violet-100 rounded-2xl shadow-xl p-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
@@ -487,6 +464,7 @@ export function GiftRecommenderForm() {
           </div>
         </div>
       </div>
+
       {/* Sentiment Card */}
       <div className="bg-gradient-to-r from-rose-50 to-red-50 backdrop-blur-sm rounded-2xl p-8 shadow-sm border border-white/40">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
@@ -526,6 +504,7 @@ export function GiftRecommenderForm() {
           </div>
         </div>
       </div>
+
       {/* Second Card - Change to subtle pink theme */}
       <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
@@ -553,6 +532,7 @@ export function GiftRecommenderForm() {
             </p>}
         </div>
       </div>
+
       {/* Favorite Drink Card */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
@@ -588,6 +568,7 @@ export function GiftRecommenderForm() {
           </div>
         </div>
       </div>
+
       {/* Clothes Size Card */}
       <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
@@ -621,6 +602,7 @@ export function GiftRecommenderForm() {
           </div>
         </div>
       </div>
+
       {/* Budget Card with Slider */}
       <div className="bg-gradient-to-r from-green-50 to-lime-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
         <div className="relative">
@@ -667,6 +649,7 @@ export function GiftRecommenderForm() {
           {errors.maxBudget && <p className="text-red-500 text-sm mt-1">{errors.maxBudget}</p>}
         </div>
       </div>
+
       {/* Consolidated Error List */}
       {Object.keys(errors).length > 0 && <motion.div initial={{
       opacity: 0,
@@ -717,6 +700,7 @@ export function GiftRecommenderForm() {
               </li>}
           </ul>
         </motion.div>}
+
       {/* Submit Button - Added significant bottom margin for spacing */}
       <motion.button type="button" onClick={handleSubmit} disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-400 disabled:to-indigo-400 text-white font-semibold py-6 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] mb-20">
         {isLoading ? <motion.div className="flex items-center justify-center space-x-3" initial={{
