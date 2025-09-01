@@ -58,7 +58,7 @@ export function LandingPage() {
               <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-gray-800 hover:text-purple-600 font-medium">
                 Blog
               </a>
-              <Link to="/fathers-day" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-5 py-2 rounded-lg shadow-md transition-all transform hover:scale-105 flex items-center">
+              <Link to="/fathers-day" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center">
                 <SparklesIcon className="w-4 h-4 mr-2 text-purple-200" />
                 AI Gift Finder
               </Link>
@@ -86,7 +86,7 @@ export function LandingPage() {
                 <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-gray-800 hover:text-purple-600 font-medium">
                   Blog
                 </a>
-                <Link to="/fathers-day" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-4 py-2 rounded-lg shadow-md transition-all transform hover:scale-105 flex items-center w-fit">
+                <Link to="/results" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center w-fit">
                   <SparklesIcon className="w-4 h-4 mr-2 text-purple-200" />
                   AI Gift Finder
                 </Link>
@@ -95,8 +95,8 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section with darker purple company colors */}
-      <section className="py-16 md:py-24 relative overflow-hidden -mx-4 md:mx-0">
+      {/* Hero Section - Fixed: Only change height on mobile, not tablet/desktop */}
+      <section className="relative overflow-hidden mx-[calc(50%-50vw)] md:mx-0 w-screen md:w-auto py-16 md:py-24 min-h-[calc(100svh-80px)] supports-[height:100dvh]:min-h-[calc(100dvh-80px)] md:min-h-0 flex md:block items-center">
         {/* Enhanced background design with darker purple colors */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900"></div>
         {/* Animated gradient overlay with pink/purple colors */}
@@ -108,8 +108,29 @@ export function LandingPage() {
         backgroundImage: "url('https://www.transparenttextures.com/patterns/diamond-upholstery.png')",
         backgroundRepeat: 'repeat'
       }}></div>
-        {/* Enhanced gift box animation with vibrant gradient colors */}
-        <motion.div className="absolute right-[8%] bottom-[25%] md:bottom-[15%] w-16 h-16 md:w-24 md:h-24" initial={{
+        {/* Repositioned floating sparkle elements with pink colors - moved up on mobile */}
+        <motion.div className="absolute left-[2%] md:left-[5%] top-[15%] md:top-[15%] w-10 h-10 md:w-14 md:h-14" initial={{
+        opacity: 0,
+        scale: 0
+      }} animate={{
+        opacity: 1,
+        scale: [0, 1.2, 1]
+      }} transition={{
+        delay: 0.8,
+        duration: 1
+      }}>
+          <motion.svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg" animate={{
+          rotate: 360
+        }} transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: 'linear'
+        }}>
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="rgba(249,168,212,0.9)" />
+          </motion.svg>
+        </motion.div>
+        {/* Enhanced gift box animation with vibrant gradient colors - moved down on mobile */}
+        <motion.div className="absolute right-[8%] bottom-[15%] md:bottom-[15%] w-16 h-16 md:w-24 md:h-24" initial={{
         y: 0,
         rotate: 0
       }} animate={{
@@ -141,47 +162,6 @@ export function LandingPage() {
             <path d="M12 7H7.5C6.83696 7 6.20107 6.73661 5.73223 6.26777C5.26339 5.79893 5 5.16304 5 4.5C5 3.83696 5.26339 3.20107 5.73223 2.73223C6.20107 2.26339 6.83696 2 7.5 2C11 2 12 7 12 7Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="#F9A8D4" />
             <path d="M12 7H16.5C17.163 7 17.7989 6.73661 18.2678 6.26777C18.7366 5.79893 19 5.16304 19 4.5C19 3.83696 18.7366 3.20107 18.2678 2.73223C17.7989 2.26339 17.163 2 16.5 2C13 2 12 7 12 7Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="#C4B5FD" />
           </svg>
-        </motion.div>
-        {/* Repositioned floating sparkle elements with pink colors */}
-        <motion.div className="absolute left-[2%] md:left-[5%] top-[25%] md:top-[15%] w-10 h-10 md:w-14 md:h-14" initial={{
-        opacity: 0,
-        scale: 0
-      }} animate={{
-        opacity: 1,
-        scale: [0, 1.2, 1]
-      }} transition={{
-        delay: 0.8,
-        duration: 1
-      }}>
-          <motion.svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg" animate={{
-          rotate: 360
-        }} transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear'
-        }}>
-            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="rgba(249,168,212,0.9)" />
-          </motion.svg>
-        </motion.div>
-        <motion.div className="absolute right-[5%] top-[25%] w-8 h-8 md:w-12 md:h-12" initial={{
-        opacity: 0,
-        scale: 0
-      }} animate={{
-        opacity: 1,
-        scale: [0, 1.2, 1]
-      }} transition={{
-        delay: 1,
-        duration: 1
-      }}>
-          <motion.svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg" animate={{
-          rotate: -360
-        }} transition={{
-          duration: 15,
-          repeat: Infinity,
-          ease: 'linear'
-        }}>
-            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="rgba(196,181,253,0.9)" />
-          </motion.svg>
         </motion.div>
         {/* Repositioned floating confetti elements with pink/purple colors */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -305,7 +285,7 @@ export function LandingPage() {
                 duration: 5,
                 ease: 'easeInOut'
               }}></motion.div>
-                <Link to="/fathers-day" className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center">
+                <Link to="/results" className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center">
                   <SparklesIcon className="w-5 h-5 mr-2 text-pink-200" />
                   <span>Try the AI Gift Finder</span>
                 </Link>
@@ -608,7 +588,7 @@ export function LandingPage() {
               damping: 17
             }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1546868871115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Smart Watch" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                  <img src="https://images.unsplash.com/photo-1546868871-115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Smart Watch" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
@@ -680,7 +660,7 @@ export function LandingPage() {
             duration: 0.6,
             delay: 0.5
           }} className="mt-12 text-center">
-              <Link to="/fathers-day" className="group bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all inline-flex items-center">
+              <Link to="/results" className="group bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all inline-flex items-center">
                 <SparklesIcon className="w-5 h-5 mr-2 text-purple-200" />
                 <span>Try the AI Gift Finder</span>
                 <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -764,7 +744,7 @@ export function LandingPage() {
                   Transform ordinary presents into extraordinary gifts with
                   these simple yet stunning wrapping techniques...
                 </p>
-                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
+                <Link to="/blog1" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -786,7 +766,7 @@ export function LandingPage() {
                   Find the perfect way to show your appreciation with our
                   curated selection of gifts for every type of dad...
                 </p>
-                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
+                <Link to="/blog2" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -808,7 +788,7 @@ export function LandingPage() {
                   Impressive presents that won't break the bank but will still
                   make a big impact on your loved ones...
                 </p>
-                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
+                <Link to="/blog3" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -818,8 +798,8 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer - Update grid layout for desktop */}
-      <footer className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 py-16 rounded-t-3xl overflow-hidden">
+      {/* Footer - Fixed to be 100% width on mobile with no white spacing */}
+      <footer className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 py-16 rounded-t-3xl sm:rounded-t-3xl overflow-hidden w-screen -mx-4 sm:w-full sm:mx-0">
         {/* Decorative elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-purple-700/20 to-transparent"></div>
@@ -834,7 +814,7 @@ export function LandingPage() {
             {/* Logo and description column */}
             <div>
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl h-full">
-                <img src="/logo.png" alt="SimplySent" className="h-10 mb-4 drop-shadow-lg" />
+                <img src="/logo_dark.png" alt="SimplySent" className="h-10 mb-4 drop-shadow-lg" />
                 <p className="text-purple-100 mb-4">
                   SimplySent helps you find the perfect gift for any occasion
                   using our curated gift guides and AI-powered recommendations.
@@ -874,19 +854,19 @@ export function LandingPage() {
                     </Link>
                   </li>
                   <li>
-                    <a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="text-purple-200 hover:text-white transition-colors flex items-center">
+                    <Link to="/results" className="text-purple-200 hover:text-white transition-colors flex items-center">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
                       Gift Guides
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-purple-200 hover:text-white transition-colors flex items-center">
+                    <Link to="/results" className="text-purple-200 hover:text-white transition-colors flex items-center">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
                       Blog
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <Link to="/fathers-day" className="text-purple-200 hover:text-white transition-colors flex items-center">
+                    <Link to="/results" className="text-purple-200 hover:text-white transition-colors flex items-center">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
                       AI Gift Finder
                     </Link>

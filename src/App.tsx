@@ -8,6 +8,9 @@ import { GiftsForHerPage } from './components/GiftsForHerPage';
 import { AboutUs } from './components/AboutUs';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
+import { BlogPost1 } from './components/BlogPost1';
+import { BlogPost2 } from './components/BlogPost2';
+import { BlogPost3 } from './components/BlogPost3';
 import { AnimatePresence } from 'framer-motion';
 import { Analytics } from './components/Analytics';
 import { MetaPixel } from './components/MetaPixel';
@@ -48,13 +51,16 @@ function AnimatedRoutes() {
   return <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/fathers-day" element={<GiftRecommenderForm />} />
+        <Route path="/results" element={<GiftRecommenderForm />} />
         <Route path="/for-him" element={<GiftsForHimPage />} />
         <Route path="/for-her" element={<GiftsForHerPage />} />
         <Route path="/products" element={<ResultsPage />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/blog1" element={<BlogPost1 />} />
+        <Route path="/blog2" element={<BlogPost2 />} />
+        <Route path="/blog3" element={<BlogPost3 />} />
       </Routes>
     </AnimatePresence>;
 }
@@ -62,7 +68,16 @@ export function App() {
   return <BrowserRouter>
       <Analytics measurementId={GA_MEASUREMENT_ID} />
       <MetaPixel pixelId={META_PIXEL_ID} />
-      <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-8 px-4">
+      <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 pt-8 px-4 overflow-x-hidden">
+        <style jsx global>{`
+          .no-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+          }
+          .no-scrollbar::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+          }
+        `}</style>
         <div className="max-w-7xl mx-auto">
           <AnimatedRoutes />
         </div>

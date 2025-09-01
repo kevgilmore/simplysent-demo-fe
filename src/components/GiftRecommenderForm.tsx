@@ -44,33 +44,120 @@ export function GiftRecommenderForm() {
   const [loadingStage, setLoadingStage] = useState(0);
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [budgetRange, setBudgetRange] = useState([10, 110]);
+  // Scroll to top when component mounts
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (isLoading) {
-      timeout = setTimeout(() => {
-        setLoadingStage(1);
-      }, 4000); // Show second message after 4 seconds
-    } else {
-      setLoadingStage(0);
-    }
-    return () => clearTimeout(timeout);
-  }, [isLoading]);
-  // Sync budget range with form data
-  useEffect(() => {
-    setFormData(prev => ({
-      ...prev,
-      minBudget: budgetRange[0],
-      maxBudget: budgetRange[1]
-    }));
-  }, [budgetRange]);
-  const loadingMessages = [{
-    icon: '✨',
-    message: 'Analyzing interests and preferences...'
-  }, {
-    icon: '🎯',
-    message: 'Finding the perfect gifts for you...'
-  }];
+    window.scrollTo(0, 0);
+  }, []);
+  // Fill form and submit (testing)
+  const fillFormAndSubmit = () => {
+    // First update the form data
+    const newFormData = {
+      personAge: '65',
+      gender: 'male',
+      relationship: 'Father',
+      occasion: 'Birthday',
+      sentiment: 'Funny',
+      interests: ['Reading', 'Cooking'],
+      favoritedrink: 'Beer',
+      clothesSize: 'M',
+      minBudget: 10,
+      maxBudget: 110
+    };
+    // Update budget range state
+    setBudgetRange([10, 110]);
+    // Update form data and then submit after state is updated
+    setFormData(newFormData);
+    // Use a promise to ensure state is updated before submitting
+    Promise.resolve().then(() => {
+      // Create a mock event
+      const mockEvent = {
+        preventDefault: () => {}
+      } as React.FormEvent;
+      // Force validation to pass by temporarily overriding the validation function
+      const originalValidateForm = validateForm;
+      (window as any).tempValidateFormOverride = true;
+      // Submit the form with the overridden validation
+      setTimeout(() => {
+        try {
+          // Skip validation and go straight to API call
+          setIsLoading(true);
+          if (window.fbq) {
+            window.fbq('track', 'FormCompletion', {
+              form_name: 'fday-demo'
+            });
+          }
+          const reqId = uuidv4();
+          const urlParams = new URLSearchParams(window.location.search);
+          const origin = urlParams.get('origin');
+          const apiUrl = new URL('https://gift-api-973409790816.europe-west1.run.app/recommend');
+          apiUrl.searchParams.append('use_llm', 'true');
+          apiUrl.searchParams.append('reqId', reqId);
+          if (origin) {
+            apiUrl.searchParams.append('origin', origin);
+          }
+          const requestData = {
+            age: 65,
+            gender: 'male',
+            relationship: 'father',
+            occasion: 'birthday',
+            sentiment: 'funny',
+            interests: ['Reading', 'Cooking'],
+            favourite_drink: 'beer',
+            size: 'M',
+            budget_min: 10,
+            budget_max: 110
+          };
+          fetch(apiUrl.toString(), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+          }).then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          }).then(data => {
+            console.log('API Response:', data);
+            if (data.products && data.products.length > 0) {
+              navigate('/products', {
+                state: {
+                  formData: newFormData,
+                  recommendations: data.products,
+                  recommendationId: data.recommendation_id
+                }
+              });
+            } else {
+              throw new Error('No product recommendations received');
+            }
+          }).catch(error => {
+            console.error('Error getting recommendations:', error);
+            navigate('/products', {
+              state: {
+                error: true,
+                formData: newFormData,
+                reqId: reqId
+              }
+            });
+          }).finally(() => {
+            setIsLoading(false);
+            (window as any).tempValidateFormOverride = false;
+          });
+        } catch (error) {
+          console.error('Error in test submit:', error);
+          setIsLoading(false);
+          (window as any).tempValidateFormOverride = false;
+        }
+      }, 100);
+    });
+  };
+  // Modify validateForm to respect test override
   const validateForm = () => {
+    // Skip validation if this is a test submission
+    if ((window as any).tempValidateFormOverride) {
+      return true;
+    }
     const newErrors: Partial<FormData> = {};
     // Age validation - 18-99
     if (!formData.personAge || parseInt(formData.personAge) < 18 || parseInt(formData.personAge) > 99) {
@@ -112,12 +199,6 @@ export function GiftRecommenderForm() {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-  const handleInterestToggle = (interest: string) => {
-    setFormData(prev => ({
-      ...prev,
-      interests: prev.interests.includes(interest) ? prev.interests.filter(i => i !== interest) : [...prev.interests, interest]
-    }));
   };
   // Handle slider mouse events
   const handleMouseDown = (handle: 'min' | 'max') => (e: React.MouseEvent) => {
@@ -252,8 +333,8 @@ export function GiftRecommenderForm() {
   }} transition={{
     duration: 0.4
   }} className="space-y-8">
-      {/* Add Back Button if not on a specific route */}
-      {location.pathname === '/fathers-day' && <div className="flex items-center mb-6 justify-between">
+      {/* Add Back Button and Test Button - fixed to show on /results path */}
+      {(location.pathname === '/fathers-day' || location.pathname === '/results') && <div className="flex items-center mb-6 justify-between">
           <motion.button initial={{
         opacity: 0,
         x: -20
@@ -275,30 +356,7 @@ export function GiftRecommenderForm() {
         x: 0
       }} transition={{
         delay: 0.2
-      }} onClick={() => {
-        // Pre-fill the form with test data
-        setFormData({
-          personAge: '65',
-          gender: 'male',
-          relationship: 'Father',
-          occasion: 'Birthday',
-          sentiment: 'Funny',
-          interests: ['Reading', 'Cooking'],
-          favoritedrink: 'Beer',
-          clothesSize: 'M',
-          minBudget: 10,
-          maxBudget: 110
-        });
-        // Update budget range state
-        setBudgetRange([10, 110]);
-        // Automatically submit the form after a brief delay to allow state updates
-        setTimeout(() => {
-          const event = {
-            preventDefault: () => {}
-          } as React.FormEvent;
-          handleSubmit(event);
-        }, 100);
-      }} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg">
+      }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg">
             <SparklesIcon className="w-4 h-4 mr-2" />
             Fill Form (Testing)
           </motion.button>
@@ -315,7 +373,7 @@ export function GiftRecommenderForm() {
               Let's Find the Perfect Gift
             </h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             {/* Relationship (replacing Person's Name) */}
             <div className="bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
               <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
@@ -365,8 +423,42 @@ export function GiftRecommenderForm() {
             }))} className="w-full px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="Enter their age" />
               {errors.personAge && <p className="text-red-500 text-sm mt-1">{errors.personAge}</p>}
             </div>
-            {/* Gender selection - new field */}
+            {/* Occasion field moved to first card */}
             <div className="bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40">
+              <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
+                <PartyPopperIcon className="w-4 h-4 mr-2 text-purple-600" />
+                What's the occasion?
+              </label>
+              <div className="relative">
+                <select value={formData.occasion} onChange={e => setFormData(prev => ({
+                ...prev,
+                occasion: e.target.value
+              }))} className="w-full appearance-none px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors pr-10">
+                  <option value="">Select occasion...</option>
+                  <option value="Birthday">Birthday</option>
+                  <option value="Christmas">Christmas</option>
+                  <option value="Anniversary">Anniversary</option>
+                  <option value="Valentine's Day">Valentine's Day</option>
+                  <option value="Father's Day">Father's Day</option>
+                  <option value="Mother's Day">Mother's Day</option>
+                  <option value="Graduation">Graduation</option>
+                  <option value="Wedding">Wedding</option>
+                  <option value="Retirement">Retirement</option>
+                  <option value="Housewarming">Housewarming</option>
+                  <option value="New Baby">New Baby</option>
+                  <option value="Just Because">Just Because</option>
+                  <option value="Thank You">Thank You</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+              {errors.occasion && <p className="text-red-500 text-sm mt-1">{errors.occasion}</p>}
+            </div>
+            {/* Gender selection - new field */}
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40 md:col-span-3">
               <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
                 <UserIcon className="w-4 h-4 mr-2 text-purple-600" />
                 Gender
@@ -392,47 +484,6 @@ export function GiftRecommenderForm() {
                 </label>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-      {/* Occasion Card */}
-      <div className="bg-gradient-to-r from-amber-50 to-yellow-50 backdrop-blur-sm rounded-2xl p-8 shadow-sm border border-white/40">
-        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
-          <div className="absolute inset-0 bg-amber-100 opacity-30 rounded-full"></div>
-        </div>
-        <div className="relative">
-          <div className="flex items-center space-x-2 mb-6">
-            <PartyPopperIcon className="w-6 h-6 text-amber-600" />
-            <h2 className="text-xl font-semibold text-gray-800">
-              What's the occasion?
-            </h2>
-          </div>
-          <div className="relative">
-            <select value={formData.occasion} onChange={e => setFormData(prev => ({
-            ...prev,
-            occasion: e.target.value
-          }))} className="w-full appearance-none px-4 py-3 bg-gradient-to-r from-amber-50/80 to-yellow-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-colors pr-10">
-              <option value="">Select occasion...</option>
-              <option value="Birthday">Birthday</option>
-              <option value="Christmas">Christmas</option>
-              <option value="Anniversary">Anniversary</option>
-              <option value="Valentine's Day">Valentine's Day</option>
-              <option value="Father's Day">Father's Day</option>
-              <option value="Mother's Day">Mother's Day</option>
-              <option value="Graduation">Graduation</option>
-              <option value="Wedding">Wedding</option>
-              <option value="Retirement">Retirement</option>
-              <option value="Housewarming">Housewarming</option>
-              <option value="New Baby">New Baby</option>
-              <option value="Just Because">Just Because</option>
-              <option value="Thank You">Thank You</option>
-            </select>
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </div>
-            {errors.occasion && <p className="text-red-500 text-sm mt-1">{errors.occasion}</p>}
           </div>
         </div>
       </div>
@@ -476,7 +527,7 @@ export function GiftRecommenderForm() {
         </div>
       </div>
       {/* Second Card - Change to subtle pink theme */}
-      <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl shadow-xl p-8 relative overflow-hidden">
+      <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
         <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
           <div className="absolute inset-0 bg-pink-100 opacity-30 rounded-full"></div>
         </div>
@@ -666,8 +717,8 @@ export function GiftRecommenderForm() {
               </li>}
           </ul>
         </motion.div>}
-      {/* Submit Button */}
-      <motion.button type="button" onClick={handleSubmit} disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-400 disabled:to-indigo-400 text-white font-semibold py-6 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02]">
+      {/* Submit Button - Added significant bottom margin for spacing */}
+      <motion.button type="button" onClick={handleSubmit} disabled={isLoading} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-purple-400 disabled:to-indigo-400 text-white font-semibold py-6 px-8 rounded-xl shadow-lg transition-all transform hover:scale-[1.02] mb-20">
         {isLoading ? <motion.div className="flex items-center justify-center space-x-3" initial={{
         opacity: 0
       }} animate={{

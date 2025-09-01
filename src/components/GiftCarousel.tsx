@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon, StarIcon } from 'lucide-react';
 interface GiftItem {
@@ -18,6 +18,11 @@ export function GiftCarousel({
 }: GiftCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  // Minimum swipe distance (in px)
+  const minSwipeDistance = 50;
   const slideVariants = {
     hiddenRight: {
       x: '100%',
@@ -50,22 +55,58 @@ export function GiftCarousel({
     setDirection(-1);
     setCurrentIndex(prevIndex => (prevIndex - 1 + items.length) % items.length);
   };
+  // Touch event handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      handleNext();
+    } else if (isRightSwipe) {
+      handlePrevious();
+    }
+  };
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleNext();
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [currentIndex]);
   const gradientFrom = theme === 'purple' ? 'from-purple-50' : 'from-pink-50';
   const gradientTo = theme === 'purple' ? 'to-purple-100' : 'to-purple-100';
   const dotActiveClass = theme === 'purple' ? 'bg-purple-600' : 'bg-pink-500';
+  const buttonGradient = theme === 'purple' ? 'bg-gradient-to-r from-purple-500 to-indigo-600' : 'bg-gradient-to-r from-pink-500 to-purple-600';
+  const buttonHoverGradient = theme === 'purple' ? 'hover:from-purple-600 hover:to-indigo-700' : 'hover:from-pink-600 hover:to-purple-700';
   return <div className="relative w-full mb-4">
-      <div className="overflow-hidden rounded-2xl relative">
+      <div className="overflow-hidden rounded-2xl relative" ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className="flex justify-between absolute top-1/2 transform -translate-y-1/2 left-2 right-2 z-10">
-          <button onClick={handlePrevious} className="bg-white/70 backdrop-blur-sm hover:bg-white text-gray-800 p-2 rounded-full shadow-sm transition-all" aria-label="Previous item">
-            <div className="w-7 h-7 flex items-center justify-center">
+          <motion.button onClick={handlePrevious} className={`${buttonGradient} ${buttonHoverGradient} text-white p-3 rounded-full shadow-lg transition-all`} whileHover={{
+          scale: 1.1
+        }} whileTap={{
+          scale: 0.95
+        }} aria-label="Previous item">
+            <div className="w-6 h-6 flex items-center justify-center">
               <ChevronLeftIcon className="w-5 h-5" />
             </div>
-          </button>
-          <button onClick={handleNext} className="bg-white/70 backdrop-blur-sm hover:bg-white text-gray-800 p-2 rounded-full shadow-sm transition-all" aria-label="Next item">
-            <div className="w-7 h-7 flex items-center justify-center">
+          </motion.button>
+          <motion.button onClick={handleNext} className={`${buttonGradient} ${buttonHoverGradient} text-white p-3 rounded-full shadow-lg transition-all`} whileHover={{
+          scale: 1.1
+        }} whileTap={{
+          scale: 0.95
+        }} aria-label="Next item">
+            <div className="w-6 h-6 flex items-center justify-center">
               <ChevronRightIcon className="w-5 h-5" />
             </div>
-          </button>
+          </motion.button>
         </div>
         <AnimatePresence custom={direction} initial={false} mode="wait">
           <motion.div key={currentIndex} custom={direction} variants={slideVariants} initial={direction > 0 ? 'hiddenRight' : 'hiddenLeft'} animate="visible" exit="exit" className={`bg-gradient-to-b ${gradientFrom} ${gradientTo} rounded-2xl shadow-md overflow-hidden border border-gray-100 w-full`}>
@@ -78,7 +119,7 @@ export function GiftCarousel({
                   </span>
                 </div>
               </div>
-              <div className="flex flex-col justify-between">
+              <div className="flex flex-col justify-between min-h-[200px]">
                 <div>
                   <h3 className="text-lg font-bold text-gray-900 mb-2">
                     {items[currentIndex].name}
