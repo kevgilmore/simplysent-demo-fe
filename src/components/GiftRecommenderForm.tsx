@@ -1,4 +1,4 @@
-import React, { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon, UsersIcon, PartyPopperIcon, SmileIcon } from 'lucide-react';
@@ -23,6 +23,18 @@ interface ApiResponse {
     rank: string;
   }>;
 }
+interface FormErrors {
+  personAge?: string;
+  interests?: string[];
+  favoritedrink?: string;
+  clothesSize?: string;
+  minBudget?: string;
+  maxBudget?: string;
+  relationship?: string;
+  occasion?: string;
+  sentiment?: string;
+  gender?: string;
+}
 const interestOptions = ['Tech', 'Golf', 'Fishing', 'Hiking', 'Camping', 'Cycling', 'Running', 'Swimming', 'Weightlifting', 'Yoga', 'Martial Arts', 'Boxing', 'CrossFit', 'Rowing', 'Rock Climbing', 'Kayaking', 'Sailing', 'Surfing', 'Skiing', 'Snowboarding', 'Archery', 'Hunting', 'Gardening', 'Woodworking', 'Car Restoration', 'Home Improvement', 'Leatherworking', 'Metalworking', 'Model Building', 'Electronics', '3D Printing', 'Drone Flying', 'Coding', 'Video Gaming', 'Board Games', 'Chess', 'Photography', 'Painting', 'Drawing', 'Sculpting', 'Calligraphy', 'Music (Playing Instruments)', 'Writing', 'Reading', 'Film Watching', 'Theatre', 'Magic Tricks', 'Cooking', 'Baking', 'Grilling/BBQ', 'Home Brewing', 'Wine Tasting', 'Coffee Brewing', 'Cheesemaking', 'Stamp Collecting', 'Coin Collecting', 'Vintage Cars', 'Antique Collecting', 'Action Figures', 'Comic Books', 'Watches', 'Vinyl Records', 'Sports Memorabilia', 'Model Trains', 'Road Trips', 'Backpacking', 'Scuba Diving', 'Geocaching', 'Motorcycling', 'Off-Roading', 'Genealogy', 'Bird Watching', 'Astronomy', 'Language Learning', 'Meditation', 'Podcasting', 'Blogging', 'Home Automation', 'Virtual Reality', 'Retro Gaming', 'Pet Training', 'Storytelling', 'Volunteering', 'Landscaping', 'Interior Design', 'Tattooing', 'Soap Making', 'Stock Market Trading', 'Leather Craft', 'Knife Making', 'RC Planes', 'RC Boats', 'RC Cars', 'Metal Detecting', 'Treasure Hunting', 'Beekeeping', 'Aquarium Keeping', 'Origami', 'Kite Flying'];
 export function GiftRecommenderForm() {
   const navigate = useNavigate();
@@ -40,7 +52,7 @@ export function GiftRecommenderForm() {
     gender: 'male'
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loadingStage, setLoadingStage] = useState(0);
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [budgetRange, setBudgetRange] = useState([10, 110]);
@@ -69,9 +81,8 @@ export function GiftRecommenderForm() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-  // Fill form and submit (testing)
-  const fillFormAndSubmit = () => {
-    // First update the form data
+  // Fill form and submit (testing) - now uses real API without artificial delay
+  const fillFormAndSubmit = async () => {
     const newFormData = {
       personAge: '65',
       gender: 'male',
@@ -84,49 +95,77 @@ export function GiftRecommenderForm() {
       minBudget: 10,
       maxBudget: 110
     };
-    // Update budget range state
+
     setBudgetRange([10, 110]);
-    // Update form data
     setFormData(newFormData);
-    // Show loading state
     setIsLoading(true);
-    // Track form submission with Meta Pixel
-    if (window.fbq) {
-      window.fbq('track', 'FormCompletion', {
-        form_name: 'fday-demo'
+
+    try {
+      if (window.fbq) {
+        window.fbq('track', 'FormCompletion', {
+          form_name: 'fday-demo'
+        });
+      }
+
+      const requestData = {
+        age: parseInt(newFormData.personAge),
+        gender: newFormData.gender,
+        relationship: newFormData.relationship.toLowerCase(),
+        occasion: newFormData.occasion.toLowerCase(),
+        sentiment: newFormData.sentiment.toLowerCase(),
+        interests: newFormData.interests,
+        favourite_drink: newFormData.favoritedrink.toLowerCase(),
+        size: newFormData.clothesSize,
+        budget_min: newFormData.minBudget,
+        budget_max: newFormData.maxBudget
+      };
+
+      const reqId = uuidv4();
+      const urlParams = new URLSearchParams(window.location.search);
+      const origin = urlParams.get('origin');
+      const apiUrl = new URL('https://gift-api-973409790816.europe-west1.run.app/recommend');
+      apiUrl.searchParams.append('use_llm', 'true');
+      apiUrl.searchParams.append('reqId', reqId);
+      if (origin) {
+        apiUrl.searchParams.append('origin', origin);
+      }
+
+      const response = await fetch(apiUrl.toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
       });
-    }
-    // Create a mock API response instead of making a real API call
-    setTimeout(() => {
-      // Create mock product recommendations
-      const mockProducts = [{
-        sku: 'B07X5JJFN7',
-        rank: '1'
-      }, {
-        sku: 'B08L5TNJHG',
-        rank: '2'
-      }, {
-        sku: 'B09B1W92LV',
-        rank: '3'
-      }, {
-        sku: 'B07XLML2YS',
-        rank: '4'
-      }, {
-        sku: 'B08MVDW846',
-        rank: '5'
-      }];
-      const mockRecommendationId = 'test-' + Math.random().toString(36).substring(2, 15);
-      // Navigate to results page with mock data
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: ApiResponse = await response.json();
+      if (data.products && data.products.length > 0) {
+        navigate('/products', {
+          state: {
+            formData: newFormData,
+            recommendations: data.products,
+            recommendationId: data.recommendation_id
+          }
+        });
+      } else {
+        throw new Error('No product recommendations received');
+      }
+    } catch (error) {
+      console.error('Error getting recommendations (test):', error);
       navigate('/products', {
         state: {
+          error: true,
           formData: newFormData,
-          recommendations: mockProducts,
-          recommendationId: mockRecommendationId
+          reqId: uuidv4()
         }
       });
-      // Reset loading state
+    } finally {
       setIsLoading(false);
-    }, 1500); // Simulate API delay for realism
+    }
   };
   // Modify validateForm to respect test override
   const validateForm = () => {
@@ -134,7 +173,7 @@ export function GiftRecommenderForm() {
     if ((window as any).tempValidateFormOverride) {
       return true;
     }
-    const newErrors: Partial<FormData> = {};
+    const newErrors: FormErrors = {};
     // Age validation - 18-99
     if (!formData.personAge || parseInt(formData.personAge) < 18 || parseInt(formData.personAge) > 99) {
       newErrors.personAge = 'Please enter a valid age';
@@ -308,7 +347,7 @@ export function GiftRecommenderForm() {
     y: -20
   }} transition={{
     duration: 0.4
-  }} className="space-y-8">
+  }} className="space-y-8 pb-5">
       {/* Add Back Button and Test Button - fixed to show on /results path */}
       {(location.pathname === '/fathers-day' || location.pathname === '/results') && <div className="flex items-center mb-6 justify-between">
           <motion.button initial={{

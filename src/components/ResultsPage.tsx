@@ -312,7 +312,7 @@ export function ResultsPage() {
       y: -20
     }} transition={{
       duration: 0.4
-    }} className="space-y-8">
+    }} className="space-y-8 pb-5">
         {/* Back Button */}
         <motion.button initial={{
         opacity: 0,

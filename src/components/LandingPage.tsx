@@ -265,19 +265,11 @@ export function LandingPage() {
           }} transition={{
             delay: 0.4
           }} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="bg-white hover:bg-gray-100 text-purple-800 font-bold py-3 px-8 rounded-2xl shadow-lg transition-all transform hover:scale-105 relative overflow-hidden group" whileHover={{
-              y: -3
-            }} whileTap={{
-              scale: 0.98
-            }}>
+              <motion.a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="bg-white hover:bg-gray-100 text-purple-800 font-bold py-3 px-8 rounded-2xl shadow-lg transition-all transform hover:scale-105 hover:-translate-y-[3px] relative overflow-hidden group">
                 <span className="relative z-10">Browse Gift Guides</span>
                 <motion.span className="absolute inset-0 bg-gradient-to-r from-purple-100 to-pink-100 opacity-0 group-hover:opacity-100 transition-opacity"></motion.span>
               </motion.a>
-              <motion.div whileHover={{
-              y: -3
-            }} whileTap={{
-              scale: 0.98
-            }} className="relative">
+              <motion.div className="relative">
                 <motion.div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl blur-2xl group-hover:opacity-100 transition" animate={{
                 backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
               }} transition={{
@@ -285,7 +277,7 @@ export function LandingPage() {
                 duration: 5,
                 ease: 'easeInOut'
               }}></motion.div>
-                <Link to="/results" className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center">
+                <Link to="/results" className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all transform hover:scale-105 hover:-translate-y-[3px] flex items-center justify-center">
                   <SparklesIcon className="w-5 h-5 mr-2 text-pink-200" />
                   <span>Try the AI Gift Finder</span>
                 </Link>
