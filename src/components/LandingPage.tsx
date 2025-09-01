@@ -7,12 +7,26 @@ export function LandingPage() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const popularGiftIdeasRef = useRef<HTMLElement>(null);
+  // Add reference for Gift Inspiration section
+  const giftInspirationRef = useRef<HTMLElement>(null);
   // Function to handle smooth scrolling to the Popular Gift Ideas section
   const scrollToGiftIdeas = (e: React.MouseEvent) => {
     e.preventDefault();
     if (popularGiftIdeasRef.current) {
       const yOffset = -20; // Add a small offset from the top
       const y = popularGiftIdeasRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({
+        top: y,
+        behavior: 'smooth'
+      });
+    }
+  };
+  // Function to handle smooth scrolling to the Gift Inspiration section
+  const scrollToGiftInspiration = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (giftInspirationRef.current) {
+      const yOffset = -20; // Add a small offset from the top
+      const y = giftInspirationRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
       window.scrollTo({
         top: y,
         behavior: 'smooth'
@@ -41,9 +55,9 @@ export function LandingPage() {
               <a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="text-gray-800 hover:text-purple-600 font-medium">
                 Gift Guides
               </a>
-              <Link to="/" className="text-gray-800 hover:text-purple-600 font-medium">
+              <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-gray-800 hover:text-purple-600 font-medium">
                 Blog
-              </Link>
+              </a>
               <Link to="/fathers-day" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-5 py-2 rounded-lg shadow-md transition-all transform hover:scale-105 flex items-center">
                 <SparklesIcon className="w-4 h-4 mr-2 text-purple-200" />
                 AI Gift Finder
@@ -69,9 +83,9 @@ export function LandingPage() {
                 <a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="text-gray-800 hover:text-purple-600 font-medium">
                   Gift Guides
                 </a>
-                <Link to="/" className="text-gray-800 hover:text-purple-600 font-medium">
+                <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-gray-800 hover:text-purple-600 font-medium">
                   Blog
-                </Link>
+                </a>
                 <Link to="/fathers-day" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-4 py-2 rounded-lg shadow-md transition-all transform hover:scale-105 flex items-center w-fit">
                   <SparklesIcon className="w-4 h-4 mr-2 text-purple-200" />
                   AI Gift Finder
@@ -169,7 +183,7 @@ export function LandingPage() {
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="rgba(196,181,253,0.9)" />
           </motion.svg>
         </motion.div>
-        {/* Repositioned floating confetti elements with purple/pink colors */}
+        {/* Repositioned floating confetti elements with pink/purple colors */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {Array.from({
           length: 12
@@ -261,6 +275,7 @@ export function LandingPage() {
               Discover curated gift guides or get personalised AI
               recommendations for any occasion.
             </motion.p>
+            {/* Top hero section buttons */}
             <motion.div initial={{
             opacity: 0,
             y: 20
@@ -270,7 +285,7 @@ export function LandingPage() {
           }} transition={{
             delay: 0.4
           }} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="bg-white hover:bg-gray-100 text-purple-800 font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all transform hover:scale-105 relative overflow-hidden group" whileHover={{
+              <motion.a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="bg-white hover:bg-gray-100 text-purple-800 font-bold py-3 px-8 rounded-2xl shadow-lg transition-all transform hover:scale-105 relative overflow-hidden group" whileHover={{
               y: -3
             }} whileTap={{
               scale: 0.98
@@ -300,15 +315,46 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Featured Gift Guide Section - Improved flow and gradient */}
+      {/* Featured Gift Guide Section - Completely redesigned header styling */}
       <section ref={popularGiftIdeasRef} id="popular-gift-ideas" className="py-16 bg-gradient-to-br from-purple-100 via-pink-50 to-indigo-100 rounded-b-3xl">
         <div className="container mx-auto px-4">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-800 to-pink-500" style={{
-            textShadow: '0 0 1px rgba(168, 85, 247, 0.4)'
-          }}>
-              Popular Gift Ideas
-            </h2>
+            {/* Redesigned Popular Gift Ideas header without box */}
+            <motion.div initial={{
+            opacity: 0,
+            y: -20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.5
+          }} className="mb-8">
+              <h2 className="text-3xl md:text-5xl font-bold relative inline-block">
+                <span className="relative">
+                  <span className="absolute -inset-1 -skew-x-3 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-lg -z-10 transform rotate-1"></span>
+                  <span className="relative bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-pink-600 py-2 px-1">
+                    Popular Gift Ideas
+                  </span>
+                </span>
+                <motion.div className="h-1.5 w-full bg-gradient-to-r from-purple-400 to-pink-400 rounded-full mt-2" initial={{
+                scaleX: 0
+              }} animate={{
+                scaleX: 1
+              }} transition={{
+                delay: 0.3,
+                duration: 0.6
+              }}></motion.div>
+                <motion.div className="absolute -right-8 -top-6 text-pink-500 text-2xl" animate={{
+                rotate: [0, 15, 0],
+                scale: [1, 1.1, 1]
+              }} transition={{
+                repeat: Infinity,
+                duration: 3
+              }}>
+                  ✨
+                </motion.div>
+              </h2>
+            </motion.div>
             <motion.div initial={{
             opacity: 0,
             y: 10
@@ -318,7 +364,7 @@ export function LandingPage() {
           }} transition={{
             delay: 0.2,
             duration: 0.5
-          }} className="relative inline-block">
+          }} className="text-center mb-8">
               <span className="relative inline-flex items-center justify-center">
                 <span className="absolute inset-0 bg-gradient-to-r from-purple-200 to-pink-200 rounded-full blur-md opacity-70"></span>
                 <span className="relative px-6 py-2 font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 text-lg">
@@ -336,10 +382,10 @@ export function LandingPage() {
               </span>
             </motion.div>
           </div>
-          {/* Gift sections side by side */}
+          {/* Gift sections side by side with consistent height */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Gifts for Him Section */}
-            <div>
+            <div className="flex flex-col h-full">
               <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center font-heading relative">
                 <span className="relative inline-block">
                   <span className="absolute inset-x-0 bottom-0 h-3 bg-gradient-to-r from-blue-200 to-indigo-200 transform -skew-x-12 opacity-30 rounded-lg"></span>
@@ -352,31 +398,33 @@ export function LandingPage() {
                 </div>
               </h3>
               {/* Carousel for products */}
-              <GiftCarousel items={[{
-              image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'Wireless Bluetooth Headphones',
-              price: '49.99',
-              rating: 4.0,
-              description: 'Premium wireless headphones with noise cancellation and 30-hour battery life.'
-            }, {
-              image: 'https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'Portable Bluetooth Speaker',
-              price: '45.99',
-              rating: 4.9,
-              description: 'Waterproof portable speaker with rich bass, 24-hour playtime and built-in power bank.'
-            }, {
-              image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'Fitness Smart Watch',
-              price: '39.99',
-              rating: 4.3,
-              description: 'Track fitness goals with heart rate monitoring, GPS, and smartphone notifications.'
-            }, {
-              image: 'https://images.unsplash.com/photo-1560343776-97e7d202ff0e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'RFID Leather Wallet',
-              price: '29.99',
-              rating: 4.7,
-              description: 'Genuine leather wallet with RFID blocking technology and multiple card slots.'
-            }]} theme="purple" />
+              <div className="flex-grow">
+                <GiftCarousel items={[{
+                image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'Wireless Bluetooth Headphones',
+                price: '49.99',
+                rating: 4.0,
+                description: 'Premium wireless headphones with noise cancellation and 30-hour battery life.'
+              }, {
+                image: 'https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'Portable Bluetooth Speaker',
+                price: '45.99',
+                rating: 4.9,
+                description: 'Waterproof portable speaker with rich bass, 24-hour playtime and built-in power bank.'
+              }, {
+                image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'Fitness Smart Watch',
+                price: '39.99',
+                rating: 4.3,
+                description: 'Track fitness goals with heart rate monitoring, GPS, and smartphone notifications.'
+              }, {
+                image: 'https://images.unsplash.com/photo-1560343776-97e7d202ff0e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'RFID Leather Wallet',
+                price: '29.99',
+                rating: 4.7,
+                description: 'Genuine leather wallet with RFID blocking technology and multiple card slots.'
+              }]} theme="purple" />
+              </div>
               <div className="mt-4 text-center">
                 <Link to="/for-him" className="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold bg-purple-50 hover:bg-purple-100 px-5 py-2 rounded-xl transition-colors">
                   View all gifts for him
@@ -385,7 +433,7 @@ export function LandingPage() {
               </div>
             </div>
             {/* Gifts for Her Section */}
-            <div>
+            <div className="flex flex-col h-full">
               <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center font-heading relative">
                 <span className="relative inline-block">
                   <span className="absolute inset-x-0 bottom-0 h-3 bg-gradient-to-r from-pink-200 to-rose-200 transform -skew-x-12 opacity-30 rounded-lg"></span>
@@ -398,31 +446,33 @@ export function LandingPage() {
                 </div>
               </h3>
               {/* Carousel for products */}
-              <GiftCarousel items={[{
-              image: 'https://images.unsplash.com/photo-1600703136783-bdb5ea365239?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'Artisan Chocolate Gift Box',
-              price: '39.99',
-              rating: 4.8,
-              description: 'Luxury assortment of handcrafted chocolates with unique flavor combinations.'
-            }, {
-              image: 'https://images.unsplash.com/photo-1608181831718-de794d5eac08?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'Luxury Scented Candle Set',
-              price: '49.99',
-              rating: 4.9,
-              description: 'Set of three premium hand-poured soy candles with sophisticated scent profiles.'
-            }, {
-              image: 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'Luxury Bath and Spa Set',
-              price: '44.99',
-              rating: 4.8,
-              description: 'Premium bath products for a relaxing at-home spa experience in a keepsake basket.'
-            }, {
-              image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-              name: 'Birth Flower Necklace',
-              price: '34.99',
-              rating: 4.7,
-              description: 'Delicate necklace with birth month flower preserved in crystal clear resin.'
-            }]} theme="pink" />
+              <div className="flex-grow">
+                <GiftCarousel items={[{
+                image: 'https://images.unsplash.com/photo-1600703136783-bdb5ea365239?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'Artisan Chocolate Gift Box',
+                price: '39.99',
+                rating: 4.8,
+                description: 'Luxury assortment of handcrafted chocolates with unique flavor combinations.'
+              }, {
+                image: 'https://images.unsplash.com/photo-1608181831718-de794d5eac08?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'Luxury Scented Candle Set',
+                price: '49.99',
+                rating: 4.9,
+                description: 'Set of three premium hand-poured soy candles with sophisticated scent profiles.'
+              }, {
+                image: 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'Luxury Bath and Spa Set',
+                price: '44.99',
+                rating: 4.8,
+                description: 'Premium bath products for a relaxing at-home spa experience in a keepsake basket.'
+              }, {
+                image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
+                name: 'Birth Flower Necklace',
+                price: '34.99',
+                rating: 4.7,
+                description: 'Delicate necklace with birth month flower preserved in crystal clear resin.'
+              }]} theme="pink" />
+              </div>
               <div className="mt-4 text-center">
                 <Link to="/for-her" className="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold bg-purple-50 hover:bg-purple-100 px-5 py-2 rounded-xl transition-colors">
                   View all gifts for her
@@ -491,8 +541,8 @@ export function LandingPage() {
                 <div className="bg-gradient-to-r from-purple-400 to-pink-400 p-px rounded-xl">
                   <div className="bg-purple-900/50 backdrop-blur-sm rounded-xl px-6 py-3">
                     <div className="flex items-center space-x-2">
-                      <ZapIcon className="w-5 h-5 text-purple-200" />
-                      <p className="text-white/90 font-medium">
+                      <ZapIcon className="w-8 h-8 md:w-5 md:h-5 text-purple-200" />
+                      <p className="text-white/90 font-medium text-sm md:text-base">
                         For a 65-year-old father who loves golf and tech
                         (£20-£50)
                       </p>
@@ -513,7 +563,7 @@ export function LandingPage() {
           }} transition={{
             duration: 0.7,
             delay: 0.3
-          }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          }} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {/* AI Recommendation 1 - Soften corners */}
               <motion.div whileHover={{
               y: -8,
@@ -522,7 +572,7 @@ export function LandingPage() {
               type: 'spring',
               stiffness: 400,
               damping: 17
-            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group">
+            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
                   <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Golf Accessory" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -535,15 +585,17 @@ export function LandingPage() {
                     </span>
                   </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-gray-300 text-sm mb-3">
+                <div className="p-4 flex-1 flex flex-col">
+                  <p className="text-gray-300 text-sm mb-4 flex-1">
                     Ultra-bright LED technology helps locate lost golf balls in
                     rough or low light conditions.
                   </p>
-                  <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
-                    <ShoppingCartIcon className="w-3 h-3 mr-1" />
-                    View on Amazon
-                  </a>
+                  <div>
+                    <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
+                      <ShoppingCartIcon className="w-3 h-3 mr-1" />
+                      View on Amazon
+                    </a>
+                  </div>
                 </div>
               </motion.div>
               {/* AI Recommendation 2 - Soften corners */}
@@ -554,9 +606,9 @@ export function LandingPage() {
               type: 'spring',
               stiffness: 400,
               damping: 17
-            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group">
+            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Smart Watch" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                  <img src="https://images.unsplash.com/photo-1546868871115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Smart Watch" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
@@ -567,15 +619,17 @@ export function LandingPage() {
                     </span>
                   </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-gray-300 text-sm mb-3">
+                <div className="p-4 flex-1 flex flex-col">
+                  <p className="text-gray-300 text-sm mb-4 flex-1">
                     Wearable tech with preloaded golf courses and precise
                     distance measurements to greens and hazards.
                   </p>
-                  <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
-                    <ShoppingCartIcon className="w-3 h-3 mr-1" />
-                    View on Amazon
-                  </a>
+                  <div>
+                    <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
+                      <ShoppingCartIcon className="w-3 h-3 mr-1" />
+                      View on Amazon
+                    </a>
+                  </div>
                 </div>
               </motion.div>
               {/* AI Recommendation 3 - Soften corners */}
@@ -586,7 +640,7 @@ export function LandingPage() {
               type: 'spring',
               stiffness: 400,
               damping: 17
-            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group">
+            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
                   <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Tech Gadget" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -599,15 +653,17 @@ export function LandingPage() {
                     </span>
                   </div>
                 </div>
-                <div className="p-4">
-                  <p className="text-gray-300 text-sm mb-3">
+                <div className="p-4 flex-1 flex flex-col">
+                  <p className="text-gray-300 text-sm mb-4 flex-1">
                     Bluetooth device that attaches to any club and provides
                     real-time swing analysis on your smartphone.
                   </p>
-                  <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
-                    <ShoppingCartIcon className="w-3 h-3 mr-1" />
-                    View on Amazon
-                  </a>
+                  <div>
+                    <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
+                      <ShoppingCartIcon className="w-3 h-3 mr-1" />
+                      View on Amazon
+                    </a>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
@@ -634,15 +690,46 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Blog/Content Section - Soften corners */}
-      <section className="py-16 bg-gradient-to-br from-gray-50 to-pink-50 rounded-3xl my-8">
+      {/* Blog/Content Section - Redesigned header styling */}
+      <section ref={giftInspirationRef} id="gift-inspiration" className="py-16 bg-gradient-to-br from-gray-50 to-pink-50 rounded-3xl my-8">
         <div className="container mx-auto px-4">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-500" style={{
-            textShadow: '0 0 1px rgba(168, 85, 247, 0.4)'
-          }}>
-              Gift Inspiration
-            </h2>
+            {/* Redesigned Gift Inspiration header without box */}
+            <motion.div initial={{
+            opacity: 0,
+            y: -20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.5
+          }} className="mb-4">
+              <h2 className="text-3xl md:text-5xl font-bold relative inline-block">
+                <span className="relative">
+                  <span className="absolute -inset-1 -skew-x-3 bg-gradient-to-r from-indigo-600/10 to-blue-600/10 rounded-lg -z-10 transform rotate-1"></span>
+                  <span className="relative bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600 py-2 px-1">
+                    Gift Inspiration
+                  </span>
+                </span>
+                <motion.div className="h-1.5 w-full bg-gradient-to-r from-indigo-400 to-blue-400 rounded-full mt-2" initial={{
+                scaleX: 0
+              }} animate={{
+                scaleX: 1
+              }} transition={{
+                delay: 0.3,
+                duration: 0.6
+              }}></motion.div>
+                <motion.div className="absolute -right-8 -top-6 text-indigo-500 text-2xl" animate={{
+                rotate: [0, 15, 0],
+                scale: [1, 1.1, 1]
+              }} transition={{
+                repeat: Infinity,
+                duration: 3
+              }}>
+                  💡
+                </motion.div>
+              </h2>
+            </motion.div>
             <motion.p initial={{
             opacity: 0,
             y: 10
@@ -653,41 +740,31 @@ export function LandingPage() {
             delay: 0.3,
             duration: 0.5
           }} className="relative inline-block">
-              <span className="relative inline-block px-8 py-3">
-                <span className="absolute inset-0 bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 rounded-lg transform -rotate-1"></span>
-                <span className="absolute inset-0 border-2 border-dashed border-purple-300 rounded-lg transform rotate-1 opacity-50"></span>
-                <span className="relative font-medium text-purple-800 italic">
-                  Discover gift ideas and inspiration from our blog
-                </span>
-                <motion.span className="absolute -right-2 -bottom-2 text-purple-500" animate={{
-                y: [0, -5, 0]
-              }} transition={{
-                repeat: Infinity,
-                duration: 2
-              }}>
-                  💫
-                </motion.span>
+              <span className="absolute inset-0 bg-gradient-to-r from-indigo-200 to-blue-200 rounded-full blur-md opacity-70"></span>
+              <span className="relative px-6 py-2 text-indigo-800 italic font-medium">
+                Discover gift ideas and inspiration from our blog
               </span>
             </motion.p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Blog Post grid - Fixed to show 3 cards in a row on tablet/small desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {/* Blog Post 1 - Soften corners */}
             <motion.div whileHover={{
             y: -5
-          }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100">
+          }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full">
               <img src="https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Gift Wrapping" className="w-full h-48 object-cover" />
-              <div className="p-5">
+              <div className="p-5 flex-1 flex flex-col">
                 <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
                   Guides
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-1 mb-2">
                   10 Creative Gift Wrapping Ideas for Any Occasion
                 </h3>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-gray-600 text-sm mb-4 flex-1">
                   Transform ordinary presents into extraordinary gifts with
                   these simple yet stunning wrapping techniques...
                 </p>
-                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm">
+                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -696,20 +773,20 @@ export function LandingPage() {
             {/* Blog Post 2 - Soften corners */}
             <motion.div whileHover={{
             y: -5
-          }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100">
+          }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full">
               <img src="https://images.unsplash.com/photo-1528825871115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Father's Day" className="w-full h-48 object-cover" />
-              <div className="p-5">
+              <div className="p-5 flex-1 flex flex-col">
                 <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
                   Guides
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-1 mb-2">
                   The Ultimate Father's Day Gift Guide for 2023
                 </h3>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-gray-600 text-sm mb-4 flex-1">
                   Find the perfect way to show your appreciation with our
                   curated selection of gifts for every type of dad...
                 </p>
-                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm">
+                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -718,20 +795,20 @@ export function LandingPage() {
             {/* Blog Post 3 - Soften corners */}
             <motion.div whileHover={{
             y: -5
-          }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100">
+          }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full">
               <img src="https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Budget Gifts" className="w-full h-48 object-cover" />
-              <div className="p-5">
+              <div className="p-5 flex-1 flex flex-col">
                 <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
                   Tips
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-1 mb-2">
                   25 Thoughtful Gifts Under £20 That Don't Look Cheap
                 </h3>
-                <p className="text-gray-600 text-sm mb-4">
+                <p className="text-gray-600 text-sm mb-4 flex-1">
                   Impressive presents that won't break the bank but will still
                   make a big impact on your loved ones...
                 </p>
-                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm">
+                <Link to="/" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -741,79 +818,135 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer - Soften corners */}
-      <footer className="bg-gradient-to-r from-gray-50 to-purple-50 border-t border-gray-100 py-12 rounded-t-3xl">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="md:col-span-2">
-              <img src="/logo.png" alt="SimplySent" className="h-8 mb-4" />
-              <p className="text-gray-600 mb-4 max-w-md">
-                SimplySent helps you find the perfect gift for any occasion
-                using our curated gift guides and AI-powered recommendations.
-              </p>
-              <p className="text-sm text-gray-500">
-                As an Amazon Associate we earn from qualifying purchases.
-              </p>
-            </div>
+      {/* Footer - Update grid layout for desktop */}
+      <footer className="relative bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 py-16 rounded-t-3xl overflow-hidden">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-purple-700/20 to-transparent"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/3 left-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl"></div>
+          <svg className="absolute bottom-0 left-0 right-0 text-purple-900/20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
+            <path fill="currentColor" fillOpacity="1" d="M0,128L48,144C96,160,192,192,288,186.7C384,181,480,139,576,149.3C672,160,768,224,864,218.7C960,213,1056,139,1152,117.3C1248,96,1344,128,1392,144L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+          </svg>
+        </div>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Logo and description column */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                Quick Links
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/" className="text-gray-600 hover:text-purple-600">
-                    Home
-                  </Link>
-                </li>
-                <li>
-                  <a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="text-gray-600 hover:text-purple-600">
-                    Gift Guides
-                  </a>
-                </li>
-                <li>
-                  <Link to="/" className="text-gray-600 hover:text-purple-600">
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/fathers-day" className="text-gray-600 hover:text-purple-600">
-                    AI Gift Finder
-                  </Link>
-                </li>
-              </ul>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl h-full">
+                <img src="/logo.png" alt="SimplySent" className="h-10 mb-4 drop-shadow-lg" />
+                <p className="text-purple-100 mb-4">
+                  SimplySent helps you find the perfect gift for any occasion
+                  using our curated gift guides and AI-powered recommendations.
+                </p>
+                <p className="text-purple-200 text-sm">
+                  As an Amazon Associate we earn from qualifying purchases.
+                </p>
+                {/* Social media icons */}
+                <div className="flex space-x-4 mt-6">
+                  {['facebook', 'twitter', 'instagram', 'pinterest'].map(social => <motion.a key={social} href="#" whileHover={{
+                  y: -3
+                }} className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
+                        <span className="text-white text-lg">
+                          {social === 'facebook' && 'f'}
+                          {social === 'twitter' && 'X'}
+                          {social === 'instagram' && 'IG'}
+                          {social === 'pinterest' && 'P'}
+                        </span>
+                      </motion.a>)}
+                </div>
+              </div>
             </div>
+            {/* Quick Links Column */}
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4">
-                Company
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/" className="text-gray-600 hover:text-purple-600">
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/" className="text-gray-600 hover:text-purple-600">
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/" className="text-gray-600 hover:text-purple-600">
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/" className="text-gray-600 hover:text-purple-600">
-                    Terms of Service
-                  </Link>
-                </li>
-              </ul>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 h-full shadow-xl">
+                <h4 className="text-white font-semibold uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-8 h-8 rounded-lg bg-purple-500/30 flex items-center justify-center mr-2">
+                    <ChevronRightIcon className="w-5 h-5 text-purple-200" />
+                  </span>
+                  Quick Links
+                </h4>
+                <ul className="space-y-3">
+                  <li>
+                    <Link to="/" className="text-purple-200 hover:text-white transition-colors flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
+                      Home
+                    </Link>
+                  </li>
+                  <li>
+                    <a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="text-purple-200 hover:text-white transition-colors flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
+                      Gift Guides
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-purple-200 hover:text-white transition-colors flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
+                      Blog
+                    </a>
+                  </li>
+                  <li>
+                    <Link to="/fathers-day" className="text-purple-200 hover:text-white transition-colors flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
+                      AI Gift Finder
+                    </Link>
+                  </li>
+                  <li>
+                    <Link to="/about-us" className="text-purple-200 hover:text-white transition-colors flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
+                      About Us
+                    </Link>
+                  </li>
+                  <li>
+                    <a href="mailto:hello@simplysent.co" className="text-purple-200 hover:text-white transition-colors flex items-center">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
+                      Contact
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            {/* Newsletter Column - Fix responsive layout */}
+            <div>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl h-full">
+                <h4 className="text-white font-semibold uppercase tracking-wider mb-4 flex items-center">
+                  <span className="w-8 h-8 rounded-lg bg-purple-500/30 flex items-center justify-center mr-2">
+                    <SparklesIcon className="w-5 h-5 text-purple-200" />
+                  </span>
+                  Newsletter
+                </h4>
+                <p className="text-purple-200 mb-4 text-sm">
+                  Subscribe for gift ideas and exclusive offers
+                </p>
+                <div className="flex flex-col gap-3">
+                  <input type="email" placeholder="Your email" className="w-full bg-white/20 border border-purple-300/30 rounded-lg px-4 py-2 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50" />
+                  <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                    Subscribe
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="border-t border-gray-200 mt-12 pt-8 text-center text-sm text-gray-500">
-            <p>
+          {/* Copyright bar with company links moved below */}
+          <div className="border-t border-white/10 pt-8 text-center">
+            <p className="text-purple-200 mb-6">
               © {new Date().getFullYear()} SimplySent. All rights reserved.
             </p>
+            {/* Company links moved here without header */}
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 mb-2">
+              <Link to="/about-us" className="text-purple-200 hover:text-white transition-colors text-sm">
+                About Us
+              </Link>
+              <a href="mailto:hello@simplysent.co" className="text-purple-200 hover:text-white transition-colors text-sm">
+                Contact
+              </a>
+              <Link to="/privacy-policy" className="text-purple-200 hover:text-white transition-colors text-sm">
+                Privacy Policy
+              </Link>
+              <Link to="/terms-of-service" className="text-purple-200 hover:text-white transition-colors text-sm">
+                Terms of Service
+              </Link>
+            </div>
           </div>
         </div>
       </footer>

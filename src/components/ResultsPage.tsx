@@ -1,37 +1,108 @@
 import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, TagIcon, HeartIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, BeerIcon } from 'lucide-react';
-import { ErrorPage } from './ErrorPage';
+import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon } from 'lucide-react';
+interface Product {
+  sku: string;
+  productTitle?: string;
+  imageUrl?: string;
+  price: string;
+  description: string;
+  rank: string;
+  // Fields from API response
+  ASIN?: string;
+  name?: string;
+  image_url?: string;
+}
+interface FormData {
+  personAge: string;
+  interests: string[];
+  favoritedrink: string;
+  clothesSize: string;
+  minBudget: number | null;
+  maxBudget: number | null;
+  relationship: string;
+  occasion: string;
+  sentiment: string;
+  gender: string;
+}
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  // Add useEffect at the top of the component
+  // Add debugging for component mount and state
   useEffect(() => {
+    console.log('ResultsPage mounted');
+    console.log('Location state:', location.state);
+    // Scroll to top when component mounts
     window.scrollTo(0, 0);
-  }, []);
-  const {
-    formData,
-    recommendations,
-    recommendationId,
-    error: routeError
-  } = location.state || {};
-  const [error, setError] = useState(routeError || false);
-  const [products, setProducts] = useState(recommendations || []);
+  }, [location]);
+  // Safely extract state data with fallbacks
+  const formData = location.state?.formData || null;
+  const recommendations = location.state?.recommendations || [];
+  const recommendationId = location.state?.recommendationId || null;
+  const routeError = location.state?.error || false;
+  const [error, setError] = useState(routeError);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalFeedback, setModalFeedback] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [modalError, setModalError] = useState('');
-  const [hasMadeRequest, setHasMadeRequest] = useState(false);
   const [submissionCount, setSubmissionCount] = useState(0);
-  // Get top recommendation and other recommendations from products state
-  const topRecommendation = products[0];
-  const otherRecommendations = products.slice(1);
+  // Process and normalize the recommendations data
+  useEffect(() => {
+    console.log('Raw recommendations data:', recommendations);
+    if (recommendations && Array.isArray(recommendations) && recommendations.length > 0) {
+      // Map and normalize the data structure
+      const normalizedProducts = recommendations.map(product => {
+        // Log each product to understand its structure
+        console.log('Processing product:', product);
+        return {
+          sku: product.sku || product.ASIN || '',
+          productTitle: product.productTitle || product.name || '',
+          imageUrl: product.imageUrl || product.image_url || '',
+          price: product.price || '0.00',
+          description: product.description || '',
+          rank: product.rank || '999',
+          // Keep original fields too
+          ASIN: product.ASIN,
+          name: product.name,
+          image_url: product.image_url
+        };
+      });
+      // Sort products by rank (as number)
+      const sortedProducts = [...normalizedProducts].sort((a, b) => {
+        const rankA = parseInt(a.rank) || 999;
+        const rankB = parseInt(b.rank) || 999;
+        return rankA - rankB;
+      });
+      console.log('Sorted and normalized products:', sortedProducts);
+      setProducts(sortedProducts);
+    }
+  }, [recommendations]);
+  // Redirect to home if accessed directly without state
+  useEffect(() => {
+    if (!location.state) {
+      console.log('No location state found, redirecting to home');
+      navigate('/');
+    }
+  }, [location.state, navigate]);
+  // Get top recommendation and other recommendations
+  const topRecommendation = products && products.length > 0 ? products[0] : null;
+  const otherRecommendations = products && products.length > 1 ? products.slice(1) : [];
+  // Generate Amazon URL from SKU
+  const generateAmazonUrl = (sku: string) => {
+    if (!sku) {
+      console.error('No SKU provided for Amazon URL generation');
+      return 'https://www.amazon.co.uk';
+    }
+    return `https://www.amazon.co.uk/dp/${sku}`;
+  };
+  // Star rating component with default rating
   const StarRating = ({
-    rating
+    rating = 4.5
   }: {
-    rating: number;
+    rating?: number;
   }) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 !== 0;
@@ -59,6 +130,7 @@ export function ResultsPage() {
         <span className="text-sm text-gray-600 ml-1">{rating.toFixed(1)}</span>
       </div>;
   };
+  // Animation variants
   const containerVariants = {
     hidden: {
       opacity: 0
@@ -83,7 +155,7 @@ export function ResultsPage() {
       }
     }
   };
-  // Add state for each product's feedback
+  // Feedback state for each product
   const [productFeedback, setProductFeedback] = useState<Record<number, 'up' | 'down' | null>>({
     0: null,
     1: null,
@@ -91,8 +163,11 @@ export function ResultsPage() {
     3: null,
     4: null
   });
-  const handleFeedback = async (ASIN: string, isGood: boolean) => {
+  // Handle feedback submission
+  const handleFeedback = async (sku: string, isGood: boolean) => {
+    if (!recommendationId) return;
     try {
+      console.log('Sending feedback for item:', sku, isGood ? 'good' : 'bad');
       const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/label', {
         method: 'POST',
         headers: {
@@ -101,7 +176,7 @@ export function ResultsPage() {
         body: JSON.stringify({
           recommendation_id: recommendationId,
           item_feedback: {
-            asin: ASIN,
+            asin: sku,
             feedback_label: isGood ? 1 : 0
           }
         })
@@ -109,12 +184,16 @@ export function ResultsPage() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+      console.log('Feedback sent successfully');
     } catch (error) {
       console.error('Error sending feedback:', error);
     }
   };
-  const handleLinkClick = async (ASIN: string) => {
+  // Handle link click tracking
+  const handleLinkClick = async (sku: string) => {
+    if (!recommendationId) return;
     try {
+      console.log('Sending click feedback for item:', sku);
       await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/click', {
         method: 'POST',
         headers: {
@@ -123,16 +202,19 @@ export function ResultsPage() {
         body: JSON.stringify({
           recommendation_id: recommendationId,
           item_feedback: {
-            asin: ASIN,
+            asin: sku,
             clicked: true
           }
         })
       });
+      console.log('Click feedback sent successfully');
     } catch (error) {
       console.error('Error sending link click feedback:', error);
     }
   };
+  // Handle modal feedback submission
   const handleModalSubmit = async () => {
+    if (!recommendationId) return;
     if (modalFeedback.length < 10) {
       setModalError('Please provide at least 10 characters of feedback');
       return;
@@ -143,6 +225,7 @@ export function ResultsPage() {
     }
     setIsLoading(true);
     try {
+      console.log('Submitting feedback comment:', modalFeedback);
       const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/comment?usellm=false', {
         method: 'POST',
         headers: {
@@ -159,15 +242,18 @@ export function ResultsPage() {
       setSubmissionCount(prev => prev + 1);
       const text = await response.text();
       setModalFeedback('');
+      console.log('Feedback response:', text);
       if (text) {
         try {
           const data = JSON.parse(text);
           if (data && data.products) {
+            console.log('New products received:', data.products);
             setProducts(data.products);
             window.scrollTo(0, 0);
             setShowModal(false);
           }
         } catch (e) {
+          console.error('Error parsing feedback response:', e);
           setIsSubmitted(true);
           setTimeout(() => {
             setIsSubmitted(false);
@@ -188,21 +274,32 @@ export function ResultsPage() {
       setIsLoading(false);
     }
   };
-  if (!formData || !recommendations || recommendations.length === 0) {
+  // Render a message if no data is available
+  if (!formData || !products || products.length === 0 || !topRecommendation) {
     return <motion.div initial={{
       opacity: 0
     }} animate={{
       opacity: 1
     }} exit={{
       opacity: 0
-    }} className="text-center">
-        <p className="text-gray-600 mb-4">No recommendation data found.</p>
+    }} className="text-center p-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          No Recommendations Available
+        </h2>
+        <p className="text-gray-600 mb-4">
+          We couldn't find any recommendations. This might be because you
+          accessed this page directly.
+        </p>
         <button onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center justify-center mx-auto">
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Back to Form
+          Back to Home
         </button>
       </motion.div>;
   }
+  // Debug the top recommendation
+  console.log('Top recommendation:', topRecommendation);
+  console.log('Top recommendation title:', topRecommendation.productTitle || topRecommendation.name);
+  console.log('Top recommendation image:', topRecommendation.imageUrl || topRecommendation.image_url);
   return <>
       <motion.div initial={{
       opacity: 0,
@@ -229,6 +326,7 @@ export function ResultsPage() {
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
           Start Over
         </motion.button>
+
         {/* Top Recommendation Section */}
         <motion.div initial={{
         opacity: 0,
@@ -246,6 +344,7 @@ export function ResultsPage() {
               - £{formData.maxBudget}
             </p>
           </div>
+
           {/* Top Product Card */}
           <motion.div initial={{
           opacity: 0,
@@ -257,29 +356,32 @@ export function ResultsPage() {
           delay: 0.4
         }} className="bg-gradient-to-b from-purple-50 to-pink-50 rounded-xl shadow-lg overflow-hidden border border-gray-200 max-w-2xl mx-auto">
             <div className="relative">
-              <img src={topRecommendation.image_url} alt={topRecommendation.name} className="w-full h-64 object-cover" onError={handleImageError} />
+              <img src={topRecommendation.imageUrl || topRecommendation.image_url} alt={getProductTitle(topRecommendation)} className="w-full h-64 object-contain bg-white p-4" onError={e => {
+              console.error('Image load error:', e);
+              e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
+            }} />
               <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-2 rounded-full shadow-md">
                 <span className="text-purple-600 font-bold text-lg">
-                  £{topRecommendation.price.toFixed(2)}
+                  £{topRecommendation.price}
                 </span>
               </div>
             </div>
             <div className="p-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
-                {truncateText(capitalizeWords(topRecommendation.name), 45)}
+                {truncateText(getProductTitle(topRecommendation), 60)}
               </h3>
               <div className="mb-3 flex justify-center">
-                <StarRating rating={topRecommendation.average_star_rating} />
+                <StarRating />
               </div>
               <div className="flex items-start space-x-3 mb-3">
                 <TagIcon className="w-5 h-5 text-purple-500 mt-1 flex-shrink-0" />
                 <p className="text-gray-700">
-                  {truncateText(capitalizeFirstWord(topRecommendation.description), 90)}
+                  {truncateText(capitalizeFirstWord(topRecommendation.description), 120)}
                 </p>
               </div>
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
-                <a href={topRecommendation.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.ASIN)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
+                <a href={generateAmazonUrl(topRecommendation.sku)} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.sku)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
                   Show on Amazon
                 </a>
@@ -295,7 +397,7 @@ export function ResultsPage() {
                       ...prev,
                       0: 'up'
                     }));
-                    handleFeedback(topRecommendation.ASIN, true);
+                    handleFeedback(topRecommendation.sku, true);
                   }
                 }} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'down'}>
                     <ThumbsUpIcon className="w-5 h-5" />
@@ -311,7 +413,7 @@ export function ResultsPage() {
                       ...prev,
                       0: 'down'
                     }));
-                    handleFeedback(topRecommendation.ASIN, false);
+                    handleFeedback(topRecommendation.sku, false);
                   }
                 }} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'up'}>
                     <ThumbsDownIcon className="w-5 h-5" />
@@ -322,6 +424,7 @@ export function ResultsPage() {
             </div>
           </motion.div>
         </motion.div>
+
         {/* Other Recommendations Section */}
         {otherRecommendations.length > 0 && <motion.div initial={{
         opacity: 0,
@@ -338,37 +441,43 @@ export function ResultsPage() {
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {otherRecommendations.map((item, index) => {
             const feedbackIndex = index + 1;
-            return <motion.div key={item.recommendation_item_id} variants={itemVariants} className="bg-gradient-to-b from-purple-50 to-pink-50 rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
+            // Debug each item
+            console.log(`Item ${index} title:`, getProductTitle(item));
+            console.log(`Item ${index} image:`, item.imageUrl || item.image_url);
+            return <motion.div key={item.sku} variants={itemVariants} className="bg-gradient-to-b from-purple-50 to-pink-50 rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
                     {/* Add image section at the top */}
                     <div className="relative">
-                      <img src={item.image_url} alt={item.name} className="w-full h-48 object-cover" onError={handleImageError} />
+                      <img src={item.imageUrl || item.image_url} alt={getProductTitle(item)} className="w-full h-48 object-contain bg-white p-4" onError={e => {
+                  console.error('Image load error:', e);
+                  e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
+                }} />
                       <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-50 to-pink-50 px-3 py-1 rounded-full shadow-md">
                         <span className="text-purple-600 font-semibold">
-                          £{item.price.toFixed(2)}
+                          £{item.price}
                         </span>
                       </div>
                     </div>
                     <div className="p-4 flex flex-col flex-1">
                       <h4 className="text-lg font-bold text-gray-900 mb-2">
-                        {truncateText(capitalizeWords(item.name), 45)}
+                        {truncateText(getProductTitle(item), 60)}
                       </h4>
                       <div className="mb-3">
-                        <StarRating rating={item.average_star_rating} />
+                        <StarRating />
                       </div>
                       <div className="flex items-start space-x-2 mb-2">
                         <TagIcon className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
                         <p className="text-sm text-gray-700">
-                          {truncateText(capitalizeFirstWord(item.description), 90)}
+                          {truncateText(capitalizeFirstWord(item.description), 100)}
                         </p>
                       </div>
                       {/* Buttons */}
                       <div className="space-y-2 mt-auto">
-                        <a href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(item.ASIN)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
+                        <a href={generateAmazonUrl(item.sku)} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(item.sku)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
                           <ShoppingCartIcon className="w-4 h-4 mr-2" />
                           Show on Amazon
                         </a>
                         {/* Row 2: Good and Bad buttons */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 h-10">
                           <motion.button whileHover={{
                       scale: productFeedback[feedbackIndex] !== 'down' ? 1.05 : 1
                     }} whileTap={{
@@ -379,7 +488,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'up'
                         }));
-                        handleFeedback(item.ASIN, true);
+                        handleFeedback(item.sku, true);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsUpIcon className="w-4 h-4" />
@@ -395,7 +504,7 @@ export function ResultsPage() {
                           ...prev,
                           [feedbackIndex]: 'down'
                         }));
-                        handleFeedback(item.ASIN, false);
+                        handleFeedback(item.sku, false);
                       }
                     }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
                             <ThumbsDownIcon className="w-4 h-4" />
@@ -408,6 +517,7 @@ export function ResultsPage() {
           })}
             </motion.div>
           </motion.div>}
+
         {/* Request New Recommendations Button */}
         <motion.div initial={{
         opacity: 0,
@@ -423,6 +533,7 @@ export function ResultsPage() {
           </button>
         </motion.div>
       </motion.div>
+
       {/* Modal */}
       <AnimatePresence>
         {showModal && <motion.div initial={{
@@ -511,24 +622,35 @@ export function ResultsPage() {
       </AnimatePresence>
     </>;
 }
-// Add these helper functions at the top of the file
-const capitalizeWords = (text: string) => {
-  return text.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+// Helper functions
+const getProductTitle = (product: any): string => {
+  // Check all possible title fields and use the first one that exists
+  const title = product.productTitle || product.name || '';
+  if (!title || typeof title !== 'string' || title.trim() === '') {
+    console.log('No valid title found for product:', product);
+    return 'Product Title Not Available';
+  }
+  return capitalizeWords(title);
 };
-const capitalizeFirstWord = (text: string) => {
+const capitalizeWords = (text: string | undefined | null): string => {
+  if (!text || typeof text !== 'string' || text.trim() === '') {
+    return 'Product Title Not Available';
+  }
+  // Remove any HTML tags that might be in the title
+  const cleanText = text.replace(/<\/?[^>]+(>|$)/g, '');
+  return cleanText.split(' ').map(word => {
+    if (word.length === 0) return '';
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }).join(' ');
+};
+const capitalizeFirstWord = (text: string | undefined | null): string => {
+  if (!text || typeof text !== 'string' || text.trim() === '') {
+    return 'Description not available';
+  }
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
-const getPlaceholderImage = (index: number) => {
-  const images = ['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', 'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3', 'https://images.unsplash.com/photo-1556911220-bff31c812dba?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3' // Kitchen
-  ];
-  return images[index % images.length];
-};
-// Add this helper function at the top of the file
-const truncateText = (text: string, maxLength: number) => {
+const truncateText = (text: string, maxLength: number): string => {
+  if (!text || typeof text !== 'string') return 'Text not available';
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trim() + '...';
-};
-// Add image error handling function at the top
-const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-  e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
 };

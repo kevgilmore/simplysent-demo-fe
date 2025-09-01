@@ -89,14 +89,18 @@ export function GiftCarousel({
                       {items[currentIndex].rating.toFixed(1)}
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm mb-4">
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                     {items[currentIndex].description}
                   </p>
+                  <div className="mt-auto">
+                    <a href="#" className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-xl transition-colors flex items-center justify-center text-sm">
+                      <ShoppingCartIcon className="w-4 h-4 mr-2" />
+                      View on Amazon
+                    </a>
+                  </div>
                 </div>
-                <a href="#" className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-xl transition-colors flex items-center justify-center text-sm">
-                  <ShoppingCartIcon className="w-4 h-4 mr-2" />
-                  View on Amazon
-                </a>
               </div>
             </div>
           </motion.div>
