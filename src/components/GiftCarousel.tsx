@@ -22,8 +22,9 @@ export function GiftCarousel({
 }: GiftCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [touchStart, setTouchStart] = useState<{x: number, y: number} | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{x: number, y: number} | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   // Reset currentIndex when items change
   useEffect(() => {
@@ -68,24 +69,52 @@ export function GiftCarousel({
     setDirection(-1);
     setCurrentIndex(prevIndex => (prevIndex - 1 + items.length) % items.length);
   };
-  // Touch event handlers
+  // Enhanced touch event handlers
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    });
+    setIsDragging(false);
   };
+  
   const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-    if (isLeftSwipe) {
-      handleNext();
-    } else if (isRightSwipe) {
-      handlePrevious();
+    if (!touchStart) return;
+    
+    const currentTouch = {
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    };
+    
+    const deltaX = Math.abs(currentTouch.x - touchStart.x);
+    const deltaY = Math.abs(currentTouch.y - touchStart.y);
+    
+    // If horizontal movement is more significant than vertical, prevent default scrolling
+    if (deltaX > deltaY && deltaX > 10) {
+      e.preventDefault();
+      setIsDragging(true);
     }
+    
+    setTouchEnd(currentTouch);
+  };
+  
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd || !isDragging) return;
+    
+    const deltaX = touchStart.x - touchEnd.x;
+    const deltaY = Math.abs(touchStart.y - touchEnd.y);
+    
+    // Only trigger swipe if horizontal movement is dominant and exceeds minimum distance
+    if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > deltaY * 2) {
+      if (deltaX > 0) {
+        handleNext(); // Swipe left = next
+      } else {
+        handlePrevious(); // Swipe right = previous
+      }
+    }
+    
+    setIsDragging(false);
   };
   // Auto-advance carousel
   useEffect(() => {
@@ -153,7 +182,7 @@ export function GiftCarousel({
   // Format the description
   const formattedDescription = formatDescription(currentItem.description);
   return <div className="relative w-full mb-4">
-      <div className="relative rounded-2xl overflow-visible" ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
+      <div className="relative rounded-2xl overflow-visible touch-pan-y" style={{touchAction: 'pan-y pinch-zoom'}} ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrevious();
     }}>

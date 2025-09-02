@@ -228,7 +228,7 @@ export function GiftsForHimPage() {
         </div>}
       {/* Product Grid */}
       {!loading && !error && filteredProducts.length > 0 && <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {getCurrentProducts().map(product => {
           const isExpanded = expandedDescriptions.has(product.id);
           const formattedDescription = formatDescription(product.description || '');
@@ -248,7 +248,7 @@ export function GiftsForHimPage() {
                 (e.target as HTMLImageElement).src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
               }} />
                     <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
-                      <span className="text-purple-600 font-bold text-xl">
+                      <span className="text-purple-600 font-bold text-lg">
                         £{product.variants[0]?.price?.toFixed(2) || '0.00'}
                       </span>
                     </div>

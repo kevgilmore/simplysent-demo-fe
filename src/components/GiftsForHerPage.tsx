@@ -219,7 +219,7 @@ export function GiftsForHerPage() {
           </button>
         </div>}
       {/* Product Grid */}
-      {!loading && !error && <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {!loading && !error && <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {getCurrentProducts().map(product => {
         const isExpanded = expandedDescriptions.has(product.id);
         const formattedDescription = formatDescription(product.description || '');
@@ -232,11 +232,11 @@ export function GiftsForHerPage() {
         }} transition={{
           duration: 0.5,
           delay: getCurrentProducts().indexOf(product) * 0.1
-        }} className="bg-gradient-to-b from-pink-50 to-purple-50 rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
+        }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
                 <div className="relative">
-                  <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-32 object-cover" onError={handleImageError} />
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-pink-50 to-purple-50 px-4 py-2 rounded-full shadow-md">
-                    <span className="text-purple-600 font-bold text-xl">
+                  <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-32 object-contain bg-white p-2" onError={handleImageError} />
+                  <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
+                    <span className="text-purple-600 font-bold text-lg">
                       £{product.variants[0]?.price?.toFixed(2) || '0.00'}
                     </span>
                   </div>
@@ -252,7 +252,7 @@ export function GiftsForHerPage() {
                   <div className={`mb-3 overflow-hidden ${isExpanded ? '' : 'max-h-[60px]'} relative`}>
                     <p className="text-gray-700 text-sm">{formattedDescription}</p>
                     {/* Show gradient overlay and more button if description is long */}
-                    {formattedDescription.length > 60 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-pink-50 to-transparent"></div>}
+                    {formattedDescription.length > 60 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent"></div>}
                   </div>
                   {/* Show more/less button if description is long enough */}
                   {formattedDescription.length > 60 && <button onClick={() => toggleDescription(product.id)} className="text-pink-600 hover:text-pink-800 text-xs font-medium flex items-center mb-3">

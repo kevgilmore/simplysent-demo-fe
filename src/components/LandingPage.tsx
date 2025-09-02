@@ -578,8 +578,8 @@ export function LandingPage() {
                     <div className="flex items-center space-x-2">
                       <ZapIcon className="w-8 h-8 md:w-5 md:h-5 text-purple-200" />
                       <p className="text-white/90 font-medium text-sm md:text-base">
-                        For a 65-year-old father who loves golf and tech
-                        (£20-£50)
+                        For a 65-year-old Father who loves cooking, golf and camping
+                        (£30-£140)
                       </p>
                     </div>
                   </div>
@@ -602,63 +602,60 @@ export function LandingPage() {
               {/* AI Recommendation 1 - Soften corners */}
               <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Golf Accessory" className="w-full h-40 object-cover" />
+                  <img src="https://cdn.shopify.com/s/files/1/0938/0885/3335/files/81bLGw30NOL._AC_SL1500.jpg?v=1755196234" alt="BAYINBULAK Golf Chipping Practice Net" className="w-full h-40 object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
-                      Golf Ball Finder
+                      Golf Chipping Net
                     </span>
                     <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      £24.99
+                      £33.85
                     </span>
                   </div>
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <p className="text-gray-300 text-sm mb-4 flex-1">
-                    Ultra-bright LED technology helps locate lost golf balls in
-                    rough or low light conditions.
+                    Full Package - Includes foldable chipping net, ground stakes, storage bag and illustrated instruction sheet.
                   </p>
                 </div>
               </div>
               {/* AI Recommendation 2 - Soften corners */}
               <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1546868871-115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Smart Watch" className="w-full h-40 object-cover" />
+                  <img src="https://cdn.shopify.com/s/files/1/0938/0885/3335/files/515MDb48RbL._AC_SL1000.jpg?v=1756487720" alt="Cadac 2 Cook 3 Pro Deluxe QR Camping Stove" className="w-full h-40 object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
-                      GPS Rangefinder Watch
+                      Camping Stove
                     </span>
                     <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      £49.99
+                      £136.00
                     </span>
                   </div>
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <p className="text-gray-300 text-sm mb-4 flex-1">
-                    Wearable tech with preloaded golf courses and precise
-                    distance measurements to greens and hazards.
+                    One BBQ, multiple cooking variations. The possibility of discovery is endless with the 2 Cook 3 Pro Deluxe QR.
                   </p>
                 </div>
               </div>
               {/* AI Recommendation 3 - Soften corners */}
               <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Tech Gadget" className="w-full h-40 object-cover" />
+                  <img src="https://cdn.shopify.com/s/files/1/0938/0885/3335/files/51DJrP4SKOL._AC_SL1500.jpg?v=1755195241" alt="Philips Air Fryer 2000 Series 6.2L" className="w-full h-40 object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
-                      Golf Swing Analyzer
+                      Air Fryer 6.2L
                     </span>
                     <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                      £34.99
+                      £67.99
                     </span>
                   </div>
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <p className="text-gray-300 text-sm mb-4 flex-1">
-                    Bluetooth device that attaches to any club and provides
-                    real-time swing analysis on your smartphone.
+                    RapidAir technology: Enjoy irresistibly crispy exteriors and tender interiors with minimal oil.
                   </p>
                 </div>
               </div>
@@ -840,16 +837,24 @@ export function LandingPage() {
                 </p>
                 {/* Social media icons */}
                 <div className="flex space-x-4 mt-6">
-                  {['facebook', 'twitter', 'instagram', 'pinterest'].map(social => <motion.a key={social} href="#" whileHover={{
-                  y: -3
-                }} className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors">
-                        <span className="text-white text-lg">
-                          {social === 'facebook' && 'f'}
-                          {social === 'twitter' && 'X'}
-                          {social === 'instagram' && 'IG'}
-                          {social === 'pinterest' && 'P'}
-                        </span>
-                      </motion.a>)}
+                  <motion.a 
+                    href="https://www.facebook.com/simplysent.co" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    whileHover={{ y: -3 }} 
+                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                  >
+                    <span className="text-white text-lg font-bold">f</span>
+                  </motion.a>
+                  <motion.a 
+                    href="https://www.instagram.com/simplysent.co/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    whileHover={{ y: -3 }} 
+                    className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                  >
+                    <span className="text-white text-sm font-bold">IG</span>
+                  </motion.a>
                 </div>
               </div>
             </div>
