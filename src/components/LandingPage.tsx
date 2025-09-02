@@ -142,7 +142,7 @@ export function LandingPage() {
       </header>
 
       {/* Hero Section - Fixed: Only change height on mobile, not tablet/desktop */}
-      <section className="relative overflow-hidden mx-[calc(50%-50vw)] md:mx-0 w-screen md:w-auto py-16 md:py-24 min-h-[calc(100svh-80px)] supports-[height:100dvh]:min-h-[calc(100dvh-80px)] md:min-h-0 flex md:block items-center">
+      <section className="relative overflow-hidden mx-[calc(50%-50vw)] md:mx-0 w-screen md:w-auto py-16 md:py-24 min-h-[600px] md:min-h-0 flex md:block items-center">
         {/* Simplified background design with static gradients */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900"></div>
         {/* Simplified static overlay - removed animated elements */}
