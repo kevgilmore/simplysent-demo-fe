@@ -745,17 +745,16 @@ export function LandingPage() {
             <motion.div whileHover={{
             y: -5
           }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full">
-              <img src="https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Gift Wrapping" className="w-full h-48 object-cover" />
+              <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="SimplySent Mobile App" className="w-full h-48 object-cover" />
               <div className="p-5 flex-1 flex flex-col">
                 <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
-                  Guides
+                  App Announcement
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-1 mb-2">
-                  10 Creative Gift Wrapping Ideas for Any Occasion
+                  🎉 SimplySent Mobile App Coming Soon!
                 </h3>
                 <p className="text-gray-600 text-sm mb-4 flex-1">
-                  Transform ordinary presents into extraordinary gifts with
-                  these simple yet stunning wrapping techniques...
+                  Your AI gift concierge is coming to mobile! Never forget a birthday again with our intelligent gift recommendation app...
                 </p>
                 <Link to="/blog1" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more

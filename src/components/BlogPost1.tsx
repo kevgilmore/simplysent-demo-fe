@@ -64,101 +64,95 @@ export function BlogPost1() {
         }}>
             <div className="mb-8">
               <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
-                Guides
+                App Announcement
               </span>
               <h1 className="text-4xl font-bold text-gray-900 mt-2 mb-4">
-                10 Creative Gift Wrapping Ideas for Any Occasion
+                🎉 SimplySent Mobile App Coming Soon: Your AI Gift Concierge in Your Pocket!
               </h1>
               <div className="flex items-center text-gray-500 text-sm">
-                <span>Published: June 15, 2023</span>
+                <span>Published: January 23, 2025</span>
                 <span className="mx-2">•</span>
-                <span>8 min read</span>
+                <span>5 min read</span>
               </div>
             </div>
-            <img src="https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=1200&auto=format&fit=crop&q=80&ixlib=rb-4.0.3" alt="Gift Wrapping" className="w-full h-80 object-cover rounded-2xl mb-8" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&auto=format&fit=crop&q=80&ixlib=rb-4.0.3" alt="SimplySent Mobile App" className="w-full h-80 object-cover rounded-2xl" />
+              <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">📱</div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h3>
+                  <p className="text-gray-600">Your AI Gift Concierge</p>
+                </div>
+              </div>
+            </div>
             <div className="prose prose-lg max-w-none">
               <p>
-                Transform ordinary presents into extraordinary gifts with these
-                simple yet stunning wrapping techniques. The art of gift
-                wrapping is often overlooked, but a beautifully wrapped present
-                shows thoughtfulness and care before the recipient even sees
-                what's inside.
+                Get ready to revolutionize the way you give gifts! We're thrilled to announce that the SimplySent mobile app is coming soon, bringing our AI-powered gift concierge service directly to your smartphone. Say goodbye to last-minute gift panic and hello to effortless, thoughtful giving! 🎁
               </p>
-              <h2>1. Japanese Fabric Wrapping (Furoshiki)</h2>
+              
+              <h2>🤖 Meet Your Personal AI Gift Concierge</h2>
               <p>
-                Furoshiki is an eco-friendly Japanese wrapping technique using
-                fabric instead of paper. This centuries-old practice is not only
-                sustainable but also creates a unique, elegant presentation.
-                Simply place your gift in the center of a square fabric piece,
-                bring the corners together, and tie them creatively.
+                Imagine having a personal assistant who never forgets a birthday, always knows the perfect gift, and handles everything from selection to delivery. That's exactly what SimplySent delivers! Our AI concierge service is designed to handle all your gift-giving needs with the intelligence of artificial intelligence and the warmth of human thoughtfulness.
               </p>
-              <h2>2. Monochromatic Layering</h2>
+              
+              <h2>📱 How SimplySent Works (It's Ridiculously Simple!)</h2>
               <p>
-                Create depth and visual interest by using different shades and
-                textures of the same color. Layer various ribbons, papers, and
-                embellishments in complementary tones for a sophisticated,
-                cohesive look that's sure to impress.
+                We've made gift-giving as easy as sending a text message. Here's how our magic works:
               </p>
-              <h2>3. Natural Elements</h2>
               <p>
-                Incorporate small natural elements like sprigs of evergreen,
-                dried flowers, cinnamon sticks, or even a small ornament. These
-                thoughtful additions not only enhance the appearance but can
-                also become a bonus mini-gift.
+                <strong>Step 1:</strong> Add your friends and family to the app - just their name, age, and a few interests (like "loves coffee and hiking" or "obsessed with skincare").
               </p>
-              <h2>4. Custom Hand-Stamped Paper</h2>
               <p>
-                Create your own wrapping paper using kraft paper or white
-                butcher paper and simple stamps. Potato stamps, cork stamps, or
-                even children's building blocks can create charming patterns
-                that add a personal touch.
+                <strong>Step 2:</strong> Set your budget and mark important dates like birthdays, anniversaries, or holidays.
               </p>
-              <h2>5. Washi Tape Designs</h2>
               <p>
-                Washi tape comes in countless colors and patterns and is perfect
-                for creating geometric designs, borders, or even replacing
-                ribbon altogether. The best part? No scissors or complicated
-                knots required!
+                <strong>Step 3:</strong> Let our AI work its magic! It analyzes their interests, age, and current trends to recommend the perfect gift.
               </p>
-              <h2>6. Fabric Ribbon Alternatives</h2>
               <p>
-                Replace traditional ribbon with unexpected materials like
-                velvet, leather cords, twine, yarn, or even strips of beautiful
-                fabric. These alternatives add texture and can be tailored to
-                match the recipient's personal style.
+                <strong>Step 4:</strong> Approve the selection (or let the AI choose automatically), and we handle payment and delivery. Done! 🎉
               </p>
-              <h2>7. Hidden Message Wrapping</h2>
+              
+              <h2>🔄 The "Set It and Forget It" Subscription</h2>
               <p>
-                Write personal messages, inside jokes, or clues about what's
-                inside directly on the wrapping paper before wrapping the gift.
-                This interactive element adds an extra layer of fun to the
-                unwrapping experience.
+                Here's where SimplySent gets really exciting - our optional subscription model! Set it up once in just 2 minutes, and you'll never have to worry about that person's gifts again. Our AI learns and evolves, picking new and exciting gifts each year within your specified budget.
               </p>
-              <h2>8. Transparent Layers</h2>
               <p>
-                Use materials like cellophane, organza, or tulle to create
-                semi-transparent layers that offer a tantalizing glimpse of
-                what's inside while still maintaining an element of surprise.
+                Imagine never forgetting your mom's birthday, your partner's anniversary, or your best friend's graduation. The app remembers everything and ensures every gift feels personal and thoughtful, not automated.
               </p>
-              <h2>9. Origami Accents</h2>
+              
+              <h2>🎯 Why SimplySent is a Game-Changer</h2>
               <p>
-                Learn a few simple origami shapes like stars, flowers, or boxes
-                to add three-dimensional decorations to your gifts. These can be
-                made from coordinating or contrasting paper for maximum impact.
+                <strong>Save Time:</strong> No more hours spent browsing endless online stores or wandering aimlessly through shopping centers.
               </p>
-              <h2>10. Upcycled Material Wrapping</h2>
               <p>
-                Repurpose materials like maps, sheet music, comic books, or even
-                children's artwork for wrapping that's both eco-friendly and
-                personally meaningful. Match the material to the recipient's
-                interests for an extra thoughtful touch.
+                <strong>Never Forget:</strong> Our app keeps track of all important dates and sends you gentle reminders (or handles it automatically if you prefer).
               </p>
-              <h2>Final Thoughts</h2>
               <p>
-                Remember, the presentation of a gift is the first impression and
-                sets the tone for what's inside. With these creative wrapping
-                ideas, you'll transform the simple act of giving into a
-                memorable experience that shows just how much you care.
+                <strong>Personalized Intelligence:</strong> Our AI gets smarter with every interaction, learning what makes each person in your life smile.
+              </p>
+              <p>
+                <strong>Stress-Free Giving:</strong> Transform gift-giving from a source of anxiety into a source of joy.
+              </p>
+              
+              <h2>📸 Sneak Peek at the App</h2>
+              <p>
+                The screenshots show just how intuitive and beautiful the SimplySent experience will be. With a clean, modern interface, you can easily manage all your gift recipients, view AI recommendations, and track deliveries - all from one elegant app.
+              </p>
+              
+              <h2>🚀 Coming Soon to Your Pocket</h2>
+              <p>
+                We're putting the finishing touches on the SimplySent mobile app and can't wait to share it with you. Whether you're someone who loves giving gifts but struggles with timing, or you're the type who wants to be thoughtful but finds shopping overwhelming, SimplySent is designed for you.
+              </p>
+              <p>
+                The future of gift-giving is intelligent, personal, and effortless. And it's coming to your smartphone very soon!
+              </p>
+              
+              <h2>🎁 Ready to Transform Your Gift-Giving?</h2>
+              <p>
+                Stay tuned for the official launch announcement! In the meantime, you can experience our AI gift recommendations on our website. We're confident that once you try SimplySent, you'll wonder how you ever managed gift-giving without it.
+              </p>
+              <p>
+                <em>Because the best gifts come from the heart... but a little AI assistance doesn't hurt! 💜</em>
               </p>
             </div>
           </motion.div>
@@ -167,13 +161,13 @@ export function BlogPost1() {
               Related Articles
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Link to="/blog2" className="group">
+              <Link to="/fathers-day" className="group">
                 <div className="bg-purple-50 rounded-xl p-4 transition-all group-hover:bg-purple-100">
                   <h4 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                    The Ultimate Father's Day Gift Guide
+                    Try Our AI Gift Finder Now
                   </h4>
                   <div className="flex items-center mt-2 text-purple-600">
-                    <span className="text-sm">Read article</span>
+                    <span className="text-sm">Get started</span>
                     <ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>

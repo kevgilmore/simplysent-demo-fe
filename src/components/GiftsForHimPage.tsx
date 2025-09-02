@@ -243,7 +243,7 @@ export function GiftsForHimPage() {
             delay: getCurrentProducts().indexOf(product) * 0.1
           }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
                   <div className="relative">
-                    <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-32 object-contain bg-white p-2" onError={e => {
+                    <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-48 object-contain bg-white p-2" onError={e => {
                 ;
                 (e.target as HTMLImageElement).src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
               }} />
@@ -260,30 +260,11 @@ export function GiftsForHimPage() {
                         {truncateTitle(formatProductName(product.title), 50)}
                       </h3>
                     </div>
-                    {/* Description with expandable content */}
-                    <div className={`mb-3 overflow-hidden ${isExpanded ? '' : 'max-h-[60px]'} relative`}>
-                      <p className="text-gray-700 text-sm">{formattedDescription}</p>
-                      {/* Show gradient overlay and more button if description is long */}
-                      {formattedDescription.length > 60 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent"></div>}
-                    </div>
-                    {/* Show more/less button if description is long enough */}
-                    {formattedDescription.length > 60 && <button onClick={() => toggleDescription(product.id)} className="text-blue-600 hover:text-blue-800 text-xs font-medium flex items-center mb-3">
-                        {isExpanded ? 'Show less' : 'Show more'}
-                        <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                      </button>}
+                    {/* Simple description - 4-5 lines max */}
                     <div className="mb-4 flex-grow">
-                      <h4 className="font-semibold text-gray-800 mb-1 text-sm">
-                        Features:
-                      </h4>
-                      <ul className="space-y-1">
-                        {formattedDescription ? extractFeatures(formattedDescription).slice(0, 3).map((feature, index) => <li key={index} className="text-gray-600 flex items-start text-xs">
-                                <span className="text-purple-500 mr-1 text-xs">•</span>
-                                {feature}
-                              </li>) : <li className="text-gray-600 flex items-start text-xs">
-                            <span className="text-purple-500 mr-1 text-xs">•</span>
-                            Perfect gift idea for him
-                          </li>}
-                      </ul>
+                      <p className="text-gray-700 text-sm line-clamp-4">
+                        {formattedDescription.length > 200 ? formattedDescription.substring(0, 200) + '...' : formattedDescription}
+                      </p>
                     </div>
                     <div className="mt-auto">
                       <a href={generateAmazonUrl(product.variants[0]?.sku || '')} target="_blank" rel="noopener noreferrer" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center no-underline text-sm">

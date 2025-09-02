@@ -22,8 +22,8 @@ export function GiftCarousel({
 }: GiftCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [touchStart, setTouchStart] = useState<{x: number, y: number} | null>(null);
-  const [touchEnd, setTouchEnd] = useState<{x: number, y: number} | null>(null);
+  const [touchStart, setTouchStart] = useState<{x: number, y: number, time: number} | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{x: number, y: number, time: number} | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   // Reset currentIndex when items change
@@ -33,7 +33,7 @@ export function GiftCarousel({
     }
   }, [items.length, currentIndex]);
   // Minimum swipe distance (in px)
-  const minSwipeDistance = 50;
+  const minSwipeDistance = 30; // Reduced for easier swiping
   const slideVariants = {
     enter: (dir: number) => ({
       x: dir > 0 ? 40 : -40,
@@ -74,7 +74,8 @@ export function GiftCarousel({
     setTouchEnd(null);
     setTouchStart({
       x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
+      y: e.targetTouches[0].clientY,
+      time: Date.now()
     });
     setIsDragging(false);
   };
@@ -84,14 +85,15 @@ export function GiftCarousel({
     
     const currentTouch = {
       x: e.targetTouches[0].clientX,
-      y: e.targetTouches[0].clientY
+      y: e.targetTouches[0].clientY,
+      time: Date.now()
     };
     
     const deltaX = Math.abs(currentTouch.x - touchStart.x);
     const deltaY = Math.abs(currentTouch.y - touchStart.y);
     
     // If horizontal movement is more significant than vertical, prevent default scrolling
-    if (deltaX > deltaY && deltaX > 10) {
+    if (deltaX > deltaY && deltaX > 5) { // Reduced threshold for better responsiveness
       e.preventDefault();
       setIsDragging(true);
     }
@@ -104,9 +106,10 @@ export function GiftCarousel({
     
     const deltaX = touchStart.x - touchEnd.x;
     const deltaY = Math.abs(touchStart.y - touchEnd.y);
+    const timeDiff = touchEnd.time - touchStart.time;
     
-    // Only trigger swipe if horizontal movement is dominant and exceeds minimum distance
-    if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > deltaY * 2) {
+    // Only trigger swipe if horizontal movement is dominant, exceeds minimum distance, and isn't too fast (to prevent accidental swipes)
+    if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > deltaY * 1.5 && timeDiff > 100) { // Added minimum time requirement
       if (deltaX > 0) {
         handleNext(); // Swipe left = next
       } else {
@@ -182,7 +185,7 @@ export function GiftCarousel({
   // Format the description
   const formattedDescription = formatDescription(currentItem.description);
   return <div className="relative w-full mb-4">
-      <div className="relative rounded-2xl overflow-visible touch-pan-y" style={{touchAction: 'pan-y pinch-zoom'}} ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
+      <div className={`relative rounded-2xl overflow-visible touch-pan-y transition-transform duration-150 ${isDragging ? 'scale-[0.98] shadow-2xl' : 'scale-100'}`} style={{touchAction: 'pan-y pinch-zoom'}} ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrevious();
     }}>
