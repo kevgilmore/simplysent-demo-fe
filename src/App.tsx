@@ -77,7 +77,7 @@ function AnimatedRoutes() {
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/app-release-blog" element={<BlogPost1 />} />
         <Route path="/fathers-day-guide" element={<BlogPost2 />} />
-        <Route path="/blog3" element={<BlogPost3 />} />
+        <Route path="/budget-gifts-guide" element={<BlogPost3 />} />
       </Routes>
     </AnimatePresence>;
 }

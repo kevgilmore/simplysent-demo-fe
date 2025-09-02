@@ -1,6 +1,6 @@
 import React, { useEffect, useState, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, ShoppingCartIcon, Loader2Icon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { fetchCollectionProducts, ShopifyProduct, generateAmazonUrl, truncateTitle, formatDescription } from '../services/shopifyService';
 export function GiftsForHerPage() {
@@ -19,7 +19,7 @@ export function GiftsForHerPage() {
     window.scrollTo(0, 0);
   }, []);
   // Add state for budget range
-  const [budgetRange, setBudgetRange] = useState([20, 50]);
+  const [budgetRange, setBudgetRange] = useState([20, 80]);
   // Add state for slider dragging
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   // Fetch products from Shopify API
@@ -40,13 +40,20 @@ export function GiftsForHerPage() {
     };
     getProducts();
   }, []);
-  // Filter products based on budget range
+  // Filter and sort products based on budget range
   useEffect(() => {
     if (products.length > 0) {
-      const filtered = products.filter(product => {
-        const price = product.variants[0]?.price || 0;
-        return price >= budgetRange[0] && price <= budgetRange[1];
-      });
+      const filtered = products
+        .filter(product => {
+          const price = product.variants[0]?.price || 0;
+          return price >= budgetRange[0] && price <= budgetRange[1];
+        })
+        .sort((a, b) => {
+          // Sort by price descending (highest first)
+          const priceA = a.variants[0]?.price || 0;
+          const priceB = b.variants[0]?.price || 0;
+          return priceB - priceA;
+        });
       setFilteredProducts(filtered);
       // Calculate total pages
       setTotalPages(Math.ceil(filtered.length / itemsPerPage));
@@ -220,7 +227,8 @@ export function GiftsForHerPage() {
         </div>}
       {/* Product Grid */}
       {!loading && !error && <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {getCurrentProducts().map(product => {
+          <AnimatePresence mode="popLayout">
+            {getCurrentProducts().map(product => {
         const isExpanded = expandedDescriptions.has(product.id);
         const formattedDescription = formatDescription(product.description || '');
         return <motion.div key={product.id} initial={{
@@ -229,10 +237,13 @@ export function GiftsForHerPage() {
         }} animate={{
           opacity: 1,
           y: 0
+        }} exit={{
+          opacity: 0,
+          y: -20
         }} transition={{
-          duration: 0.5,
-          delay: getCurrentProducts().indexOf(product) * 0.1
-        }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
+          duration: 0.3,
+          delay: getCurrentProducts().indexOf(product) * 0.05
+        }} layout className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
                 <div className="relative">
                   <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-48 object-contain bg-white p-2" onError={handleImageError} />
                   <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
@@ -263,6 +274,7 @@ export function GiftsForHerPage() {
                 </div>
               </motion.div>;
       })}
+          </AnimatePresence>
         </div>}
       {/* Pagination Controls */}
       {totalPages > 1 && <div className="flex justify-center items-center mt-12 space-x-2">

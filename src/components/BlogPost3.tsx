@@ -75,7 +75,7 @@ export function BlogPost3() {
                 <span>12 min read</span>
               </div>
             </div>
-            <img src="https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=1200&auto=format&fit=crop&q=80&ixlib=rb-4.0.3" alt="Budget Gifts" className="w-full h-80 object-cover rounded-2xl mb-8" />
+            <img src="/time_street.jpg" alt="Budget Gifts" className="w-full h-80 object-cover rounded-2xl mb-8" />
             <div className="prose prose-lg max-w-none">
               <p>
                 Gift-giving doesn't have to break the bank to be meaningful.
@@ -292,10 +292,10 @@ export function BlogPost3() {
                   </div>
                 </div>
               </Link>
-              <Link to="/blog2" className="group">
+              <Link to="/fathers-day-guide" className="group">
                 <div className="bg-purple-50 rounded-xl p-4 transition-all group-hover:bg-purple-100">
                   <h4 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                    The Ultimate Father's Day Gift Guide
+                    How to Totally Boss Father's Day
                   </h4>
                   <div className="flex items-center mt-2 text-purple-600">
                     <span className="text-sm">Read article</span>

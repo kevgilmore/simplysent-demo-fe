@@ -35,7 +35,60 @@ interface FormErrors {
   sentiment?: string;
   gender?: string;
 }
-const interestOptions = ['Tech', 'Golf', 'Fishing', 'Hiking', 'Camping', 'Cycling', 'Running', 'Swimming', 'Weightlifting', 'Yoga', 'Martial Arts', 'Boxing', 'CrossFit', 'Rowing', 'Rock Climbing', 'Kayaking', 'Sailing', 'Surfing', 'Skiing', 'Snowboarding', 'Archery', 'Hunting', 'Gardening', 'Woodworking', 'Car Restoration', 'Home Improvement', 'Leatherworking', 'Metalworking', 'Model Building', 'Electronics', '3D Printing', 'Drone Flying', 'Coding', 'Video Gaming', 'Board Games', 'Chess', 'Photography', 'Painting', 'Drawing', 'Sculpting', 'Calligraphy', 'Music (Playing Instruments)', 'Writing', 'Reading', 'Film Watching', 'Theatre', 'Magic Tricks', 'Cooking', 'Baking', 'Grilling/BBQ', 'Home Brewing', 'Wine Tasting', 'Coffee Brewing', 'Cheesemaking', 'Stamp Collecting', 'Coin Collecting', 'Vintage Cars', 'Antique Collecting', 'Action Figures', 'Comic Books', 'Watches', 'Vinyl Records', 'Sports Memorabilia', 'Model Trains', 'Road Trips', 'Backpacking', 'Scuba Diving', 'Geocaching', 'Motorcycling', 'Off-Roading', 'Genealogy', 'Bird Watching', 'Astronomy', 'Language Learning', 'Meditation', 'Podcasting', 'Blogging', 'Home Automation', 'Virtual Reality', 'Retro Gaming', 'Pet Training', 'Storytelling', 'Volunteering', 'Landscaping', 'Interior Design', 'Tattooing', 'Soap Making', 'Stock Market Trading', 'Leather Craft', 'Knife Making', 'RC Planes', 'RC Boats', 'RC Cars', 'Metal Detecting', 'Treasure Hunting', 'Beekeeping', 'Aquarium Keeping', 'Origami', 'Kite Flying'];
+// Complete interests list
+const allInterests = [
+  'Action Figures', 'Antique Collecting', 'Aquarium Keeping', 'Archery', 'Astrophotography', 'Astronomy',
+  'Backpacking', 'Baking', 'Barre Fitness', 'Beekeeping', 'Being Cosy (Homebody)', 'Bird Watching',
+  'Blogging', 'Board Games', 'Book Clubs', 'Boxing', 'Brunching & Foodie Experiences',
+  'Calligraphy', 'Calligraphy Journaling', 'Camping', 'Candle Making', 'Car Restoration', 'Cheesemaking',
+  'Chess', 'Coding', 'Coffee Brewing', 'Comic Books', 'Cooking', 'Creative Writing', 'Crocheting',
+  'CrossFit', 'Dance', 'DIY Crafts', 'Drawing', 'Drone Flying', 'Electronics', 'Embroidery',
+  'Fashion & Styling', 'Film Watching', 'Fishing', 'Flower Arranging', 'Gardening', 'Geocaching',
+  'Genealogy', 'Golf', 'Grilling/BBQ', 'Hiking', 'Home Automation', 'Home Brewing', 'Home Decorating',
+  'Home Improvement', 'Hunting', 'Interior Design', 'Jewellery Making', 'Journaling', 'Kayaking',
+  'Kite Flying', 'Knife Making', 'Knitting', 'Language Learning', 'Landscaping', 'Leather Craft',
+  'Leatherworking', 'Magic Tricks', 'Makeup & Beauty', 'Martial Arts', 'Meditation', 'Metal Detecting',
+  'Metalworking', 'Model Building', 'Model Trains', 'Motorcycling', 'Music (Playing Instruments)',
+  'Off-Roading', 'Origami', 'Painting', 'Pet Training', 'Photography', 'Pilates', 'Podcasting',
+  'Pottery & Ceramics', 'Quilting', 'RC Boats', 'RC Cars', 'RC Planes', 'Reading', 'Road Trips',
+  'Rock Climbing', 'Rowing', 'Sailing', 'Scuba Diving', 'Scrapbooking', 'Self-Care/Wellness Routines',
+  'Sewing', 'Skiing', 'Skincare Routines', 'Soap Making', 'Social Media Content Creation', 'Sculpting',
+  'Sports Memorabilia', 'Stamp Collecting', 'Stock Market Trading', 'Storytelling', 'Surfing',
+  'Swimming', 'Tattooing', 'Tea Appreciation', 'Tech', 'Theatre', 'Treasure Hunting', 'Travel Planning',
+  'Video Gaming', 'Vintage Cars', 'Vinyl Records', 'Virtual Reality', 'Volunteering', 'Weightlifting',
+  'Wine Tasting', 'Watches', 'Woodworking', 'Writing', 'Yoga'
+];
+
+// Gender-specific top interests for sorting
+const topMaleInterests = [
+  'Tech', 'Sports Memorabilia', 'Video Gaming', 'Weightlifting', 'Fishing', 
+  'Hiking', 'Car Restoration', 'Home Improvement', 'Golf', 'Grilling/BBQ'
+];
+
+const topFemaleInterests = [
+  'Reading', 'Yoga', 'Cooking', 'Gardening', 'Fashion & Styling', 
+  'Knitting', 'Photography', 'Dance', 'Creative Writing', 'Being Cosy (Homebody)'
+];
+
+// Function to get sorted interests based on gender
+const getSortedInterests = (gender: string): string[] => {
+  if (gender === 'male') {
+    // Put top male interests first, then the rest alphabetically
+    const remainingInterests = allInterests
+      .filter(interest => !topMaleInterests.includes(interest))
+      .sort();
+    return [...topMaleInterests, ...remainingInterests];
+  } else if (gender === 'female') {
+    // Put top female interests first, then the rest alphabetically
+    const remainingInterests = allInterests
+      .filter(interest => !topFemaleInterests.includes(interest))
+      .sort();
+    return [...topFemaleInterests, ...remainingInterests];
+  } else {
+    // No gender selected - show all interests alphabetically
+    return [...allInterests].sort();
+  }
+};
 export function GiftRecommenderForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -100,13 +153,46 @@ export function GiftRecommenderForm() {
     return ['Partner', 'Friend', 'Other'].includes(relationship);
   };
 
+  // Get available occasions based on relationship and selected gender
+  const getAvailableOccasions = (relationship: string, selectedGender?: string): string[] => {
+    const autoGender = getGenderFromRelationship(relationship);
+    const effectiveGender = autoGender || selectedGender;
+    const baseOccasions = ['Birthday', 'Anniversary', 'Other'];
+    
+    if (effectiveGender === 'male') {
+      return [...baseOccasions, "Father's Day"];
+    } else if (effectiveGender === 'female') {
+      return [...baseOccasions, "Mother's Day"];
+    } else {
+      // For Partner, Friend, Other without gender selection - show both
+      return [...baseOccasions, "Father's Day", "Mother's Day"];
+    }
+  };
+
   // Handle relationship change with automatic gender setting
   const handleRelationshipChange = (relationship: string) => {
     const autoGender = getGenderFromRelationship(relationship);
+    const newGender = autoGender || formData.gender;
+    const availableOccasions = getAvailableOccasions(relationship, newGender);
+    
     setFormData(prev => ({
       ...prev,
       relationship,
-      gender: autoGender || prev.gender
+      gender: newGender,
+      // Reset occasion if current one is not available for this relationship
+      occasion: availableOccasions.includes(prev.occasion) ? prev.occasion : ''
+    }));
+  };
+
+  // Handle gender change and filter occasions accordingly
+  const handleGenderChange = (gender: string) => {
+    const availableOccasions = getAvailableOccasions(formData.relationship, gender);
+    
+    setFormData(prev => ({
+      ...prev,
+      gender,
+      // Reset occasion if current one is not available for this gender
+      occasion: availableOccasions.includes(prev.occasion) ? prev.occasion : ''
     }));
   };
   // Scroll to top when component mounts
@@ -470,11 +556,9 @@ export function GiftRecommenderForm() {
                 occasion: e.target.value
               }))} className="w-full appearance-none px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors pr-10">
                   <option value="">Select occasion...</option>
-                  <option value="Birthday">Birthday</option>
-                  <option value="Father's Day">Father's Day</option>
-                  <option value="Mother's Day">Mother's Day</option>
-                  <option value="Anniversary">Anniversary</option>
-                  <option value="Other">Other</option>
+                  {getAvailableOccasions(formData.relationship, formData.gender).map(occasion => (
+                    <option key={occasion} value={occasion}>{occasion}</option>
+                  ))}
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -493,19 +577,13 @@ export function GiftRecommenderForm() {
                 </label>
                 <div className="flex gap-4">
                   <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${formData.gender === 'male' ? 'bg-purple-100 border-2 border-purple-300 shadow-sm' : 'bg-white border border-gray-200 hover:bg-purple-50'}`}>
-                    <input type="radio" value="male" checked={formData.gender === 'male'} onChange={() => setFormData(prev => ({
-                    ...prev,
-                    gender: 'male'
-                  }))} className="sr-only" />
+                    <input type="radio" value="male" checked={formData.gender === 'male'} onChange={() => handleGenderChange('male')} className="sr-only" />
                     <span className={`text-sm font-medium ${formData.gender === 'male' ? 'text-purple-700' : 'text-gray-600'}`}>
                       Male
                     </span>
                   </label>
                   <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${formData.gender === 'female' ? 'bg-purple-100 border-2 border-purple-300 shadow-sm' : 'bg-white border border-gray-200 hover:bg-purple-50'}`}>
-                    <input type="radio" value="female" checked={formData.gender === 'female'} onChange={() => setFormData(prev => ({
-                    ...prev,
-                    gender: 'female'
-                  }))} className="sr-only" />
+                    <input type="radio" value="female" checked={formData.gender === 'female'} onChange={() => handleGenderChange('female')} className="sr-only" />
                     <span className={`text-sm font-medium ${formData.gender === 'female' ? 'text-purple-700' : 'text-gray-600'}`}>
                       Female
                     </span>
@@ -571,7 +649,7 @@ export function GiftRecommenderForm() {
           </div>
           <div className="max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {interestOptions.map(interest => <label key={interest} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${formData.interests.includes(interest) ? 'bg-pink-100 border-2 border-pink-300 shadow-md' : 'bg-gray-50 border-2 border-gray-100 hover:border-gray-200'}`}>
+              {getSortedInterests(formData.gender).map(interest => <label key={interest} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${formData.interests.includes(interest) ? 'bg-pink-100 border-2 border-pink-300 shadow-md' : 'bg-gray-50 border-2 border-gray-100 hover:border-gray-200'}`}>
                   <input type="checkbox" checked={formData.interests.includes(interest)} onChange={() => handleInterestToggle(interest)} className="sr-only" />
                   <span className={`text-sm font-medium ${formData.interests.includes(interest) ? 'text-pink-700' : 'text-gray-600'}`}>
                     {interest}

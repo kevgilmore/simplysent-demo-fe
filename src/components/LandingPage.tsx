@@ -1,13 +1,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { GiftIcon, SparklesIcon, ShoppingBagIcon, ShoppingCartIcon, MenuIcon, SearchIcon, ChevronRightIcon, StarIcon, ZapIcon, ArrowRightIcon } from 'lucide-react';
+import { GiftIcon, SparklesIcon, ShoppingBagIcon, ShoppingCartIcon, MenuIcon, SearchIcon, ChevronRightIcon, StarIcon, ZapIcon, ArrowRightIcon, CheckCircleIcon } from 'lucide-react';
 import { GiftCarousel } from './GiftCarousel';
 import { fetchCollectionProducts, ShopifyProduct } from '../services/shopifyService';
 export function LandingPage() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const popularGiftIdeasRef = useRef<HTMLElement>(null);
+  
+  // Newsletter signup state
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [newsletterMessage, setNewsletterMessage] = useState('');
   // Add reference for Gift Inspiration section
   const giftInspirationRef = useRef<HTMLElement>(null);
   // Add states for product data
@@ -55,6 +60,44 @@ export function LandingPage() {
     };
     fetchProducts();
   }, []);
+
+  // Newsletter signup handler
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newsletterEmail || !newsletterEmail.includes('@')) {
+      setNewsletterStatus('error');
+      setNewsletterMessage('Please enter a valid email address');
+      return;
+    }
+
+    setNewsletterStatus('loading');
+    setNewsletterMessage('');
+
+    try {
+      // Create form data for Mailchimp
+      const formData = new FormData();
+      formData.append('EMAIL', newsletterEmail);
+      
+      // Submit to Mailchimp
+      const response = await fetch('https://simplysent.us21.list-manage.com/subscribe/post?u=3b085c2372019cf71eb4fa459&id=42bf4a93a4&f_id=001f80e6f0', {
+        method: 'POST',
+        body: formData,
+        mode: 'no-cors' // Required for Mailchimp
+      });
+
+      // Since we're using no-cors, we can't read the response
+      // We'll assume success and show success message
+      setNewsletterStatus('success');
+      setNewsletterMessage('Thank you for subscribing! Check your email to confirm.');
+      setNewsletterEmail('');
+      
+    } catch (error) {
+      setNewsletterStatus('error');
+      setNewsletterMessage('Something went wrong. Please try again.');
+    }
+  };
+
   // Function to handle smooth scrolling to the Popular Gift Ideas section
   const scrollToGiftIdeas = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -766,19 +809,18 @@ export function LandingPage() {
             <motion.div whileHover={{
             y: -5
           }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full">
-              <img src="https://images.unsplash.com/photo-1528825871115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Father's Day" className="w-full h-48 object-cover" />
+              <img src="/like_a_boss.jpg" alt="How to Totally Boss Father's Day" className="w-full h-48 object-cover" />
               <div className="p-5 flex-1 flex flex-col">
                 <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
-                  Guides
+                  Father's Day
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-1 mb-2">
-                  The Ultimate Father's Day Gift Guide for 2023
+                  How to Totally Boss Father's Day
                 </h3>
                 <p className="text-gray-600 text-sm mb-4 flex-1">
-                  Find the perfect way to show your appreciation with our
-                  curated selection of gifts for every type of dad...
+                  Don't panic! We've put together a handy checklist to make sure your old man gets a great Father's Day...
                 </p>
-                <Link to="/blog2" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
+                <Link to="/fathers-day-guide" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -788,19 +830,18 @@ export function LandingPage() {
             <motion.div whileHover={{
             y: -5
           }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full">
-              <img src="https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Budget Gifts" className="w-full h-48 object-cover" />
+              <img src="/time_street.jpg" alt="Budget Gifts Guide" className="w-full h-48 object-cover" />
               <div className="p-5 flex-1 flex flex-col">
                 <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
-                  Tips
+                  Budget Gifts
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-1 mb-2">
                   25 Thoughtful Gifts Under £20 That Don't Look Cheap
                 </h3>
                 <p className="text-gray-600 text-sm mb-4 flex-1">
-                  Impressive presents that won't break the bank but will still
-                  make a big impact on your loved ones...
+                  Discover impressive presents that won't break the bank but will still make a big impact on your loved ones...
                 </p>
-                <Link to="/blog3" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
+                <Link to="/budget-gifts-guide" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>
@@ -916,14 +957,45 @@ export function LandingPage() {
                   Newsletter
                 </h4>
                 <p className="text-purple-200 mb-4 text-sm">
-                  Subscribe for gift ideas and exclusive offers
+                  Subscribe for exclusive offers and app news
                 </p>
-                <div className="flex flex-col gap-3">
-                  <input type="email" placeholder="Your email" className="w-full bg-white/20 border border-purple-300/30 rounded-lg px-4 py-2 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50" />
-                  <button className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                    Subscribe
-                  </button>
-                </div>
+                {newsletterStatus === 'success' ? (
+                  <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-4 text-center">
+                    <CheckCircleIcon className="w-6 h-6 text-green-400 mx-auto mb-2" />
+                    <p className="text-green-200 text-sm font-medium">
+                      {newsletterMessage}
+                    </p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleNewsletterSubmit} className="flex flex-col gap-3">
+                    <input 
+                      type="email" 
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      placeholder="Your email" 
+                      className="w-full bg-white/20 border border-purple-300/30 rounded-lg px-4 py-2 text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-white/50" 
+                      required
+                      disabled={newsletterStatus === 'loading'}
+                    />
+                    {newsletterStatus === 'error' && (
+                      <p className="text-red-300 text-xs">{newsletterMessage}</p>
+                    )}
+                    <button 
+                      type="submit"
+                      disabled={newsletterStatus === 'loading'}
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-purple-400 disabled:to-pink-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    >
+                      {newsletterStatus === 'loading' ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Subscribing...
+                        </>
+                      ) : (
+                        'Subscribe'
+                      )}
+                    </button>
+                  </form>
+                )}
               </div>
             </div>
           </div>
