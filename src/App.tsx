@@ -75,8 +75,8 @@ function AnimatedRoutes() {
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/blog1" element={<BlogPost1 />} />
-        <Route path="/blog2" element={<BlogPost2 />} />
+        <Route path="/app-release-blog" element={<BlogPost1 />} />
+        <Route path="/fathers-day-guide" element={<BlogPost2 />} />
         <Route path="/blog3" element={<BlogPost3 />} />
       </Routes>
     </AnimatePresence>;

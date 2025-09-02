@@ -97,7 +97,7 @@ export function GiftRecommenderForm() {
 
   // Check if gender field should be shown
   const shouldShowGender = (relationship: string): boolean => {
-    return getGenderFromRelationship(relationship) === null;
+    return ['Partner', 'Friend', 'Other'].includes(relationship);
   };
 
   // Handle relationship change with automatic gender setting
@@ -518,8 +518,8 @@ export function GiftRecommenderForm() {
       </div>
 
       {/* Sentiment Card */}
-      <div className="bg-gradient-to-r from-rose-50 to-red-50 backdrop-blur-sm rounded-2xl p-8 shadow-sm border border-white/40">
-        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
+      <div className="bg-gradient-to-r from-rose-50 to-red-50 backdrop-blur-sm rounded-2xl p-8 shadow-sm border border-white/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-8 md:translate-x-16 -translate-y-16">
           <div className="absolute inset-0 bg-rose-100 opacity-30 rounded-full"></div>
         </div>
         <div className="relative">
@@ -558,8 +558,8 @@ export function GiftRecommenderForm() {
       </div>
 
       {/* Second Card - Change to subtle pink theme */}
-      <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
-        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
+      <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-8 md:translate-x-16 -translate-y-16">
           <div className="absolute inset-0 bg-pink-100 opacity-30 rounded-full"></div>
         </div>
         <div className="relative">
@@ -586,8 +586,8 @@ export function GiftRecommenderForm() {
       </div>
 
       {/* Favorite Drink Card */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
-        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-8 md:translate-x-16 -translate-y-16">
           <div className="absolute inset-0 bg-blue-100 opacity-30 rounded-full"></div>
         </div>
         <div className="relative">
@@ -622,8 +622,8 @@ export function GiftRecommenderForm() {
       </div>
 
       {/* Clothes Size Card */}
-      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40">
-        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-16 -translate-y-16">
+      <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl shadow-xl p-8 shadow-sm border border-white/40 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 transform translate-x-8 md:translate-x-16 -translate-y-16">
           <div className="absolute inset-0 bg-orange-100 opacity-30 rounded-full"></div>
         </div>
         <div className="relative">

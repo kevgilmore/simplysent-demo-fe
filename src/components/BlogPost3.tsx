@@ -281,10 +281,10 @@ export function BlogPost3() {
               Related Articles
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Link to="/blog1" className="group">
+              <Link to="/app-release-blog" className="group">
                 <div className="bg-purple-50 rounded-xl p-4 transition-all group-hover:bg-purple-100">
                   <h4 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                    10 Creative Gift Wrapping Ideas
+                    SimplySent Mobile App Coming Soon!
                   </h4>
                   <div className="flex items-center mt-2 text-purple-600">
                     <span className="text-sm">Read article</span>

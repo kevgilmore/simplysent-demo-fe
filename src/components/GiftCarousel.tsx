@@ -71,8 +71,7 @@ export function GiftCarousel({
   };
   // Enhanced touch event handlers
   const onTouchStart = (e: React.TouchEvent) => {
-    // Prevent any default behavior immediately on touch start within carousel
-    e.preventDefault();
+    // Don't prevent default immediately, let the browser handle initial touch
     setTouchEnd(null);
     setTouchStart({
       x: e.targetTouches[0].clientX,
@@ -94,22 +93,24 @@ export function GiftCarousel({
     const deltaX = Math.abs(currentTouch.x - touchStart.x);
     const deltaY = Math.abs(currentTouch.y - touchStart.y);
     
-    // More aggressive prevention of vertical scrolling during horizontal swipes
-    if (deltaX > 3 || isDragging) { // Even lower threshold and continue preventing if already dragging
+    // Only prevent scrolling if horizontal movement is clearly dominant
+    if (deltaX > deltaY * 1.5 && deltaX > 10) {
       e.preventDefault();
-      e.stopPropagation();
-      
-      // Only set dragging if horizontal movement is more significant
-      if (deltaX > deltaY && deltaX > 3) {
-        setIsDragging(true);
-      }
+      setIsDragging(true);
+    }
+    // Reset dragging if vertical movement becomes dominant
+    else if (deltaY > deltaX * 1.5 && deltaY > 10) {
+      setIsDragging(false);
     }
     
     setTouchEnd(currentTouch);
   };
   
   const onTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault(); // Prevent any default behavior on touch end
+    // Only prevent default if we were actually dragging horizontally
+    if (isDragging) {
+      e.preventDefault();
+    }
     
     if (!touchStart || !touchEnd) {
       setIsDragging(false);
@@ -220,7 +221,7 @@ export function GiftCarousel({
   // Format the description
   const formattedDescription = formatDescription(currentItem.description);
   return <div className="relative w-full mb-4">
-      <div className={`relative rounded-2xl overflow-visible transition-transform duration-150 ${isDragging ? 'scale-[0.98] shadow-2xl' : 'scale-100'}`} style={{touchAction: 'none', overscrollBehavior: 'contain'}} ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
+      <div className={`relative rounded-2xl overflow-visible transition-transform duration-150 ${isDragging ? 'scale-[0.98] shadow-2xl' : 'scale-100'}`} style={{touchAction: 'pan-y pinch-zoom'}} ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrevious();
     }}>

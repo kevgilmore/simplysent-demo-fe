@@ -64,210 +64,67 @@ export function BlogPost2() {
         }}>
             <div className="mb-8">
               <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
-                Guides
+                Father's Day
               </span>
               <h1 className="text-4xl font-bold text-gray-900 mt-2 mb-4">
-                The Ultimate Father's Day Gift Guide for 2023
+                How to Totally Boss Father's Day
               </h1>
               <div className="flex items-center text-gray-500 text-sm">
-                <span>Published: May 25, 2023</span>
+                <span>Published: June 13, 2020</span>
                 <span className="mx-2">•</span>
-                <span>10 min read</span>
+                <span>6 min read</span>
               </div>
             </div>
-            <img src="https://images.unsplash.com/photo-1528825871115-3581a5387919?w=1200&auto=format&fit=crop&q=80&ixlib=rb-4.0.3" alt="Father's Day Gifts" className="w-full h-80 object-cover rounded-2xl mb-8" />
+            <img src="/like_a_boss.jpg" alt="Like a boss" className="w-full h-80 object-cover rounded-2xl mb-8" />
             <div className="prose prose-lg max-w-none">
               <p>
-                Finding the perfect Father's Day gift can be challenging.
-                Whether you're shopping for your own dad, a father figure, or
-                the father of your children, our comprehensive guide will help
-                you select a meaningful gift that shows your appreciation. We've
-                organized our recommendations by personality type to make your
-                shopping experience easier.
+                We know, we know. You didn't forget. You definitely know that Father's Day is almost here, and you're totally sorted, right?
               </p>
-              <h2>For the Tech Enthusiast Dad</h2>
               <p>
-                If your dad is always excited about the latest gadgets and
-                technological innovations, consider these gift ideas:
+                No?
               </p>
-              <ul>
-                <li>
-                  <strong>Smart Home Devices:</strong> From voice-controlled
-                  assistants to smart thermostats or lighting systems, these
-                  gadgets combine convenience with the fun of new technology.
-                </li>
-                <li>
-                  <strong>Wireless Earbuds or Headphones:</strong> Perfect for
-                  music lovers, podcast enthusiasts, or dads who take a lot of
-                  calls.
-                </li>
-                <li>
-                  <strong>Fitness Tracker:</strong> For health-conscious dads
-                  who enjoy tracking their activity levels, sleep patterns, and
-                  more.
-                </li>
-                <li>
-                  <strong>Portable Power Bank:</strong> A practical gift for the
-                  dad who's always on the go and needs to keep his devices
-                  charged.
-                </li>
-              </ul>
-              <h2>For the Outdoor Enthusiast Dad</h2>
               <p>
-                For fathers who love spending time in nature, consider these
-                gifts that enhance their outdoor experiences:
+                Don't panic! We've put together a handy checklist to make sure your old man gets a great Father's Day — and you get to beat the stress!
               </p>
-              <ul>
-                <li>
-                  <strong>High-Quality Camping Gear:</strong> Depending on his
-                  interests, this could be a new tent, sleeping bag, or portable
-                  cooking equipment.
-                </li>
-                <li>
-                  <strong>Hiking Accessories:</strong> Consider a durable water
-                  bottle, hiking poles, or a new backpack designed for trail
-                  comfort.
-                </li>
-                <li>
-                  <strong>Fishing Equipment:</strong> If fishing is his passion,
-                  new lures, a tackle box, or a comfortable fishing chair would
-                  be appreciated.
-                </li>
-                <li>
-                  <strong>Portable Hammock:</strong> Perfect for relaxing
-                  outdoors, whether in the backyard or on a camping trip.
-                </li>
-              </ul>
-              <h2>For the Culinary Dad</h2>
+              
+              <h2>1. The Gift List</h2>
               <p>
-                If your dad enjoys cooking or grilling, these gifts will help
-                him elevate his culinary creations:
+                Ok, the first thing you're going to need is a gift. But a pair of Best Dad EVER!!! socks just isn't going to cut it. Sorry. You're not 8 anymore. If you've got the budget, get him something he can keep, like an engraved watch or treat him to the latest iPhone. Hey, he raised you into the excellent person you are. He deserves it.
               </p>
-              <ul>
-                <li>
-                  <strong>Grilling Accessories:</strong> Consider a set of
-                  high-quality grilling tools, a digital meat thermometer, or
-                  specialized wood chips for smoking.
-                </li>
-                <li>
-                  <strong>Gourmet Ingredients:</strong> A set of exotic spices,
-                  high-quality olive oils, or specialty sauces can inspire new
-                  recipes.
-                </li>
-                <li>
-                  <strong>Cooking Classes:</strong> Many cooking schools offer
-                  virtual or in-person classes focusing on specific cuisines or
-                  techniques.
-                </li>
-                <li>
-                  <strong>Quality Knives:</strong> A good chef's knife or a set
-                  of steak knives can make a significant difference in cooking
-                  enjoyment.
-                </li>
-              </ul>
-              <h2>For the Fashion-Forward Dad</h2>
               <p>
-                Help your stylish dad refresh his wardrobe with these thoughtful
-                fashion gifts:
+                If you've got a million-dollar dad on a dime store budget, however, you'll need to get creative. Sometimes the simple things have the most impact — so get your siblings together and re-create a precious photo from your childhood, or offer your services for the day as a car washer or to help out with some DIY. He'll love the gesture as much as you love him.
               </p>
-              <ul>
-                <li>
-                  <strong>Quality Leather Wallet:</strong> A timeless gift that
-                  combines style and practicality.
-                </li>
-                <li>
-                  <strong>Watch:</strong> Whether he prefers classic, sporty, or
-                  smart watches, this accessory is both functional and
-                  fashionable.
-                </li>
-                <li>
-                  <strong>Customized Clothing:</strong> Consider personalized
-                  items like monogrammed shirts or custom-designed sneakers.
-                </li>
-                <li>
-                  <strong>Subscription Box:</strong> Services that deliver
-                  curated clothing items based on personal style preferences can
-                  help dad discover new brands and styles.
-                </li>
-              </ul>
-              <h2>For the DIY Dad</h2>
               <p>
-                If your father enjoys working with his hands and tackling home
-                projects, consider these gifts:
+                <a href="https://www.buzzfeed.com/jennaguillaume/hilariously-recreated-childhood-photos" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700">Check out these hilariously recreated childhood photos</a>
               </p>
-              <ul>
-                <li>
-                  <strong>Quality Tools:</strong> Upgrade his toolkit with
-                  professional-grade tools that will last for years.
-                </li>
-                <li>
-                  <strong>Personalized Workshop Sign:</strong> A custom sign for
-                  his workspace adds a personal touch to his favorite area.
-                </li>
-                <li>
-                  <strong>Digital Measuring Tools:</strong> Laser distance
-                  measurers or digital levels combine his love of tools with
-                  useful technology.
-                </li>
-                <li>
-                  <strong>Workshop Organization Systems:</strong> Help him keep
-                  his space tidy with specialized storage solutions for tools
-                  and materials.
-                </li>
-              </ul>
-              <h2>Experiential Gifts</h2>
+              
+              <h2>2. The Way to His Heart Is Through His Stomach</h2>
               <p>
-                Sometimes the best gifts aren't things but experiences that
-                create lasting memories:
+                What could be more special than sharing a meal on Father's Day? Spend time together, show you care, and you get to eat! Bonus! Cook from scratch (and don't forget to wash up!) or book a table at your dad's favourite restaurant — but remember, it's a busy day so call well in advance! Apps like OpenTable and Urbanspoon can help you search out that little-known tandoori with the 5-star rating. Check out the ratings on TripAdvisor — and this time, it's your turn to pay!
               </p>
-              <ul>
-                <li>
-                  <strong>Tickets to Sporting Events:</strong> If he's a sports
-                  fan, tickets to see his favorite team play would be a hit.
-                </li>
-                <li>
-                  <strong>Outdoor Adventures:</strong> Consider booking a
-                  fishing charter, golf lesson, or hiking tour.
-                </li>
-                <li>
-                  <strong>Subscription Services:</strong> Monthly clubs for
-                  craft beer, wine, coffee, or books provide ongoing enjoyment.
-                </li>
-                <li>
-                  <strong>Family Photo Session:</strong> A professional
-                  photoshoot creates keepsakes he'll treasure for years.
-                </li>
-              </ul>
-              <h2>Personalized and Sentimental Gifts</h2>
               <p>
-                Thoughtful, personalized gifts often become the most treasured:
+                <a href="https://www.tripadvisor.co.uk" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700">Visit TripAdvisor for restaurant reviews</a>
               </p>
-              <ul>
-                <li>
-                  <strong>Custom Photo Book:</strong> Compile favorite family
-                  photos into a high-quality book.
-                </li>
-                <li>
-                  <strong>Personalized Items:</strong> Consider custom
-                  cufflinks, a monogrammed dopp kit, or an engraved watch.
-                </li>
-                <li>
-                  <strong>Handwritten Letter:</strong> Sometimes the most
-                  meaningful gift is simply expressing your appreciation and
-                  love in a heartfelt letter.
-                </li>
-                <li>
-                  <strong>Family Recipe Book:</strong> Collect and preserve
-                  family recipes in a custom-printed cookbook.
-                </li>
-              </ul>
-              <h2>Final Thoughts</h2>
+              
+              <h2>3. Let's Get Messy</h2>
               <p>
-                Remember that the most meaningful gifts show that you've put
-                thought into understanding your dad's interests and preferences.
-                Whether you choose something practical, indulgent, or
-                sentimental, the care behind your selection is what truly makes
-                a Father's Day gift special.
+                If you're spoiling the father of your own kids, or you've got kids of your own now who call your dad Grandpa, it's time to whip out the arts and crafts box. Now, you may think it's your mum who keeps all those Christmas tree ornaments you made at school, but trust us; even if he doesn't show it, your Dad is just as soppy on the inside. No father needs yet another Rad Dad!!! mug from a card shop (we've all been there, it's OK) but a hand-made, badly-spelled, wonky-but-wonderful Dad's Shed sign is something he'll keep forever. And the kids can make him something too!
+              </p>
+              <p>
+                Pinterest is your friend: check out some craft ideas.
+              </p>
+              
+              <h2>4. Father's Day: Extreme Edition</h2>
+              <p>
+                If you're looking for a more extreme way to express your love for the dad in your life, it's time to think BIG. Help your dad tick something off the bucket list with an experience day. What dad would pass up the opportunity to push their offspring out of a plane or fire at you from a WW2 tank? If your dad knows his cask finish from his Captains' reserve, a tour of Ireland's whisky distilleries will guarantee you both a great weekend to (hopefully) remember. There are lots of advantages to booking an experience — you don't have to wrap it, for one! And if you're reading this last minute (and if it's Father's Day today, you're really cutting it fine) a lot of experiences can be booked online. You are only a phone call away from getting your dad that zorb-football day you just know he's always wanted…
+              </p>
+              
+              <h2>5. Automate</h2>
+              <p>
+                If you're not going to see your Dad this Father's Day, then what you need is the perfect solution. If you're anything like us, gift-giving is the one thing you always forget. Never fear! Technology to the rescue! Drop whatever you're doing and check out SimplySent - we're building an amazing AI-powered gifting app that will automatically find and send your nearest and dearest the perfect gifts on the dates you choose every year. Our AI learns their interests and picks something new and thoughtful each time. Ok, that's the gifting sorted. What's next?
+              </p>
+              <p>
+                <a href="/" className="text-purple-600 hover:text-purple-700">Check out SimplySent</a>
               </p>
             </div>
           </motion.div>
@@ -276,10 +133,10 @@ export function BlogPost2() {
               Related Articles
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Link to="/blog1" className="group">
+              <Link to="/app-release-blog" className="group">
                 <div className="bg-purple-50 rounded-xl p-4 transition-all group-hover:bg-purple-100">
                   <h4 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                    10 Creative Gift Wrapping Ideas
+                    SimplySent Mobile App Coming Soon!
                   </h4>
                   <div className="flex items-center mt-2 text-purple-600">
                     <span className="text-sm">Read article</span>

@@ -670,8 +670,8 @@ export function LandingPage() {
           }} viewport={{
             once: true
           }} transition={{
-            duration: 0.6,
-            delay: 0.5
+            duration: 0.4,
+            delay: 0.2
           }} className="mt-12 text-center">
               <Link to="/results" className="group bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all inline-flex items-center">
                 <SparklesIcon className="w-5 h-5 mr-2 text-purple-200" />
@@ -745,7 +745,7 @@ export function LandingPage() {
             <motion.div whileHover={{
             y: -5
           }} className="bg-gradient-to-b from-purple-50 to-pink-100 rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-full">
-              <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="SimplySent Mobile App" className="w-full h-48 object-cover" />
+              <img src="/app_screenshot1.png" alt="SimplySent Mobile App" className="w-full h-48 object-cover" />
               <div className="p-5 flex-1 flex flex-col">
                 <span className="text-xs font-semibold text-purple-600 uppercase tracking-wider">
                   App Announcement
@@ -756,7 +756,7 @@ export function LandingPage() {
                 <p className="text-gray-600 text-sm mb-4 flex-1">
                   Your AI gift concierge is coming to mobile! Never forget a birthday again with our intelligent gift recommendation app...
                 </p>
-                <Link to="/blog1" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
+                <Link to="/app-release-blog" className="text-purple-600 hover:text-purple-700 font-medium inline-flex items-center text-sm mt-auto">
                   Read more
                   <ChevronRightIcon className="w-4 h-4 ml-1" />
                 </Link>

@@ -75,15 +75,8 @@ export function BlogPost1() {
                 <span>5 min read</span>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&auto=format&fit=crop&q=80&ixlib=rb-4.0.3" alt="SimplySent Mobile App" className="w-full h-80 object-cover rounded-2xl" />
-              <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-6 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="text-6xl mb-4">📱</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Coming Soon</h3>
-                  <p className="text-gray-600">Your AI Gift Concierge</p>
-                </div>
-              </div>
+            <div className="flex justify-center mb-8">
+              <img src="/app_screenshot1.png" alt="SimplySent Mobile App Interface" className="max-w-md w-full rounded-2xl shadow-lg border border-gray-200" />
             </div>
             <div className="prose prose-lg max-w-none">
               <p>
@@ -99,6 +92,11 @@ export function BlogPost1() {
               <p>
                 We've made gift-giving as easy as sending a text message. Here's how our magic works:
               </p>
+              
+              <div className="my-8 flex justify-center">
+                <img src="/app_screenshot2.png" alt="SimplySent App Features" className="max-w-md w-full rounded-2xl shadow-lg border border-gray-200" />
+              </div>
+              
               <p>
                 <strong>Step 1:</strong> Add your friends and family to the app - just their name, age, and a few interests (like "loves coffee and hiking" or "obsessed with skincare").
               </p>
@@ -137,6 +135,10 @@ export function BlogPost1() {
               <h2>📸 Sneak Peek at the App</h2>
               <p>
                 The screenshots show just how intuitive and beautiful the SimplySent experience will be. With a clean, modern interface, you can easily manage all your gift recipients, view AI recommendations, and track deliveries - all from one elegant app.
+              </p>
+              
+              <p>
+                Our intuitive interface makes managing your gift-giving effortless. The clean, modern design ensures you can quickly navigate through all features while maintaining the personal touch that makes each gift special.
               </p>
               
               <h2>🚀 Coming Soon to Your Pocket</h2>
