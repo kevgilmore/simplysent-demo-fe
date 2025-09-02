@@ -77,6 +77,38 @@ export function GiftRecommenderForm() {
       interests: prev.interests.includes(interest) ? prev.interests.filter(i => i !== interest) : [...prev.interests, interest]
     }));
   };
+
+  // Smart gender logic based on relationship
+  const getGenderFromRelationship = (relationship: string): string | null => {
+    switch (relationship) {
+      case 'Father':
+      case 'Brother':
+        return 'male';
+      case 'Mother':
+      case 'Sister':
+        return 'female';
+      case 'Partner':
+      case 'Friend':
+      case 'Other':
+      default:
+        return null; // Gender selection needed
+    }
+  };
+
+  // Check if gender field should be shown
+  const shouldShowGender = (relationship: string): boolean => {
+    return getGenderFromRelationship(relationship) === null;
+  };
+
+  // Handle relationship change with automatic gender setting
+  const handleRelationshipChange = (relationship: string) => {
+    const autoGender = getGenderFromRelationship(relationship);
+    setFormData(prev => ({
+      ...prev,
+      relationship,
+      gender: autoGender || prev.gender
+    }));
+  };
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -85,7 +117,7 @@ export function GiftRecommenderForm() {
   const fillFormAndSubmit = async () => {
     const newFormData = {
       personAge: '65',
-      gender: 'male',
+      gender: 'male', // Will be auto-set by relationship
       relationship: 'Father',
       occasion: 'Birthday',
       sentiment: 'Funny',
@@ -193,6 +225,10 @@ export function GiftRecommenderForm() {
     // Sentiment validation
     if (!formData.sentiment) {
       newErrors.sentiment = 'Please select the gift sentiment';
+    }
+    // Gender validation - only required if gender field is shown (relationship doesn't auto-determine gender)
+    if (shouldShowGender(formData.relationship) && !formData.gender) {
+      newErrors.gender = 'Please select gender';
     }
     // Budget validation - only validate if values are provided
     if (formData.minBudget !== null && (formData.minBudget < 10 || formData.minBudget > 490)) {
@@ -390,25 +426,15 @@ export function GiftRecommenderForm() {
                 What's your relationship to them?
               </label>
               <div className="relative">
-                <select value={formData.relationship} onChange={e => setFormData(prev => ({
-                ...prev,
-                relationship: e.target.value
-              }))} className="w-full appearance-none px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors pr-10">
+                <select value={formData.relationship} onChange={e => handleRelationshipChange(e.target.value)} className="w-full appearance-none px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors pr-10">
                   <option value="">Select relationship...</option>
                   <option value="Father">Father</option>
                   <option value="Mother">Mother</option>
-                  <option value="Husband">Husband</option>
-                  <option value="Wife">Wife</option>
-                  <option value="Boyfriend">Boyfriend</option>
-                  <option value="Girlfriend">Girlfriend</option>
-                  <option value="Son">Son</option>
-                  <option value="Daughter">Daughter</option>
+                  <option value="Partner">Partner</option>
                   <option value="Brother">Brother</option>
                   <option value="Sister">Sister</option>
                   <option value="Friend">Friend</option>
-                  <option value="Colleague">Colleague</option>
-                  <option value="Boss">Boss</option>
-                  <option value="Grandparent">Grandparent</option>
+                  <option value="Other">Other</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -445,18 +471,10 @@ export function GiftRecommenderForm() {
               }))} className="w-full appearance-none px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors pr-10">
                   <option value="">Select occasion...</option>
                   <option value="Birthday">Birthday</option>
-                  <option value="Christmas">Christmas</option>
-                  <option value="Anniversary">Anniversary</option>
-                  <option value="Valentine's Day">Valentine's Day</option>
                   <option value="Father's Day">Father's Day</option>
                   <option value="Mother's Day">Mother's Day</option>
-                  <option value="Graduation">Graduation</option>
-                  <option value="Wedding">Wedding</option>
-                  <option value="Retirement">Retirement</option>
-                  <option value="Housewarming">Housewarming</option>
-                  <option value="New Baby">New Baby</option>
-                  <option value="Just Because">Just Because</option>
-                  <option value="Thank You">Thank You</option>
+                  <option value="Anniversary">Anniversary</option>
+                  <option value="Other">Other</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                   <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -466,33 +484,35 @@ export function GiftRecommenderForm() {
               </div>
               {errors.occasion && <p className="text-red-500 text-sm mt-1">{errors.occasion}</p>}
             </div>
-            {/* Gender selection - new field */}
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40 md:col-span-3">
-              <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
-                <UserIcon className="w-4 h-4 mr-2 text-purple-600" />
-                Gender
-              </label>
-              <div className="flex gap-4">
-                <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${formData.gender === 'male' ? 'bg-purple-100 border-2 border-purple-300 shadow-sm' : 'bg-white border border-gray-200 hover:bg-purple-50'}`}>
-                  <input type="radio" value="male" checked={formData.gender === 'male'} onChange={() => setFormData(prev => ({
-                  ...prev,
-                  gender: 'male'
-                }))} className="sr-only" />
-                  <span className={`text-sm font-medium ${formData.gender === 'male' ? 'text-purple-700' : 'text-gray-600'}`}>
-                    Male
-                  </span>
+            {/* Gender selection - conditional based on relationship */}
+            {shouldShowGender(formData.relationship) && (
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-white/40 md:col-span-3">
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-3">
+                  <UserIcon className="w-4 h-4 mr-2 text-purple-600" />
+                  Gender
                 </label>
-                <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${formData.gender === 'female' ? 'bg-purple-100 border-2 border-purple-300 shadow-sm' : 'bg-white border border-gray-200 hover:bg-purple-50'}`}>
-                  <input type="radio" value="female" checked={formData.gender === 'female'} onChange={() => setFormData(prev => ({
-                  ...prev,
-                  gender: 'female'
-                }))} className="sr-only" />
-                  <span className={`text-sm font-medium ${formData.gender === 'female' ? 'text-purple-700' : 'text-gray-600'}`}>
-                    Female
-                  </span>
-                </label>
+                <div className="flex gap-4">
+                  <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${formData.gender === 'male' ? 'bg-purple-100 border-2 border-purple-300 shadow-sm' : 'bg-white border border-gray-200 hover:bg-purple-50'}`}>
+                    <input type="radio" value="male" checked={formData.gender === 'male'} onChange={() => setFormData(prev => ({
+                    ...prev,
+                    gender: 'male'
+                  }))} className="sr-only" />
+                    <span className={`text-sm font-medium ${formData.gender === 'male' ? 'text-purple-700' : 'text-gray-600'}`}>
+                      Male
+                    </span>
+                  </label>
+                  <label className={`flex-1 flex items-center justify-center p-3 rounded-lg cursor-pointer transition-all ${formData.gender === 'female' ? 'bg-purple-100 border-2 border-purple-300 shadow-sm' : 'bg-white border border-gray-200 hover:bg-purple-50'}`}>
+                    <input type="radio" value="female" checked={formData.gender === 'female'} onChange={() => setFormData(prev => ({
+                    ...prev,
+                    gender: 'female'
+                  }))} className="sr-only" />
+                    <span className={`text-sm font-medium ${formData.gender === 'female' ? 'text-purple-700' : 'text-gray-600'}`}>
+                      Female
+                    </span>
+                  </label>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -721,6 +741,10 @@ export function GiftRecommenderForm() {
             {errors.sentiment && <li className="flex items-start text-red-700">
                 <span className="text-red-500 mr-2">•</span>
                 {errors.sentiment}
+              </li>}
+            {errors.gender && <li className="flex items-start text-red-700">
+                <span className="text-red-500 mr-2">•</span>
+                {errors.gender}
               </li>}
             {errors.minBudget && <li className="flex items-start text-red-700">
                 <span className="text-red-500 mr-2">•</span>

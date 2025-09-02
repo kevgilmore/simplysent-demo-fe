@@ -71,6 +71,8 @@ export function GiftCarousel({
   };
   // Enhanced touch event handlers
   const onTouchStart = (e: React.TouchEvent) => {
+    // Prevent any default behavior immediately on touch start within carousel
+    e.preventDefault();
     setTouchEnd(null);
     setTouchStart({
       x: e.targetTouches[0].clientX,
@@ -92,24 +94,34 @@ export function GiftCarousel({
     const deltaX = Math.abs(currentTouch.x - touchStart.x);
     const deltaY = Math.abs(currentTouch.y - touchStart.y);
     
-    // If horizontal movement is more significant than vertical, prevent default scrolling
-    if (deltaX > deltaY && deltaX > 5) { // Reduced threshold for better responsiveness
+    // More aggressive prevention of vertical scrolling during horizontal swipes
+    if (deltaX > 3 || isDragging) { // Even lower threshold and continue preventing if already dragging
       e.preventDefault();
-      setIsDragging(true);
+      e.stopPropagation();
+      
+      // Only set dragging if horizontal movement is more significant
+      if (deltaX > deltaY && deltaX > 3) {
+        setIsDragging(true);
+      }
     }
     
     setTouchEnd(currentTouch);
   };
   
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd || !isDragging) return;
+  const onTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent any default behavior on touch end
+    
+    if (!touchStart || !touchEnd) {
+      setIsDragging(false);
+      return;
+    }
     
     const deltaX = touchStart.x - touchEnd.x;
     const deltaY = Math.abs(touchStart.y - touchEnd.y);
     const timeDiff = touchEnd.time - touchStart.time;
     
-    // Only trigger swipe if horizontal movement is dominant, exceeds minimum distance, and isn't too fast (to prevent accidental swipes)
-    if (Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > deltaY * 1.5 && timeDiff > 100) { // Added minimum time requirement
+    // Only trigger swipe if we were dragging and horizontal movement is dominant
+    if (isDragging && Math.abs(deltaX) > minSwipeDistance && Math.abs(deltaX) > deltaY * 1.2 && timeDiff > 50) {
       if (deltaX > 0) {
         handleNext(); // Swipe left = next
       } else {
@@ -117,7 +129,10 @@ export function GiftCarousel({
       }
     }
     
+    // Always reset state
     setIsDragging(false);
+    setTouchStart(null);
+    setTouchEnd(null);
   };
   // Auto-advance carousel
   useEffect(() => {
@@ -145,6 +160,26 @@ export function GiftCarousel({
       }
     }
   };
+  // Add event listeners for better touch handling
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    // Add passive event listeners to prevent default scrolling behavior
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDragging) {
+        e.preventDefault();
+      }
+    };
+
+    // Use passive: false to allow preventDefault
+    carousel.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
+    return () => {
+      carousel.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [isDragging]);
+
   // Add a CSS class to disable hover effects on touch devices
   useEffect(() => {
     // Add a class to the document to identify touch devices
@@ -185,7 +220,7 @@ export function GiftCarousel({
   // Format the description
   const formattedDescription = formatDescription(currentItem.description);
   return <div className="relative w-full mb-4">
-      <div className={`relative rounded-2xl overflow-visible touch-pan-y transition-transform duration-150 ${isDragging ? 'scale-[0.98] shadow-2xl' : 'scale-100'}`} style={{touchAction: 'pan-y pinch-zoom'}} ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
+      <div className={`relative rounded-2xl overflow-visible transition-transform duration-150 ${isDragging ? 'scale-[0.98] shadow-2xl' : 'scale-100'}`} style={{touchAction: 'none', overscrollBehavior: 'contain'}} ref={carouselRef} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} tabIndex={0} onKeyDown={e => {
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrevious();
     }}>
