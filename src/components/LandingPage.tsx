@@ -1,14 +1,60 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, SparklesIcon, ShoppingBagIcon, ShoppingCartIcon, MenuIcon, SearchIcon, ChevronRightIcon, StarIcon, ZapIcon, ArrowRightIcon } from 'lucide-react';
 import { GiftCarousel } from './GiftCarousel';
+import { fetchCollectionProducts, ShopifyProduct } from '../services/shopifyService';
 export function LandingPage() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const popularGiftIdeasRef = useRef<HTMLElement>(null);
   // Add reference for Gift Inspiration section
   const giftInspirationRef = useRef<HTMLElement>(null);
+  // Add states for product data
+  const [forHimProducts, setForHimProducts] = useState<any[]>([]);
+  const [forHerProducts, setForHerProducts] = useState<any[]>([]);
+  const [isLoadingHim, setIsLoadingHim] = useState(true);
+  const [isLoadingHer, setIsLoadingHer] = useState(true);
+  // Fetch products when component mounts
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Fetch "for him" products
+        setIsLoadingHim(true);
+        const himProducts = await fetchCollectionProducts('for-him', 50); // Added price limit parameter
+        // Transform to GiftItem format
+        const himGiftItems = himProducts.map(product => ({
+          image: product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg',
+          name: product.title,
+          price: product.variants[0]?.price ? `£${product.variants[0].price.toFixed(2)}` : '£0.00',
+          rating: 4.5,
+          description: product.description || `${product.title} - a perfect gift idea`,
+          sku: product.variants[0]?.sku || ''
+        }));
+        setForHimProducts(himGiftItems);
+        setIsLoadingHim(false);
+        // Fetch "for her" products
+        setIsLoadingHer(true);
+        const herProducts = await fetchCollectionProducts('for-her', 50); // Added price limit parameter
+        // Transform to GiftItem format
+        const herGiftItems = herProducts.map(product => ({
+          image: product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg',
+          name: product.title,
+          price: product.variants[0]?.price ? `£${product.variants[0].price.toFixed(2)}` : '£0.00',
+          rating: 4.7,
+          description: product.description || `${product.title} - a perfect gift idea`,
+          sku: product.variants[0]?.sku || ''
+        }));
+        setForHerProducts(herGiftItems);
+        setIsLoadingHer(false);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setIsLoadingHim(false);
+        setIsLoadingHer(false);
+      }
+    };
+    fetchProducts();
+  }, []);
   // Function to handle smooth scrolling to the Popular Gift Ideas section
   const scrollToGiftIdeas = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -97,75 +143,37 @@ export function LandingPage() {
 
       {/* Hero Section - Fixed: Only change height on mobile, not tablet/desktop */}
       <section className="relative overflow-hidden mx-[calc(50%-50vw)] md:mx-0 w-screen md:w-auto py-16 md:py-24 min-h-[calc(100svh-80px)] supports-[height:100dvh]:min-h-[calc(100dvh-80px)] md:min-h-0 flex md:block items-center">
-        {/* Enhanced background design with darker purple colors */}
+        {/* Simplified background design with static gradients */}
         <div className="absolute inset-0 bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900"></div>
-        {/* Animated gradient overlay with pink/purple colors */}
+        {/* Simplified static overlay - removed animated elements */}
         <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fuchsia-400/20 via-transparent to-transparent animate-pulse"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fuchsia-400/20 via-transparent to-transparent"></div>
         </div>
-        {/* Enhanced textured overlay */}
+        {/* Enhanced textured overlay - static */}
         <div className="absolute inset-0 opacity-15 mix-blend-soft-light" style={{
         backgroundImage: "url('https://www.transparenttextures.com/patterns/diamond-upholstery.png')",
         backgroundRepeat: 'repeat'
       }}></div>
-        {/* Extra animated gradient blobs for depth */}
+        {/* Static gradient blobs for depth - removed animations */}
         <div className="absolute inset-0 pointer-events-none z-0">
-          <motion.div
-            className="absolute -top-16 -left-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-fuchsia-500/30 to-purple-500/30 blur-3xl"
-            animate={{ y: [0, 12, 0], x: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut' }}
-          />
-          <motion.div
-            className="absolute -bottom-16 -right-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-indigo-500/30 to-pink-500/30 blur-3xl"
-            animate={{ y: [0, -12, 0], x: [0, -8, 0] }}
-            transition={{ repeat: Infinity, duration: 12, ease: 'easeInOut' }}
-          />
+          <div className="absolute -top-16 -left-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-fuchsia-500/30 to-purple-500/30 blur-3xl"></div>
+          <div className="absolute -bottom-16 -right-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-indigo-500/30 to-pink-500/30 blur-3xl"></div>
         </div>
-        {/* Subtle animated grid overlay (desktop only) */}
-        <div
-          className="hidden md:block absolute inset-0 z-0"
-          style={{
-            backgroundImage: 'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-            maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
-            WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
-            animation: 'grid-pan 18s linear infinite'
-          }}
-        ></div>
-        <style>{`@keyframes grid-pan { from { background-position: 0px 0px, 0px 0px; } to { background-position: 120px 60px, 60px 120px; } }`}</style>
-        {/* Repositioned floating sparkle elements with pink colors - moved up on mobile */}
-        <motion.div className="absolute left-[2%] md:left-[5%] top-[15%] md:top-[15%] w-10 h-10 md:w-14 md:h-14" initial={{
-        opacity: 0,
-        scale: 0
-      }} animate={{
-        opacity: 1,
-        scale: [0, 1.2, 1]
-      }} transition={{
-        delay: 0.8,
-        duration: 1
-      }}>
-          <motion.svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg" animate={{
-          rotate: 360
-        }} transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear'
-        }}>
+        {/* Subtle static grid overlay (desktop only) */}
+        <div className="hidden md:block absolute inset-0 z-0" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+        maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
+        WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)'
+      }}></div>
+        {/* Static sparkle elements - removed animations */}
+        <div className="absolute left-[2%] md:left-[5%] top-[15%] md:top-[15%] w-10 h-10 md:w-14 md:h-14">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="rgba(249,168,212,0.9)" />
-          </motion.svg>
-        </motion.div>
-        {/* Enhanced gift box animation with vibrant gradient colors - moved down on mobile */}
-        <motion.div className="absolute right-[8%] bottom-[15%] md:bottom-[15%] w-16 h-16 md:w-24 md:h-24" initial={{
-        y: 0,
-        rotate: 0
-      }} animate={{
-        y: [-10, 10, -10],
-        rotate: [0, 5, -5, 0]
-      }} transition={{
-        repeat: Infinity,
-        duration: 4,
-        ease: 'easeInOut'
-      }}>
+          </svg>
+        </div>
+        {/* Static gift box - removed animations */}
+        <div className="absolute right-[8%] bottom-[15%] md:bottom-[15%] w-16 h-16 md:w-24 md:h-24">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
             <defs>
               <linearGradient id="giftBoxTop" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -187,127 +195,40 @@ export function LandingPage() {
             <path d="M12 7H7.5C6.83696 7 6.20107 6.73661 5.73223 6.26777C5.26339 5.79893 5 5.16304 5 4.5C5 3.83696 5.26339 3.20107 5.73223 2.73223C6.20107 2.26339 6.83696 2 7.5 2C11 2 12 7 12 7Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="#F9A8D4" />
             <path d="M12 7H16.5C17.163 7 17.7989 6.73661 18.2678 6.26777C18.7366 5.79893 19 5.16304 19 4.5C19 3.83696 18.7366 3.20107 18.2678 2.73223C17.7989 2.26339 17.163 2 16.5 2C13 2 12 7 12 7Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="#C4B5FD" />
           </svg>
-        </motion.div>
-        {/* Repositioned floating confetti elements with pink/purple colors */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({
-          length: 12
-        }).map((_, i) => <motion.div key={i} className={`absolute w-2 h-2 rounded-full bg-${['purple', 'pink', 'fuchsia', 'violet', 'rose'][i % 5]}-300`} style={{
-          left: `${i % 2 === 0 ? Math.random() * 30 : 70 + Math.random() * 30}%`,
-          top: `-20px`
-        }} animate={{
-          y: ['0vh', '100vh'],
-          x: [0, Math.random() * 40 - 20],
-          rotate: [0, Math.random() * 360]
-        }} transition={{
-          duration: 5 + Math.random() * 5,
-          repeat: Infinity,
-          delay: Math.random() * 5,
-          ease: 'linear'
-        }} />)}
-        </div>
-        {/* Enhanced wavy shapes with animation and purple/pink colors */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 overflow-hidden">
-          <motion.div animate={{
-          x: [0, 10, -10, 0]
-        }} transition={{
-          repeat: Infinity,
-          duration: 10,
-          ease: 'easeInOut'
-        }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="absolute bottom-0 w-full h-full">
-              <path fill="rgba(216,180,254,0.15)" fillOpacity="1" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,224,576,218.7C672,213,768,235,864,245.3C960,256,1056,256,1152,234.7C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-            </svg>
-          </motion.div>
-          <motion.div animate={{
-          x: [0, -15, 15, 0]
-        }} transition={{
-          repeat: Infinity,
-          duration: 8,
-          ease: 'easeInOut'
-        }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="absolute bottom-0 w-full h-full opacity-50">
-              <path fill="rgba(244,114,182,0.2)" fillOpacity="1" d="M0,256L48,261.3C96,267,192,277,288,266.7C384,256,480,224,576,218.7C672,213,768,235,864,245.3C960,256,1056,256,1152,234.7C1248,213,1344,171,1392,149.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-            </svg>
-          </motion.div>
         </div>
         {/* Content container with enhanced styling - adjusted for full width on mobile */}
         <div className="w-full px-4 md:container md:mx-auto md:px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
-            <motion.div initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.2
-          }} className="relative inline-block">
+            <div className="relative inline-block">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 drop-shadow-lg relative z-10">
                 Find the Perfect Gift <br className="hidden md:block" />
                 <span className="relative">
                   <span className="relative inline-block">
                     in 3 Minutes
-                    <motion.div className="absolute -bottom-2 left-0 right-0 h-3 bg-pink-400/60 rounded-full" initial={{
-                    scaleX: 0
-                  }} animate={{
-                    scaleX: 1
-                  }} transition={{
-                    delay: 0.6,
-                    duration: 0.8
-                  }}></motion.div>
+                    <div className="absolute -bottom-2 left-0 right-0 h-3 bg-pink-400/60 rounded-full"></div>
                   </span>
                 </span>
               </h1>
-              <motion.div className="absolute -inset-1 rounded-full bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 blur-xl" animate={{
-              scale: [1, 1.05, 1],
-              opacity: [0.5, 0.8, 0.5]
-            }} transition={{
-              repeat: Infinity,
-              duration: 3,
-              ease: 'easeInOut'
-            }}></motion.div>
-            </motion.div>
-            <motion.p initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.3
-          }} className="text-xl text-white mb-10 font-medium drop-shadow-lg">
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 blur-xl"></div>
+            </div>
+            <p className="text-xl text-white mb-10 font-medium drop-shadow-lg">
               Discover curated gift guides or get personalised AI
               recommendations for any occasion.
-            </motion.p>
-            {/* Top hero section buttons */}
-            <motion.div initial={{
-            opacity: 0,
-            y: 20
-          }} animate={{
-            opacity: 1,
-            y: 0
-          }} transition={{
-            delay: 0.4
-          }} className="flex flex-col sm:flex-row gap-4 justify-center">
-              <motion.a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="bg-white hover:bg-gray-100 text-purple-800 font-bold py-3 px-8 rounded-2xl shadow-lg transition-all transform hover:scale-105 hover:-translate-y-[3px] relative overflow-hidden group">
+            </p>
+            {/* Top hero section buttons with disabled hover effects on mobile */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="bg-white hover:bg-gray-100 text-purple-800 font-bold py-3 px-8 rounded-2xl shadow-lg transition-all relative overflow-hidden group">
                 <span className="relative z-10">Browse Gift Guides</span>
-                <motion.span className="absolute inset-0 bg-gradient-to-r from-purple-100 to-pink-100 opacity-0 group-hover:opacity-100 transition-opacity"></motion.span>
-              </motion.a>
-              <motion.div className="relative">
-                <motion.div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl blur-2xl group-hover:opacity-100 transition" animate={{
-                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%']
-              }} transition={{
-                repeat: Infinity,
-                duration: 5,
-                ease: 'easeInOut'
-              }}></motion.div>
-                <Link to="/results" className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all transform hover:scale-105 hover:-translate-y-[3px] flex items-center justify-center">
+                <span className="absolute inset-0 bg-gradient-to-r from-purple-100 to-pink-100 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:block"></span>
+              </a>
+              <div className="relative">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl blur-2xl"></div>
+                <Link to="/results" className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center">
                   <SparklesIcon className="w-5 h-5 mr-2 text-pink-200" />
                   <span>Try the AI Gift Finder</span>
                 </Link>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -396,31 +317,7 @@ export function LandingPage() {
               </h3>
               {/* Carousel for products */}
               <div className="flex-grow">
-                <GiftCarousel items={[{
-                image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'Wireless Bluetooth Headphones',
-                price: '49.99',
-                rating: 4.0,
-                description: 'Premium wireless headphones with noise cancellation and 30-hour battery life.'
-              }, {
-                image: 'https://images.unsplash.com/photo-1585155770447-2f66e2a397b5?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'Portable Bluetooth Speaker',
-                price: '45.99',
-                rating: 4.9,
-                description: 'Waterproof portable speaker with rich bass, 24-hour playtime and built-in power bank.'
-              }, {
-                image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'Fitness Smart Watch',
-                price: '39.99',
-                rating: 4.3,
-                description: 'Track fitness goals with heart rate monitoring, GPS, and smartphone notifications.'
-              }, {
-                image: 'https://images.unsplash.com/photo-1560343776-97e7d202ff0e?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'RFID Leather Wallet',
-                price: '29.99',
-                rating: 4.7,
-                description: 'Genuine leather wallet with RFID blocking technology and multiple card slots.'
-              }]} theme="purple" />
+                <GiftCarousel items={forHimProducts.slice(0, 4)} theme="purple" isLoading={isLoadingHim} />
               </div>
               <div className="mt-4 text-center">
                 <Link to="/for-him" className="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold bg-purple-50 hover:bg-purple-100 px-5 py-2 rounded-xl transition-colors">
@@ -444,31 +341,7 @@ export function LandingPage() {
               </h3>
               {/* Carousel for products */}
               <div className="flex-grow">
-                <GiftCarousel items={[{
-                image: 'https://images.unsplash.com/photo-1600703136783-bdb5ea365239?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'Artisan Chocolate Gift Box',
-                price: '39.99',
-                rating: 4.8,
-                description: 'Luxury assortment of handcrafted chocolates with unique flavor combinations.'
-              }, {
-                image: 'https://images.unsplash.com/photo-1608181831718-de794d5eac08?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'Luxury Scented Candle Set',
-                price: '49.99',
-                rating: 4.9,
-                description: 'Set of three premium hand-poured soy candles with sophisticated scent profiles.'
-              }, {
-                image: 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'Luxury Bath and Spa Set',
-                price: '44.99',
-                rating: 4.8,
-                description: 'Premium bath products for a relaxing at-home spa experience in a keepsake basket.'
-              }, {
-                image: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3',
-                name: 'Birth Flower Necklace',
-                price: '34.99',
-                rating: 4.7,
-                description: 'Delicate necklace with birth month flower preserved in crystal clear resin.'
-              }]} theme="pink" />
+                <GiftCarousel items={forHerProducts.slice(0, 4)} theme="pink" isLoading={isLoadingHer} />
               </div>
               <div className="mt-4 text-center">
                 <Link to="/for-her" className="inline-flex items-center text-purple-600 hover:text-purple-700 font-semibold bg-purple-50 hover:bg-purple-100 px-5 py-2 rounded-xl transition-colors">
@@ -562,16 +435,9 @@ export function LandingPage() {
             delay: 0.3
           }} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {/* AI Recommendation 1 - Soften corners */}
-              <motion.div whileHover={{
-              y: -8,
-              scale: 1.02
-            }} transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 17
-            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Golf Accessory" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                  <img src="https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Golf Accessory" className="w-full h-40 object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
@@ -587,25 +453,12 @@ export function LandingPage() {
                     Ultra-bright LED technology helps locate lost golf balls in
                     rough or low light conditions.
                   </p>
-                  <div>
-                    <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
-                      <ShoppingCartIcon className="w-3 h-3 mr-1" />
-                      View on Amazon
-                    </a>
-                  </div>
                 </div>
-              </motion.div>
+              </div>
               {/* AI Recommendation 2 - Soften corners */}
-              <motion.div whileHover={{
-              y: -8,
-              scale: 1.02
-            }} transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 17
-            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1546868871-115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Smart Watch" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                  <img src="https://images.unsplash.com/photo-1546868871-115-3581a5387919?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Smart Watch" className="w-full h-40 object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
@@ -621,25 +474,12 @@ export function LandingPage() {
                     Wearable tech with preloaded golf courses and precise
                     distance measurements to greens and hazards.
                   </p>
-                  <div>
-                    <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
-                      <ShoppingCartIcon className="w-3 h-3 mr-1" />
-                      View on Amazon
-                    </a>
-                  </div>
                 </div>
-              </motion.div>
+              </div>
               {/* AI Recommendation 3 - Soften corners */}
-              <motion.div whileHover={{
-              y: -8,
-              scale: 1.02
-            }} transition={{
-              type: 'spring',
-              stiffness: 400,
-              damping: 17
-            }} className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20 group flex flex-col h-full">
                 <div className="relative">
-                  <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Tech Gadget" className="w-full h-40 object-cover transition-transform group-hover:scale-105" />
+                  <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3" alt="Tech Gadget" className="w-full h-40 object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
                     <span className="text-white font-bold text-lg">
@@ -655,14 +495,8 @@ export function LandingPage() {
                     Bluetooth device that attaches to any club and provides
                     real-time swing analysis on your smartphone.
                   </p>
-                  <div>
-                    <a href="#" className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-gray-900 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center text-sm">
-                      <ShoppingCartIcon className="w-3 h-3 mr-1" />
-                      View on Amazon
-                    </a>
-                  </div>
                 </div>
-              </motion.div>
+              </div>
             </motion.div>
             {/* CTA Button - Soften corners */}
             <motion.div initial={{

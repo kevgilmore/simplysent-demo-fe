@@ -1,83 +1,76 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeftIcon, ShoppingCartIcon, StarIcon, ChevronLeftIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react';
-interface Product {
-  ASIN: string;
-  name: string;
-  image_url: string;
-  price: number;
-  description: string;
-  average_star_rating: number;
-  url: string;
-}
-interface Pagination {
-  has_next: boolean;
-  has_previous: boolean;
-  page: number;
-  per_page: number;
-  total_pages: number;
-  total_products: number;
-}
-interface ApiResponse {
-  products: Product[];
-  pagination: Pagination;
-}
-// Star rating component
-const StarRating = ({
-  rating
-}: {
-  rating: number;
-}) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 !== 0;
-  const emptyStars = 5 - Math.ceil(rating);
-  return <div className="flex items-center gap-1">
-      <div className="flex">
-        {/* Full stars */}
-        {Array.from({
-        length: fullStars
-      }).map((_, i) => <StarIcon key={`full-${i}`} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
-        {/* Half star */}
-        {hasHalfStar && <div className="relative">
-            <StarIcon className="w-4 h-4 text-gray-300" />
-            <div className="absolute inset-0 overflow-hidden" style={{
-          width: '50%'
-        }}>
-              <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            </div>
-          </div>}
-        {/* Empty stars */}
-        {Array.from({
-        length: emptyStars
-      }).map((_, i) => <StarIcon key={`empty-${i}`} className="w-4 h-4 text-gray-300" />)}
-      </div>
-      <span className="text-sm text-gray-600 ml-1">{rating.toFixed(1)}</span>
-    </div>;
-};
+import { ArrowLeftIcon, ShoppingCartIcon, ChevronLeftIcon, ChevronRightIcon, Loader2Icon, ChevronDownIcon } from 'lucide-react';
+import { fetchCollectionProducts, ShopifyProduct, generateAmazonUrl, truncateTitle, formatDescription } from '../services/shopifyService';
 export function GiftsForHimPage() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [products, setProducts] = useState<ShopifyProduct[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
+  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+  const [totalPages, setTotalPages] = useState(1);
   // Add a separate useEffect to scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
   // Add state for budget range (not functional yet)
   const [budgetRange, setBudgetRange] = useState([10, 300]);
-  // Add state for selected sentiment
-  const [selectedSentiment, setSelectedSentiment] = useState<string | null>(null);
   // Add state for slider dragging
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
+  // Fetch products from Shopify API
   useEffect(() => {
-    fetchProducts(currentPage);
-  }, [currentPage]);
-  // Handle sentiment selection
-  const handleSentimentSelect = (sentiment: string) => {
-    setSelectedSentiment(selectedSentiment === sentiment ? null : sentiment);
+    const getProducts = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const shopifyProducts = await fetchCollectionProducts('for-him');
+        setProducts(shopifyProducts);
+        setFilteredProducts(shopifyProducts);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    getProducts();
+  }, []);
+  // Filter products based on budget range
+  useEffect(() => {
+    if (products.length > 0) {
+      const filtered = products.filter(product => {
+        const price = product.variants[0]?.price || 0;
+        return price >= budgetRange[0] && price <= budgetRange[1];
+      });
+      setFilteredProducts(filtered);
+      // Calculate total pages
+      setTotalPages(Math.ceil(filtered.length / itemsPerPage));
+      // Reset to page 1 when filters change
+      setCurrentPage(1);
+    }
+  }, [budgetRange, products]);
+  // Get current products for pagination
+  const getCurrentProducts = () => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  };
+  // Toggle description expansion
+  const toggleDescription = (productId: string) => {
+    setExpandedDescriptions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(productId)) {
+        newSet.delete(productId);
+      } else {
+        newSet.add(productId);
+      }
+      return newSet;
+    });
   };
   // Handle slider mouse events
   const handleMouseDown = (handle: 'min' | 'max') => (e: React.MouseEvent) => {
@@ -101,7 +94,7 @@ export function GiftsForHimPage() {
     const newPosition = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100));
     const newValue = Math.round(newPosition / 100 * 300);
     // Ensure minimum value is 10
-    const adjustedValue = Math.max(10, newValue);
+    const adjustedValue = Math.max(10, Math.min(300, newValue));
     if (isDragging === 'min') {
       if (adjustedValue < budgetRange[1]) {
         setBudgetRange([adjustedValue, budgetRange[1]]);
@@ -131,45 +124,9 @@ export function GiftsForHimPage() {
       };
     }
   }, [isDragging]);
-  const fetchProducts = async (page: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`https://gift-api-973409790816.europe-west1.run.app/gifts-for-him?page=${page}&per_page=12`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: ApiResponse = await response.json();
-      setProducts(data.products);
-      setPagination(data.pagination);
-    } catch (err) {
-      console.error('Error fetching products:', err);
-      setError('Failed to load products. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-  // Handle image loading errors
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
-  };
-  const handlePreviousPage = () => {
-    if (pagination?.has_previous) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-  const handleNextPage = () => {
-    if (pagination?.has_next) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
   // Format product name to have proper capitalization
   const formatProductName = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
-  };
-  // Format product description to have proper capitalization for first sentence
-  const formatDescription = (description: string) => {
-    return description.charAt(0).toUpperCase() + description.slice(1);
   };
   // Extract key features from description
   const extractFeatures = (description: string): string[] => {
@@ -178,6 +135,14 @@ export function GiftsForHimPage() {
     // Take up to 5 sentences and format them as features
     return sentences.filter(sentence => sentence.length > 10) // Filter out very short sentences
     .slice(0, 5).map(sentence => sentence.trim() + (sentence.endsWith('.') ? '' : '.'));
+  };
+  // Handle page change
+  const goToPage = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
   return <motion.div initial={{
     opacity: 0,
@@ -190,7 +155,7 @@ export function GiftsForHimPage() {
     y: -20
   }} transition={{
     duration: 0.4
-  }} className="space-y-6 w-full">
+  }} className="space-y-6 w-full pb-16">
       <div className="flex items-center mb-4">
         <motion.button initial={{
         opacity: 0,
@@ -219,26 +184,8 @@ export function GiftsForHimPage() {
           Curated selection of perfect gifts for the special man in your life
         </p>
       </div>
-
       {/* Simplified filtering section - centered with no card */}
       <div className="flex flex-col items-center space-y-4 mb-6">
-        {/* Sentiment Pills - centered with selectable state */}
-        <div className="flex justify-center w-full pt-2">
-          <div className="flex flex-wrap justify-center gap-2">
-            <button onClick={() => handleSentimentSelect('Practical')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Practical' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
-              Practical
-            </button>
-            <button onClick={() => handleSentimentSelect('Luxury')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Luxury' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
-              Luxury
-            </button>
-            <button onClick={() => handleSentimentSelect('Thoughtful')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Thoughtful' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
-              Thoughtful
-            </button>
-            <button onClick={() => handleSentimentSelect('Fun')} className={`px-4 py-2 rounded-full font-medium transition-colors ${selectedSentiment === 'Fun' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
-              Fun
-            </button>
-          </div>
-        </div>
         {/* Budget Range - single slider with two handles */}
         <div className="w-full max-w-md px-4">
           <div className="flex justify-between mb-1">
@@ -268,95 +215,121 @@ export function GiftsForHimPage() {
           </div>
         </div>
       </div>
-
       {/* Loading State */}
       {loading && <div className="flex justify-center items-center py-20">
           <Loader2Icon className="w-12 h-12 text-purple-600 animate-spin" />
         </div>}
-
       {/* Error State */}
       {error && <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
           <p className="text-red-700">{error}</p>
-          <button onClick={() => fetchProducts(currentPage)} className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg">
+          <button onClick={() => setLoading(true)} className="mt-4 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg">
             Try Again
           </button>
         </div>}
-
       {/* Product Grid */}
-      {!loading && !error && products.length > 0 && <>
+      {!loading && !error && filteredProducts.length > 0 && <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {products.map(product => <motion.div key={product.ASIN} initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.5,
-          delay: products.indexOf(product) * 0.1
-        }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
-                <div className="relative">
-                  <img src={product.image_url} alt={product.name} className="w-full h-72 object-contain bg-white p-4" onError={handleImageError} />
-                  <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
-                    <span className="text-purple-600 font-bold text-lg">
-                      £{product.price.toFixed(2)}
-                    </span>
+            {getCurrentProducts().map(product => {
+          const isExpanded = expandedDescriptions.has(product.id);
+          const formattedDescription = formatDescription(product.description || '');
+          return <motion.div key={product.id} initial={{
+            opacity: 0,
+            y: 20
+          }} animate={{
+            opacity: 1,
+            y: 0
+          }} transition={{
+            duration: 0.5,
+            delay: getCurrentProducts().indexOf(product) * 0.1
+          }} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
+                  <div className="relative">
+                    <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-72 object-contain bg-white p-4" onError={e => {
+                ;
+                (e.target as HTMLImageElement).src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
+              }} />
+                    <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
+                      <span className="text-purple-600 font-bold text-xl">
+                        £{product.variants[0]?.price?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
                   </div>
-                </div>
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    {formatProductName(product.name)}
-                  </h3>
-                  <div className="mb-4">
-                    <StarRating rating={product.average_star_rating} />
-                  </div>
-                  <p className="text-gray-700 mb-4">
-                    {formatDescription(product.description.slice(0, 200))}
-                    {product.description.length > 200 ? '...' : ''}
-                  </p>
-                  <div className="mb-6">
-                    <h4 className="font-semibold text-gray-800 mb-2">
-                      Features:
-                    </h4>
-                    <ul className="space-y-1">
-                      {extractFeatures(product.description).map((feature, index) => <li key={index} className="text-gray-600 flex items-start">
+                  <div className="p-6 flex flex-col flex-grow">
+                    {/* Fixed height title container */}
+                    <div className="h-[60px] mb-4">
+                      <h3 className="text-xl font-bold text-gray-900 line-clamp-2">
+                        {truncateTitle(formatProductName(product.title), 50)}
+                      </h3>
+                    </div>
+                    {/* Description with expandable content */}
+                    <div className={`mb-4 overflow-hidden ${isExpanded ? '' : 'max-h-[120px]'} relative`}>
+                      <p className="text-gray-700">{formattedDescription}</p>
+                      {/* Show gradient overlay and more button if description is long */}
+                      {formattedDescription.length > 120 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent"></div>}
+                    </div>
+                    {/* Show more/less button if description is long enough */}
+                    {formattedDescription.length > 120 && <button onClick={() => toggleDescription(product.id)} className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center mb-4">
+                        {isExpanded ? 'Show less' : 'Show more'}
+                        <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>}
+                    <div className="mb-6 flex-grow">
+                      <h4 className="font-semibold text-gray-800 mb-2">
+                        Features:
+                      </h4>
+                      <ul className="space-y-1">
+                        {formattedDescription ? extractFeatures(formattedDescription).map((feature, index) => <li key={index} className="text-gray-600 flex items-start">
+                                <span className="text-purple-500 mr-2">•</span>
+                                {feature}
+                              </li>) : <li className="text-gray-600 flex items-start">
                             <span className="text-purple-500 mr-2">•</span>
-                            {feature}
-                          </li>)}
-                    </ul>
+                            Perfect gift idea for him
+                          </li>}
+                      </ul>
+                    </div>
+                    <div className="mt-auto">
+                      <a href={generateAmazonUrl(product.variants[0]?.sku || '')} target="_blank" rel="noopener noreferrer" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
+                        <ShoppingCartIcon className="w-5 h-5 mr-2" />
+                        View on Amazon
+                      </a>
+                    </div>
                   </div>
-                  <div className="mt-auto flex justify-center w-full">
-                    <a href={product.url} target="_blank" rel="noopener noreferrer" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
-                      <ShoppingCartIcon className="w-5 h-5 mr-2" />
-                      View on Amazon
-                    </a>
-                  </div>
-                </div>
-              </motion.div>)}
+                </motion.div>;
+        })}
           </div>
-
           {/* Pagination Controls */}
-          {pagination && <div className="flex items-center justify-between mt-10 bg-white p-4 rounded-xl shadow-md">
-              <button onClick={handlePreviousPage} disabled={!pagination.has_previous} className={`flex items-center ${pagination.has_previous ? 'text-purple-600 hover:text-purple-800' : 'text-gray-400 cursor-not-allowed'}`}>
-                <ChevronLeftIcon className="w-5 h-5 mr-1" />
-                Previous
+          {totalPages > 1 && <div className="flex justify-center items-center mt-12 space-x-2">
+              <button onClick={() => goToPage(Math.max(1, currentPage - 1))} disabled={currentPage === 1} className={`p-2 rounded-lg ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`} aria-label="Previous page">
+                <ChevronLeftIcon className="w-5 h-5" />
               </button>
-              <div className="text-gray-700">
-                Page {pagination.page} of {pagination.total_pages}
-                <span className="text-sm text-gray-500 ml-2">
-                  ({pagination.total_products} products)
-                </span>
+              {/* Page Numbers */}
+              <div className="flex space-x-2">
+                {Array.from({
+            length: totalPages
+          }, (_, i) => i + 1).map(page => {
+            // Show first page, last page, current page, and pages around current page
+            if (page === 1 || page === totalPages || page >= currentPage - 1 && page <= currentPage + 1) {
+              return <button key={page} onClick={() => goToPage(page)} className={`w-10 h-10 rounded-lg ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`}>
+                        {page}
+                      </button>;
+            }
+            // Show ellipsis for skipped pages
+            if (page === 2 && currentPage > 3 || page === totalPages - 1 && currentPage < totalPages - 2) {
+              return <span key={page} className="w-10 h-10 flex items-center justify-center text-gray-500">
+                        ...
+                      </span>;
+            }
+            return null;
+          })}
               </div>
-              <button onClick={handleNextPage} disabled={!pagination.has_next} className={`flex items-center ${pagination.has_next ? 'text-purple-600 hover:text-purple-800' : 'text-gray-400 cursor-not-allowed'}`}>
-                Next
-                <ChevronRightIcon className="w-5 h-5 ml-1" />
+              <button onClick={() => goToPage(Math.min(totalPages, currentPage + 1))} disabled={currentPage === totalPages} className={`p-2 rounded-lg ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-100 text-blue-600 hover:bg-blue-200'}`} aria-label="Next page">
+                <ChevronRightIcon className="w-5 h-5" />
               </button>
             </div>}
         </>}
-
       {/* No Products Found */}
-      {!loading && !error && products.length === 0 && <div className="text-center py-20">
-          <p className="text-gray-700 text-lg">No products found.</p>
+      {!loading && !error && filteredProducts.length === 0 && <div className="text-center py-20">
+          <p className="text-gray-700 text-lg">
+            No products found in this price range.
+          </p>
         </div>}
     </motion.div>;
 }

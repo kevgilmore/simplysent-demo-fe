@@ -40,8 +40,25 @@ function addGoogleFonts() {
       font-family: 'Outfit', sans-serif;
       font-weight: 600;
     }
+    /* Disable hover effects on touch devices */
+    @media (hover: none) {
+      *:hover {
+        transform: none !important;
+      }
+      .group:hover {
+        transform: none !important;
+      }
+      .group:hover img {
+        transform: none !important;
+      }
+    }
   `;
   document.head.appendChild(style);
+  // Add a class to the document to identify touch devices
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  if (isTouchDevice) {
+    document.documentElement.classList.add('touch-device');
+  }
 }
 function AnimatedRoutes() {
   const location = useLocation();
@@ -76,6 +93,16 @@ export function App() {
           }
           .no-scrollbar::-webkit-scrollbar {
             display: none; /* Chrome, Safari, Opera */
+          }
+          /* Disable hover effects on touch devices */
+          .touch-device .no-hover-scale:hover {
+            transform: none !important;
+          }
+          .touch-device .group:hover {
+            transform: none !important;
+          }
+          .touch-device .group:hover img {
+            transform: none !important;
           }
         `}</style>
         <div className="max-w-7xl mx-auto">

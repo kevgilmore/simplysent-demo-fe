@@ -95,18 +95,15 @@ export function GiftRecommenderForm() {
       minBudget: 10,
       maxBudget: 110
     };
-
     setBudgetRange([10, 110]);
     setFormData(newFormData);
     setIsLoading(true);
-
     try {
       if (window.fbq) {
         window.fbq('track', 'FormCompletion', {
           form_name: 'fday-demo'
         });
       }
-
       const requestData = {
         age: parseInt(newFormData.personAge),
         gender: newFormData.gender,
@@ -119,7 +116,6 @@ export function GiftRecommenderForm() {
         budget_min: newFormData.minBudget,
         budget_max: newFormData.maxBudget
       };
-
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
       const origin = urlParams.get('origin');
@@ -129,7 +125,6 @@ export function GiftRecommenderForm() {
       if (origin) {
         apiUrl.searchParams.append('origin', origin);
       }
-
       const response = await fetch(apiUrl.toString(), {
         method: 'POST',
         headers: {
@@ -137,11 +132,9 @@ export function GiftRecommenderForm() {
         },
         body: JSON.stringify(requestData)
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data: ApiResponse = await response.json();
       if (data.products && data.products.length > 0) {
         navigate('/products', {
