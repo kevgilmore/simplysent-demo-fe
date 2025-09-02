@@ -154,10 +154,34 @@ export function LandingPage() {
         backgroundImage: "url('https://www.transparenttextures.com/patterns/diamond-upholstery.png')",
         backgroundRepeat: 'repeat'
       }}></div>
-        {/* Static gradient blobs for depth - removed animations */}
+        {/* Animated gradient blobs for depth */}
         <div className="absolute inset-0 pointer-events-none z-0">
-          <div className="absolute -top-16 -left-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-fuchsia-500/30 to-purple-500/30 blur-3xl"></div>
-          <div className="absolute -bottom-16 -right-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-indigo-500/30 to-pink-500/30 blur-3xl"></div>
+          <motion.div 
+            className="absolute -top-16 -left-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-fuchsia-500/30 to-purple-500/30 blur-3xl"
+            animate={{
+              x: [0, 20, -10, 0],
+              y: [0, -15, 10, 0],
+              scale: [1, 1.1, 0.9, 1]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          ></motion.div>
+          <motion.div 
+            className="absolute -bottom-16 -right-16 w-72 h-72 md:w-96 md:h-96 rounded-full bg-gradient-to-tr from-indigo-500/30 to-pink-500/30 blur-3xl"
+            animate={{
+              x: [0, -25, 15, 0],
+              y: [0, 20, -5, 0],
+              scale: [1, 0.8, 1.2, 1]
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          ></motion.div>
         </div>
         {/* Subtle static grid overlay (desktop only) */}
         <div className="hidden md:block absolute inset-0 z-0" style={{
@@ -166,14 +190,38 @@ export function LandingPage() {
         maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)',
         WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 75%)'
       }}></div>
-        {/* Static sparkle elements - removed animations */}
-        <div className="absolute left-[2%] md:left-[5%] top-[15%] md:top-[15%] w-10 h-10 md:w-14 md:h-14">
+        {/* Dancing sparkle elements */}
+        <motion.div 
+          className="absolute left-[2%] md:left-[5%] top-[15%] md:top-[15%] w-10 h-10 md:w-14 md:h-14"
+          animate={{
+            rotate: [0, 15, -15, 0],
+            scale: [1, 1.2, 0.8, 1],
+            y: [0, -10, 5, 0]
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="rgba(249,168,212,0.9)" />
           </svg>
-        </div>
-        {/* Static gift box - removed animations */}
-        <div className="absolute right-[8%] bottom-[15%] md:bottom-[15%] w-16 h-16 md:w-24 md:h-24">
+        </motion.div>
+        {/* Dancing gift box */}
+        <motion.div 
+          className="absolute right-[8%] bottom-[15%] md:bottom-[15%] w-16 h-16 md:w-24 md:h-24"
+          animate={{
+            rotate: [0, -8, 8, 0],
+            scale: [1, 1.1, 0.95, 1],
+            x: [0, 5, -5, 0]
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-lg">
             <defs>
               <linearGradient id="giftBoxTop" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -195,20 +243,137 @@ export function LandingPage() {
             <path d="M12 7H7.5C6.83696 7 6.20107 6.73661 5.73223 6.26777C5.26339 5.79893 5 5.16304 5 4.5C5 3.83696 5.26339 3.20107 5.73223 2.73223C6.20107 2.26339 6.83696 2 7.5 2C11 2 12 7 12 7Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="#F9A8D4" />
             <path d="M12 7H16.5C17.163 7 17.7989 6.73661 18.2678 6.26777C18.7366 5.79893 19 5.16304 19 4.5C19 3.83696 18.7366 3.20107 18.2678 2.73223C17.7989 2.26339 17.163 2 16.5 2C13 2 12 7 12 7Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="#C4B5FD" />
           </svg>
-        </div>
+        </motion.div>
+        
+        {/* Additional floating elements */}
+        <motion.div 
+          className="absolute top-[25%] left-[15%] w-6 h-6 md:w-8 md:h-8 text-pink-300"
+          animate={{
+            y: [0, -20, 0],
+            rotate: [0, 180, 360],
+            opacity: [0.6, 1, 0.6]
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          ✨
+        </motion.div>
+        
+        <motion.div 
+          className="absolute top-[35%] right-[20%] w-5 h-5 md:w-7 md:h-7 text-purple-300"
+          animate={{
+            x: [0, 15, -15, 0],
+            y: [0, -10, 10, 0],
+            scale: [1, 1.3, 0.8, 1]
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          🎁
+        </motion.div>
+        
+        <motion.div 
+          className="absolute bottom-[25%] left-[10%] w-4 h-4 md:w-6 md:h-6 text-yellow-300"
+          animate={{
+            rotate: [0, 360],
+            scale: [1, 1.5, 1],
+            y: [0, -15, 0]
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          ⭐
+        </motion.div>
+        
+        <motion.div 
+          className="absolute top-[45%] left-[25%] w-3 h-3 md:w-5 md:h-5 text-pink-200"
+          animate={{
+            x: [0, 10, -5, 0],
+            opacity: [0.4, 1, 0.4],
+            scale: [0.8, 1.2, 0.8]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          💝
+        </motion.div>
+        
+        <motion.div 
+          className="absolute bottom-[35%] right-[15%] w-4 h-4 md:w-6 md:h-6 text-indigo-300"
+          animate={{
+            y: [0, -25, 0],
+            rotate: [0, -180, 0],
+            opacity: [0.5, 1, 0.5]
+          }}
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          🎉
+        </motion.div>
+        
         {/* Content container with enhanced styling - adjusted for full width on mobile */}
         <div className="w-full px-4 md:container md:mx-auto md:px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <div className="relative inline-block">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 drop-shadow-lg relative z-10">
+              <motion.h1 
+                className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 drop-shadow-lg relative z-10"
+                animate={{
+                  textShadow: [
+                    "0 0 20px rgba(236, 72, 153, 0.3)",
+                    "0 0 30px rgba(147, 51, 234, 0.4)",
+                    "0 0 20px rgba(236, 72, 153, 0.3)"
+                  ]
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
                 Find the Perfect Gift <br className="hidden md:block" />
                 <span className="relative">
-                  <span className="relative inline-block">
+                  <motion.span 
+                    className="relative inline-block"
+                    animate={{
+                      scale: [1, 1.05, 1]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
                     in 3 Minutes
-                    <div className="absolute -bottom-2 left-0 right-0 h-3 bg-pink-400/60 rounded-full"></div>
-                  </span>
+                    <motion.div 
+                      className="absolute -bottom-2 left-0 right-0 h-3 bg-pink-400/60 rounded-full"
+                      animate={{
+                        scaleX: [1, 1.1, 1],
+                        opacity: [0.6, 0.9, 0.6]
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    ></motion.div>
+                  </motion.span>
                 </span>
-              </h1>
+              </motion.h1>
               <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-fuchsia-500/20 to-pink-500/20 blur-xl"></div>
             </div>
             <p className="text-xl text-white mb-10 font-medium drop-shadow-lg">

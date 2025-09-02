@@ -97,8 +97,8 @@ export function GiftsForHerPage() {
   const updateSliderPosition = (clientX: number, rect: DOMRect) => {
     const newPosition = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100));
     const newValue = Math.round(newPosition / 100 * 300);
-    // Ensure minimum value is 10
-    const adjustedValue = Math.max(10, Math.min(300, newValue));
+    // Ensure minimum value is 10 and snap to nearest £5
+    const adjustedValue = Math.max(10, Math.min(300, Math.round(newValue / 5) * 5));
     if (isDragging === 'min') {
       if (adjustedValue < budgetRange[1]) {
         setBudgetRange([adjustedValue, budgetRange[1]]);
@@ -234,45 +234,45 @@ export function GiftsForHerPage() {
           delay: getCurrentProducts().indexOf(product) * 0.1
         }} className="bg-gradient-to-b from-pink-50 to-purple-50 rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
                 <div className="relative">
-                  <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-48 object-cover" onError={handleImageError} />
+                  <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-32 object-cover" onError={handleImageError} />
                   <div className="absolute top-4 right-4 bg-gradient-to-r from-pink-50 to-purple-50 px-4 py-2 rounded-full shadow-md">
                     <span className="text-purple-600 font-bold text-xl">
                       £{product.variants[0]?.price?.toFixed(2) || '0.00'}
                     </span>
                   </div>
                 </div>
-                <div className="p-6 flex flex-col flex-grow">
+                <div className="p-4 flex flex-col flex-grow">
                   {/* Fixed height title container */}
-                  <div className="h-[60px] mb-4">
-                    <h3 className="text-2xl font-bold text-gray-900 font-heading line-clamp-2">
+                  <div className="h-[45px] mb-3">
+                    <h3 className="text-lg font-bold text-gray-900 font-heading line-clamp-2">
                       {truncateTitle(product.title, 50)}
                     </h3>
                   </div>
                   {/* Description with expandable content */}
-                  <div className={`mb-4 overflow-hidden ${isExpanded ? '' : 'max-h-[80px]'} relative`}>
-                    <p className="text-gray-700">{formattedDescription}</p>
+                  <div className={`mb-3 overflow-hidden ${isExpanded ? '' : 'max-h-[60px]'} relative`}>
+                    <p className="text-gray-700 text-sm">{formattedDescription}</p>
                     {/* Show gradient overlay and more button if description is long */}
-                    {formattedDescription.length > 80 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-pink-50 to-transparent"></div>}
+                    {formattedDescription.length > 60 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-pink-50 to-transparent"></div>}
                   </div>
                   {/* Show more/less button if description is long enough */}
-                  {formattedDescription.length > 80 && <button onClick={() => toggleDescription(product.id)} className="text-pink-600 hover:text-pink-800 text-sm font-medium flex items-center mb-4">
+                  {formattedDescription.length > 60 && <button onClick={() => toggleDescription(product.id)} className="text-pink-600 hover:text-pink-800 text-xs font-medium flex items-center mb-3">
                       {isExpanded ? 'Show less' : 'Show more'}
                       <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>}
-                  <div className="mb-6 flex-grow">
-                    <h4 className="font-semibold text-gray-800 mb-2">
+                  <div className="mb-4 flex-grow">
+                    <h4 className="font-semibold text-gray-800 mb-1 text-sm">
                       Features:
                     </h4>
                     <ul className="space-y-1">
-                      {(formattedDescription ? formattedDescription.split('.').filter(s => s.trim().length > 5).slice(0, 5) : [`${product.title} is a thoughtful gift option.`]).map((feature, index) => <li key={index} className="text-gray-600 flex items-start">
-                          <span className="text-pink-500 mr-2">•</span>
+                      {(formattedDescription ? formattedDescription.split('.').filter(s => s.trim().length > 5).slice(0, 3) : [`${product.title} is a thoughtful gift option.`]).map((feature, index) => <li key={index} className="text-gray-600 flex items-start text-xs">
+                          <span className="text-pink-500 mr-1 text-xs">•</span>
                           {feature.trim() + (feature.trim().endsWith('.') ? '' : '.')}
                         </li>)}
                     </ul>
                   </div>
                   <div className="mt-auto">
-                    <a href={generateAmazonUrl(product.variants[0]?.sku || '')} target="_blank" rel="noopener noreferrer" className="w-full bg-pink-400 hover:bg-pink-500 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
-                      <ShoppingCartIcon className="w-5 h-5 mr-2" />
+                    <a href={generateAmazonUrl(product.variants[0]?.sku || '')} target="_blank" rel="noopener noreferrer" className="w-full bg-pink-400 hover:bg-pink-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center no-underline text-sm">
+                      <ShoppingCartIcon className="w-4 h-4 mr-1" />
                       View on Amazon
                     </a>
                   </div>
