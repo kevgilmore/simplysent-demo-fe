@@ -92,7 +92,7 @@ export function GiftCarousel({
     if (items.length === 0) return;
     const interval = setInterval(() => {
       handleNext();
-    }, 6000);
+    }, 8000);
     return () => clearInterval(interval);
   }, [currentIndex, items.length]);
   const dotActiveClass = theme === 'purple' ? 'bg-purple-600' : 'bg-pink-500';

@@ -19,7 +19,7 @@ export function GiftsForHerPage() {
     window.scrollTo(0, 0);
   }, []);
   // Add state for budget range
-  const [budgetRange, setBudgetRange] = useState([10, 300]);
+  const [budgetRange, setBudgetRange] = useState([20, 50]);
   // Add state for slider dragging
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   // Fetch products from Shopify API
@@ -234,7 +234,7 @@ export function GiftsForHerPage() {
           delay: getCurrentProducts().indexOf(product) * 0.1
         }} className="bg-gradient-to-b from-pink-50 to-purple-50 rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
                 <div className="relative">
-                  <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-72 object-cover" onError={handleImageError} />
+                  <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-48 object-cover" onError={handleImageError} />
                   <div className="absolute top-4 right-4 bg-gradient-to-r from-pink-50 to-purple-50 px-4 py-2 rounded-full shadow-md">
                     <span className="text-purple-600 font-bold text-xl">
                       £{product.variants[0]?.price?.toFixed(2) || '0.00'}
@@ -249,13 +249,13 @@ export function GiftsForHerPage() {
                     </h3>
                   </div>
                   {/* Description with expandable content */}
-                  <div className={`mb-4 overflow-hidden ${isExpanded ? '' : 'max-h-[120px]'} relative`}>
+                  <div className={`mb-4 overflow-hidden ${isExpanded ? '' : 'max-h-[80px]'} relative`}>
                     <p className="text-gray-700">{formattedDescription}</p>
                     {/* Show gradient overlay and more button if description is long */}
-                    {formattedDescription.length > 120 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-pink-50 to-transparent"></div>}
+                    {formattedDescription.length > 80 && !isExpanded && <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-pink-50 to-transparent"></div>}
                   </div>
                   {/* Show more/less button if description is long enough */}
-                  {formattedDescription.length > 120 && <button onClick={() => toggleDescription(product.id)} className="text-pink-600 hover:text-pink-800 text-sm font-medium flex items-center mb-4">
+                  {formattedDescription.length > 80 && <button onClick={() => toggleDescription(product.id)} className="text-pink-600 hover:text-pink-800 text-sm font-medium flex items-center mb-4">
                       {isExpanded ? 'Show less' : 'Show more'}
                       <ChevronDownIcon className={`w-4 h-4 ml-1 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                     </button>}
