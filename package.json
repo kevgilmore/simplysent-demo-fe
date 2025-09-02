@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "preview": "npx vite preview",
     "predeploy": "npm run build",
-    "deploy": "echo gifts.simplysent.co > dist/CNAME && gh-pages -d dist --add"
+    "deploy": "echo gifts.simplysent.co > dist/CNAME && npx gh-pages -d dist -t true"
   },
   "dependencies": {
     "react": "^18.3.1",
