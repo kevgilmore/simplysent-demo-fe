@@ -89,7 +89,7 @@ export function LandingPage() {
       // Since we're using no-cors, we can't read the response
       // We'll assume success and show success message
       setNewsletterStatus('success');
-      setNewsletterMessage('Thank you for subscribing! Check your email to confirm.');
+      setNewsletterMessage('Thank you for subscribing!');
       setNewsletterEmail('');
       
     } catch (error) {
@@ -957,7 +957,7 @@ export function LandingPage() {
                   Newsletter
                 </h4>
                 <p className="text-purple-200 mb-4 text-sm">
-                  Subscribe for exclusive offers and app news
+                  Subscribe for news on app release and offers
                 </p>
                 {newsletterStatus === 'success' ? (
                   <div className="bg-green-500/20 border border-green-400/30 rounded-lg p-4 text-center">

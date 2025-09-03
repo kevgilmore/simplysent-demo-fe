@@ -38,7 +38,7 @@ export function ErrorPage() {
             size: state.formData.clothesSize
           } : undefined
         };
-        await fetch('https://gift-api-973409790816.europe-west1.run.app/error', {
+        await fetch('https://catboost-recommender-api-973409790816.europe-west1.run.app/error', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

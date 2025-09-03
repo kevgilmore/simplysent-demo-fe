@@ -28,7 +28,7 @@ export function GiftsForHimPage() {
       setLoading(true);
       setError(null);
       try {
-        const shopifyProducts = await fetchCollectionProducts('for-him');
+        const shopifyProducts = await fetchCollectionProducts('for-him', undefined, true);
         setProducts(shopifyProducts);
         setFilteredProducts(shopifyProducts);
       } catch (err) {

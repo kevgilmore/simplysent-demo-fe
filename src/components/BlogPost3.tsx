@@ -70,13 +70,13 @@ export function BlogPost3() {
                 25 Thoughtful Gifts Under £20 That Don't Look Cheap
               </h1>
               <div className="flex items-center text-gray-500 text-sm">
-                <span>Published: April 18, 2023</span>
+                <span>Published: January 10, 2025</span>
                 <span className="mx-2">•</span>
                 <span>12 min read</span>
               </div>
             </div>
             <img src="/time_street.jpg" alt="Budget Gifts" className="w-full h-80 object-cover rounded-2xl mb-8" />
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-lg max-w-none space-y-6 leading-relaxed">
               <p>
                 Gift-giving doesn't have to break the bank to be meaningful.
                 With a bit of creativity and thoughtfulness, you can find

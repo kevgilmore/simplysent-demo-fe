@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon } from 'lucide-react';
+import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, CheckCircle2Icon } from 'lucide-react';
 interface Product {
   sku: string;
   productTitle?: string;
@@ -98,37 +98,18 @@ export function ResultsPage() {
     }
     return `https://www.amazon.co.uk/dp/${sku}`;
   };
-  // Star rating component with default rating
-  const StarRating = ({
-    rating = 4.5
-  }: {
-    rating?: number;
-  }) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    const emptyStars = 5 - Math.ceil(rating);
-    return <div className="flex items-center gap-1">
-        <div className="flex">
-          {/* Full stars */}
-          {Array.from({
-          length: fullStars
-        }).map((_, i) => <StarIcon key={`full-${i}`} className="w-4 h-4 fill-yellow-400 text-yellow-400" />)}
-          {/* Half star */}
-          {hasHalfStar && <div className="relative">
-              <StarIcon className="w-4 h-4 text-gray-300" />
-              <div className="absolute inset-0 overflow-hidden" style={{
-            width: '50%'
-          }}>
-                <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              </div>
-            </div>}
-          {/* Empty stars */}
-          {Array.from({
-          length: emptyStars
-        }).map((_, i) => <StarIcon key={`empty-${i}`} className="w-4 h-4 text-gray-300" />)}
-        </div>
-        <span className="text-sm text-gray-600 ml-1">{rating.toFixed(1)}</span>
-      </div>;
+  // Interest emoji helpers
+  const interestEmojiMap: Record<string, string> = {
+    sports: '🏀', football: '⚽', gaming: '🎮', music: '🎵', cooking: '👩‍🍳', baking: '🧁',
+    fashion: '👗', tech: '💻', technology: '💻', books: '📚', reading: '📖', coffee: '☕',
+    wine: '🍷', skincare: '🧴', beauty: '💄', fitness: '🏋️', gym: '🏋️', outdoors: '🏕️',
+    hiking: '🥾', camping: '🏕️', art: '🎨', pets: '🐾', gardening: '🌿', travel: '✈️',
+    photography: '📷', jewelry: '💍', toys: '🧸', home: '🏠', diy: '🧰', food: '🍽️',
+    tea: '🍵', beer: '🍺'
+  };
+  const getEmojiForInterest = (interest: string): string => {
+    const key = (interest || '').toLowerCase().trim();
+    return interestEmojiMap[key] || '🎁';
   };
   // Animation variants
   const containerVariants = {
@@ -168,7 +149,7 @@ export function ResultsPage() {
     if (!recommendationId) return;
     try {
       console.log('Sending feedback for item:', sku, isGood ? 'good' : 'bad');
-      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/label', {
+      const response = await fetch('https://catboost-recommender-api-973409790816.europe-west1.run.app/feedback/label', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -194,7 +175,7 @@ export function ResultsPage() {
     if (!recommendationId) return;
     try {
       console.log('Sending click feedback for item:', sku);
-      await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/click', {
+      await fetch('https://catboost-recommender-api-973409790816.europe-west1.run.app/feedback/click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -226,7 +207,7 @@ export function ResultsPage() {
     setIsLoading(true);
     try {
       console.log('Submitting feedback comment:', modalFeedback);
-      const response = await fetch('https://gift-api-973409790816.europe-west1.run.app/feedback/comment?usellm=false', {
+      const response = await fetch('https://catboost-recommender-api-973409790816.europe-west1.run.app/feedback/comment?usellm=false', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -339,9 +320,20 @@ export function ResultsPage() {
       }} className="bg-gradient-to-br from-[#7265f1] via-[#a87ec0] to-[#de9696] rounded-2xl shadow-xl p-8 border-2 border-white">
           <div className="text-center mb-6 px-4 sm:px-0 text-white">
             <h2 className="text-3xl font-bold mb-2">Top Recommendation</h2>
+            <p className="text-white/90 mb-2">Based on their interests:</p>
+            <div className="flex flex-wrap justify-center gap-2 mb-3">
+              {Array.isArray(formData.interests) && formData.interests.length > 0 ? (
+                formData.interests.map((interest: string, idx: number) => (
+                  <span key={idx} className="bg-white/20 text-white px-3 py-1 rounded-full text-sm backdrop-blur">
+                    <span className="mr-1">{getEmojiForInterest(interest)}</span>{interest}
+                  </span>
+                ))
+              ) : (
+                <span className="text-white/80">No interests provided</span>
+              )}
+            </div>
             <p className="text-white/90">
-              Based on their interests and your budget of £{formData.minBudget}{' '}
-              - £{formData.maxBudget}
+              And your budget of £{formData.minBudget} - £{formData.maxBudget}
             </p>
           </div>
 
@@ -360,8 +352,8 @@ export function ResultsPage() {
               console.error('Image load error:', e);
               e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
             }} />
-              <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-2 rounded-full shadow-md">
-                <span className="text-purple-600 font-bold text-lg">
+              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-5 py-2.5 rounded-full shadow-lg ring-2 ring-yellow-300/60">
+                <span className="text-2xl font-extrabold bg-gradient-to-r from-fuchsia-600 via-pink-600 to-amber-500 bg-clip-text text-transparent">
                   £{topRecommendation.price}
                 </span>
               </div>
@@ -370,9 +362,7 @@ export function ResultsPage() {
               <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
                 {truncateText(getProductTitle(topRecommendation), 60)}
               </h3>
-              <div className="mb-3 flex justify-center">
-                <StarRating />
-              </div>
+              {/* Ratings removed */}
               <div className="flex items-start space-x-3 mb-3">
                 <TagIcon className="w-5 h-5 text-purple-500 mt-1 flex-shrink-0" />
                 <p className="text-gray-700">
@@ -461,9 +451,7 @@ export function ResultsPage() {
                       <h4 className="text-lg font-bold text-gray-900 mb-2">
                         {truncateText(getProductTitle(item), 60)}
                       </h4>
-                      <div className="mb-3">
-                        <StarRating />
-                      </div>
+                      {/* Ratings removed */}
                       <div className="flex items-start space-x-2 mb-2">
                         <TagIcon className="w-4 h-4 text-purple-500 mt-1 flex-shrink-0" />
                         <p className="text-sm text-gray-700">

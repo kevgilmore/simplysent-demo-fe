@@ -56,9 +56,49 @@ const getCollectionProductsQuery = (handle: string) => {
   }
 `;
 };
+
+// GraphQL query to fetch products from multiple collections using field aliases
+const getMultiCollectionProductsQuery = (handles: string[]) => {
+  const selections = handles.map((handle, idx) => `
+    col${idx}: collection(handle: "${handle}") {
+      id
+      title
+      products(first: 100) {
+        edges {
+          node {
+            id
+            title
+            handle
+            description
+            tags
+            productType
+            featuredImage { url }
+            variants(first: 5) {
+              edges {
+                node {
+                  id
+                  sku
+                  price { amount currencyCode }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  `).join('\n');
+  return `
+  {
+    ${selections}
+  }
+  `;
+};
 // Fetch products from a collection
-export const fetchCollectionProducts = async (collectionHandle: string, maxPrice?: number): Promise<ShopifyProduct[]> => {
+export const fetchCollectionProducts = async (collectionHandle: string, maxPrice?: number, includeUnisex?: boolean): Promise<ShopifyProduct[]> => {
   try {
+    const query = includeUnisex
+      ? getMultiCollectionProductsQuery([collectionHandle, 'unisex'])
+      : getCollectionProductsQuery(collectionHandle);
     const response = await fetch(SHOPIFY_STOREFRONT_URL, {
       method: 'POST',
       headers: {
@@ -66,7 +106,7 @@ export const fetchCollectionProducts = async (collectionHandle: string, maxPrice
         'X-Shopify-Storefront-Access-Token': SHOPIFY_STOREFRONT_ACCESS_TOKEN
       },
       body: JSON.stringify({
-        query: getCollectionProductsQuery(collectionHandle)
+        query
       })
     });
     if (!response.ok) {
@@ -74,8 +114,8 @@ export const fetchCollectionProducts = async (collectionHandle: string, maxPrice
     }
     const data = await response.json();
     // Transform the response data into our ShopifyProduct format
-    if (data.data?.collection?.products?.edges) {
-      let products = data.data.collection.products.edges.map((edge: any) => {
+    const transformEdgesToProducts = (edges: any[]): ShopifyProduct[] => {
+      return edges.map((edge: any) => {
         const product = edge.node;
         return {
           id: product.id,
@@ -95,17 +135,28 @@ export const fetchCollectionProducts = async (collectionHandle: string, maxPrice
           })
         };
       });
-      // Apply price filtering in JavaScript if maxPrice is provided
-      if (maxPrice !== undefined) {
-        products = products.filter(product => {
-          const productPrice = product.variants[0]?.price || 0;
-          return productPrice <= maxPrice;
-        });
-      }
-      console.log(`Fetched ${products.length} products from ${collectionHandle} collection`);
-      return products;
+    };
+
+    let products: ShopifyProduct[] = [];
+    if (includeUnisex) {
+      const collectionsData = data.data || {};
+      const allEdges: any[] = Object.keys(collectionsData).reduce((acc: any[], key: string) => {
+        const edges = collectionsData[key]?.products?.edges || [];
+        return acc.concat(edges);
+      }, []);
+      products = transformEdgesToProducts(allEdges);
+    } else if (data.data?.collection?.products?.edges) {
+      products = transformEdgesToProducts(data.data.collection.products.edges);
     }
-    return [];
+    // Apply price filtering in JavaScript if maxPrice is provided
+    if (maxPrice !== undefined) {
+      products = products.filter(product => {
+        const productPrice = product.variants[0]?.price || 0;
+        return productPrice <= maxPrice;
+      });
+    }
+    console.log(`Fetched ${products.length} products from ${includeUnisex ? collectionHandle + ' + unisex' : collectionHandle} collection(s)`);
+    return products;
   } catch (error) {
     console.error('Error fetching collection products:', error);
     return [];

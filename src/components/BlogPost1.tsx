@@ -70,7 +70,7 @@ export function BlogPost1() {
                 🎉 SimplySent Mobile App Coming Soon: Your AI Gift Concierge in Your Pocket!
               </h1>
               <div className="flex items-center text-gray-500 text-sm">
-                <span>Published: January 23, 2025</span>
+                <span>Published: September 1, 2025</span>
                 <span className="mx-2">•</span>
                 <span>5 min read</span>
               </div>
@@ -78,7 +78,7 @@ export function BlogPost1() {
             <div className="flex justify-center mb-8">
               <img src="/app_screenshot1.png" alt="SimplySent Mobile App Interface" className="max-w-md w-full rounded-2xl shadow-lg border border-gray-200" />
             </div>
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-lg max-w-none space-y-6 leading-relaxed">
               <p>
                 Get ready to revolutionize the way you give gifts! We're thrilled to announce that the SimplySent mobile app is coming soon, bringing our AI-powered gift concierge service directly to your smartphone. Say goodbye to last-minute gift panic and hello to effortless, thoughtful giving! 🎁
               </p>
@@ -163,21 +163,21 @@ export function BlogPost1() {
               Related Articles
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Link to="/fathers-day" className="group">
+              <Link to="/fathers-day-guide" className="group">
                 <div className="bg-purple-50 rounded-xl p-4 transition-all group-hover:bg-purple-100">
                   <h4 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                    Try Our AI Gift Finder Now
+                    How to Totally Boss Father's Day
                   </h4>
                   <div className="flex items-center mt-2 text-purple-600">
-                    <span className="text-sm">Get started</span>
+                    <span className="text-sm">Read article</span>
                     <ChevronRightIcon className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>
-              <Link to="/blog3" className="group">
+              <Link to="/budget-gifts-guide" className="group">
                 <div className="bg-purple-50 rounded-xl p-4 transition-all group-hover:bg-purple-100">
                   <h4 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
-                    25 Thoughtful Gifts Under £20
+                    25 Thoughtful Gifts Under £20 That Don't Look Cheap
                   </h4>
                   <div className="flex items-center mt-2 text-purple-600">
                     <span className="text-sm">Read article</span>

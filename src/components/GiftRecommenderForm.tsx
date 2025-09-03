@@ -158,15 +158,22 @@ export function GiftRecommenderForm() {
     const autoGender = getGenderFromRelationship(relationship);
     const effectiveGender = autoGender || selectedGender;
     const baseOccasions = ['Birthday', 'Anniversary', 'Other'];
-    
+
+    let occasions = [...baseOccasions];
     if (effectiveGender === 'male') {
-      return [...baseOccasions, "Father's Day"];
+      occasions.push("Father's Day");
     } else if (effectiveGender === 'female') {
-      return [...baseOccasions, "Mother's Day"];
+      occasions.push("Mother's Day");
     } else {
-      // For Partner, Friend, Other without gender selection - show both
-      return [...baseOccasions, "Father's Day", "Mother's Day"];
+      // No gender selected – show general parental occasions
+      occasions.push("Mother's Day", "Father's Day");
     }
+
+    // For Partner, Friend, Other, do not show Father's Day regardless of gender
+    if (['Partner', 'Friend', 'Other'].includes(relationship)) {
+      occasions = occasions.filter(o => o !== "Father's Day");
+    }
+    return occasions;
   };
 
   // Handle relationship change with automatic gender setting
@@ -237,7 +244,7 @@ export function GiftRecommenderForm() {
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
       const origin = urlParams.get('origin');
-      const apiUrl = new URL('https://gift-api-973409790816.europe-west1.run.app/recommend');
+      const apiUrl = new URL('https://catboost-recommender-api-973409790816.europe-west1.run.app/recommend');
       apiUrl.searchParams.append('use_llm', 'true');
       apiUrl.searchParams.append('reqId', reqId);
       if (origin) {
@@ -408,7 +415,7 @@ export function GiftRecommenderForm() {
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
       const origin = urlParams.get('origin');
-      const apiUrl = new URL('https://gift-api-973409790816.europe-west1.run.app/recommend');
+      const apiUrl = new URL('https://catboost-recommender-api-973409790816.europe-west1.run.app/recommend');
       apiUrl.searchParams.append('use_llm', 'true');
       apiUrl.searchParams.append('reqId', reqId);
       if (origin) {

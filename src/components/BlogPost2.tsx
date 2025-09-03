@@ -70,13 +70,13 @@ export function BlogPost2() {
                 How to Totally Boss Father's Day
               </h1>
               <div className="flex items-center text-gray-500 text-sm">
-                <span>Published: June 13, 2020</span>
+                <span>Published: June 13, 2025</span>
                 <span className="mx-2">•</span>
                 <span>6 min read</span>
               </div>
             </div>
             <img src="/like_a_boss.jpg" alt="Like a boss" className="w-full h-80 object-cover rounded-2xl mb-8" />
-            <div className="prose prose-lg max-w-none">
+            <div className="prose prose-lg max-w-none space-y-6 leading-relaxed">
               <p>
                 We know, we know. You didn't forget. You definitely know that Father's Day is almost here, and you're totally sorted, right?
               </p>
@@ -144,7 +144,7 @@ export function BlogPost2() {
                   </div>
                 </div>
               </Link>
-              <Link to="/blog3" className="group">
+              <Link to="/budget-gifts-guide" className="group">
                 <div className="bg-purple-50 rounded-xl p-4 transition-all group-hover:bg-purple-100">
                   <h4 className="font-bold text-gray-900 group-hover:text-purple-700 transition-colors">
                     25 Thoughtful Gifts Under £20
