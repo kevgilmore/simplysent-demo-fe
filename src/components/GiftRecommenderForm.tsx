@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon, UsersIcon, PartyPopperIcon, SmileIcon } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { buildApiUrl } from '../utils/apiConfig';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -92,6 +93,7 @@ const getSortedInterests = (gender: string): string[] => {
 export function GiftRecommenderForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  
   const [formData, setFormData] = useState<FormData>({
     personAge: '',
     interests: [],
@@ -243,14 +245,16 @@ export function GiftRecommenderForm() {
       };
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
-      const origin = urlParams.get('origin');
-      const apiUrl = new URL('https://catboost-recommender-api-973409790816.europe-west1.run.app/recommend');
-      apiUrl.searchParams.append('use_llm', 'true');
-      apiUrl.searchParams.append('reqId', reqId);
-      if (origin) {
-        apiUrl.searchParams.append('origin', origin);
-      }
-      const response = await fetch(apiUrl.toString(), {
+      const origin = urlParams.get('origin') || 'meta';
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('llm_enabled', 'false');
+      queryParams.append('client_origin', origin);
+      queryParams.append('client_request_id', reqId);
+      
+      const apiUrl = buildApiUrl('/recommend', queryParams);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -357,16 +361,20 @@ export function GiftRecommenderForm() {
   };
   const updateSliderPosition = (clientX: number, rect: DOMRect) => {
     const newPosition = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100));
-    const newValue = Math.round(newPosition / 100 * 490) + 10; // Scale to 10-500 range
+    const rawValue = Math.round(newPosition / 100 * 490) + 10; // Scale to 10-500 range
+    // Round to nearest £10 increment
+    const newValue = Math.round(rawValue / 10) * 10;
     // Ensure minimum value is 10 and max is 500
     const adjustedValue = Math.max(10, Math.min(500, newValue));
     if (isDragging === 'min') {
       if (adjustedValue < budgetRange[1]) {
         setBudgetRange([adjustedValue, budgetRange[1]]);
+        setFormData(prev => ({ ...prev, minBudget: adjustedValue }));
       }
     } else {
       if (adjustedValue > budgetRange[0]) {
         setBudgetRange([budgetRange[0], adjustedValue]);
+        setFormData(prev => ({ ...prev, maxBudget: adjustedValue }));
       }
     }
   };
@@ -414,22 +422,36 @@ export function GiftRecommenderForm() {
       }
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
-      const origin = urlParams.get('origin');
-      const apiUrl = new URL('https://catboost-recommender-api-973409790816.europe-west1.run.app/recommend');
-      apiUrl.searchParams.append('use_llm', 'true');
-      apiUrl.searchParams.append('reqId', reqId);
-      if (origin) {
-        apiUrl.searchParams.append('origin', origin);
-      }
-      const response = await fetch(apiUrl.toString(), {
+      const origin = urlParams.get('origin') || 'meta';
+      
+      const queryParams = new URLSearchParams();
+      queryParams.append('llm_enabled', 'false');
+      queryParams.append('client_origin', origin);
+      queryParams.append('client_request_id', reqId);
+      
+      const apiUrl = buildApiUrl('/recommend', queryParams);
+      
+      console.log('Making API call to:', apiUrl);
+      console.log('Request headers:', {
+        'Content-Type': 'application/json'
+      });
+      console.log('Request body:', requestData);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestData)
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       const data: ApiResponse = await response.json();
       console.log('API Response:', data);
@@ -447,11 +469,18 @@ export function GiftRecommenderForm() {
       }
     } catch (error) {
       console.error('Error getting recommendations:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error details:', {
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
+      });
       navigate('/products', {
         state: {
           error: true,
           formData,
-          reqId: uuidv4()
+          reqId: uuidv4(),
+          errorMessage
         }
       });
     } finally {
@@ -654,11 +683,11 @@ export function GiftRecommenderForm() {
               What do they love?
             </h2>
           </div>
-          <div className="max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {getSortedInterests(formData.gender).map(interest => <label key={interest} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all transform hover:scale-105 ${formData.interests.includes(interest) ? 'bg-pink-100 border-2 border-pink-300 shadow-md' : 'bg-gray-50 border-2 border-gray-100 hover:border-gray-200'}`}>
+          <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 p-2">
+              {getSortedInterests(formData.gender).map(interest => <label key={interest} className={`group flex items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${formData.interests.includes(interest) ? 'bg-gradient-to-r from-pink-100 to-rose-100 border-2 border-pink-300 shadow-md scale-105' : 'bg-gradient-to-r from-white to-gray-50 border-2 border-gray-100 hover:border-pink-200 hover:from-pink-50 hover:to-rose-50'}`}>
                   <input type="checkbox" checked={formData.interests.includes(interest)} onChange={() => handleInterestToggle(interest)} className="sr-only" />
-                  <span className={`text-sm font-medium ${formData.interests.includes(interest) ? 'text-pink-700' : 'text-gray-600'}`}>
+                  <span className={`text-xs sm:text-sm font-medium text-center leading-tight break-words hyphens-auto transition-colors duration-200 ${formData.interests.includes(interest) ? 'text-pink-700' : 'text-gray-600 group-hover:text-pink-600'}`} style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                     {interest}
                   </span>
                 </label>)}

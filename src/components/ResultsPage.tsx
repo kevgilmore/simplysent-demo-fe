@@ -2,6 +2,7 @@ import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, CheckCircle2Icon } from 'lucide-react';
+import { getApiBaseUrl } from '../utils/apiConfig';
 interface Product {
   sku: string;
   productTitle?: string;
@@ -149,7 +150,7 @@ export function ResultsPage() {
     if (!recommendationId) return;
     try {
       console.log('Sending feedback for item:', sku, isGood ? 'good' : 'bad');
-      const response = await fetch('https://catboost-recommender-api-973409790816.europe-west1.run.app/feedback/label', {
+      const response = await fetch(`${getApiBaseUrl()}/feedback/label`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -157,7 +158,7 @@ export function ResultsPage() {
         body: JSON.stringify({
           recommendation_id: recommendationId,
           item_feedback: {
-            asin: sku,
+            sku: sku,
             feedback_label: isGood ? 1 : 0
           }
         })
@@ -175,7 +176,7 @@ export function ResultsPage() {
     if (!recommendationId) return;
     try {
       console.log('Sending click feedback for item:', sku);
-      await fetch('https://catboost-recommender-api-973409790816.europe-west1.run.app/feedback/click', {
+      await fetch(`${getApiBaseUrl()}/feedback/click`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -183,7 +184,7 @@ export function ResultsPage() {
         body: JSON.stringify({
           recommendation_id: recommendationId,
           item_feedback: {
-            asin: sku,
+            sku: sku,
             clicked: true
           }
         })
@@ -207,7 +208,7 @@ export function ResultsPage() {
     setIsLoading(true);
     try {
       console.log('Submitting feedback comment:', modalFeedback);
-      const response = await fetch('https://catboost-recommender-api-973409790816.europe-west1.run.app/feedback/comment?usellm=false', {
+      const response = await fetch(`${getApiBaseUrl()}/feedback/comment?usellm=false&return_new_recommendation=false`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -224,6 +225,16 @@ export function ResultsPage() {
       const text = await response.text();
       setModalFeedback('');
       console.log('Feedback response:', text);
+      
+      // Since return_new_recommendation=false, just show thank you message
+      setIsSubmitted(true);
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setShowModal(false);
+      }, 2000);
+      
+      // Keep the old code for when return_new_recommendation=true (commented out)
+      /*
       if (text) {
         try {
           const data = JSON.parse(text);
@@ -248,6 +259,7 @@ export function ResultsPage() {
           setShowModal(false);
         }, 1000);
       }
+      */
     } catch (error) {
       console.error('Error sending feedback:', error);
       setModalError('Failed to submit feedback. Please try again.');

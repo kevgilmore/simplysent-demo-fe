@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, ShoppingCartIcon, ChevronLeftIcon, ChevronRightIcon, Loader2Icon, ChevronDownIcon } from 'lucide-react';
+import { ArrowLeftIcon, ShoppingCartIcon, ChevronLeftIcon, ChevronRightIcon, Loader2Icon } from 'lucide-react';
 import { fetchCollectionProducts, ShopifyProduct, generateAmazonUrl, truncateTitle, formatDescription } from '../services/shopifyService';
 export function GiftsForHimPage() {
   const navigate = useNavigate();
@@ -9,7 +9,6 @@ export function GiftsForHimPage() {
   const [filteredProducts, setFilteredProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
@@ -67,18 +66,6 @@ export function GiftsForHimPage() {
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
     return filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
   };
-  // Toggle description expansion
-  const toggleDescription = (productId: string) => {
-    setExpandedDescriptions(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(productId)) {
-        newSet.delete(productId);
-      } else {
-        newSet.add(productId);
-      }
-      return newSet;
-    });
-  };
   // Handle slider mouse events
   const handleMouseDown = (handle: 'min' | 'max') => (e: React.MouseEvent) => {
     e.preventDefault();
@@ -134,14 +121,6 @@ export function GiftsForHimPage() {
   // Format product name to have proper capitalization
   const formatProductName = (name: string) => {
     return name.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
-  };
-  // Extract key features from description
-  const extractFeatures = (description: string): string[] => {
-    // Split the description into sentences
-    const sentences = description.split(/\.\s+/);
-    // Take up to 5 sentences and format them as features
-    return sentences.filter(sentence => sentence.length > 10) // Filter out very short sentences
-    .slice(0, 5).map(sentence => sentence.trim() + (sentence.endsWith('.') ? '' : '.'));
   };
   // Handle page change
   const goToPage = (pageNumber: number) => {
@@ -235,10 +214,9 @@ export function GiftsForHimPage() {
         </div>}
       {/* Product Grid */}
       {!loading && !error && filteredProducts.length > 0 && <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
             <AnimatePresence mode="popLayout">
               {getCurrentProducts().map(product => {
-          const isExpanded = expandedDescriptions.has(product.id);
           const formattedDescription = formatDescription(product.description || '');
           return <motion.div key={product.id} initial={{
             opacity: 0,
@@ -252,34 +230,40 @@ export function GiftsForHimPage() {
           }} transition={{
             duration: 0.3,
             delay: getCurrentProducts().indexOf(product) * 0.05
-          }} layout className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full">
-                  <div className="relative">
-                    <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-48 object-contain bg-white p-2" onError={e => {
+          }} layout className="group bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden border border-blue-100/50 hover:border-blue-200/70 flex flex-col h-full transition-all duration-300 transform hover:scale-[1.02]">
+                  <div className="relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 to-indigo-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                         <img src={product.featuredImage?.url || 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg'} alt={product.title} className="w-full h-48 object-contain bg-white p-4 transition-transform duration-300 group-hover:scale-105" onError={e => {
                 ;
                 (e.target as HTMLImageElement).src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
               }} />
-                    <div className="absolute top-4 right-4 bg-white px-4 py-2 rounded-full shadow-md">
-                      <span className="text-purple-600 font-bold text-lg">
+                    <div className="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2 rounded-full shadow-lg transform transition-all duration-300 group-hover:scale-110 group-hover:shadow-xl">
+                      <span className="font-bold text-sm">
                         £{product.variants[0]?.price?.toFixed(2) || '0.00'}
                       </span>
                     </div>
+                    <div className="absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-md">
+                        <span className="text-xs font-medium text-blue-600">Perfect for Him</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4 flex flex-col flex-grow">
+                  <div className="p-6 flex flex-col flex-grow bg-gradient-to-b from-transparent to-white/50">
                     {/* Fixed height title container */}
-                    <div className="h-[45px] mb-3">
-                      <h3 className="text-lg font-bold text-gray-900 line-clamp-2">
+                    <div className="h-[50px] mb-4">
+                      <h3 className="text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-blue-700 transition-colors duration-300">
                         {truncateTitle(formatProductName(product.title), 50)}
                       </h3>
                     </div>
                     {/* Simple description - 4-5 lines max */}
-                    <div className="mb-4 flex-grow">
-                      <p className="text-gray-700 text-sm line-clamp-4">
+                    <div className="mb-6 flex-grow">
+                      <p className="text-gray-600 text-sm line-clamp-4 leading-relaxed">
                         {formattedDescription.length > 200 ? formattedDescription.substring(0, 200) + '...' : formattedDescription}
                       </p>
                     </div>
                     <div className="mt-auto">
-                      <a href={generateAmazonUrl(product.variants[0]?.sku || '')} target="_blank" rel="noopener noreferrer" className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center no-underline text-sm">
-                        <ShoppingCartIcon className="w-4 h-4 mr-1" />
+                      <a href={generateAmazonUrl(product.variants[0]?.sku || '')} target="_blank" rel="noopener noreferrer" className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center no-underline text-sm shadow-lg hover:shadow-xl transform hover:scale-105 group-hover:from-blue-600 group-hover:to-indigo-700">
+                        <ShoppingCartIcon className="w-4 h-4 mr-2" />
                         View on Amazon
                       </a>
                     </div>
