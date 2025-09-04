@@ -91,13 +91,13 @@ export function ResultsPage() {
   // Get top recommendation and other recommendations
   const topRecommendation = products && products.length > 0 ? products[0] : null;
   const otherRecommendations = products && products.length > 1 ? products.slice(1) : [];
-  // Generate Amazon URL from SKU
+  // Generate Amazon URL from SKU with affiliate tag
   const generateAmazonUrl = (sku: string) => {
     if (!sku) {
       console.error('No SKU provided for Amazon URL generation');
-      return 'https://www.amazon.co.uk';
+      return 'https://www.amazon.co.uk?tag=simplysent09-21';
     }
-    return `https://www.amazon.co.uk/dp/${sku}`;
+    return `https://www.amazon.co.uk/dp/${sku}?tag=simplysent09-21`;
   };
   // Interest emoji helpers
   const interestEmojiMap: Record<string, string> = {

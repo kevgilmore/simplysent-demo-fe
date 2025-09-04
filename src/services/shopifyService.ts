@@ -162,12 +162,12 @@ export const fetchCollectionProducts = async (collectionHandle: string, maxPrice
     return [];
   }
 };
-// Generate Amazon URL from SKU
+// Generate Amazon URL from SKU with affiliate tag
 export const generateAmazonUrl = (sku: string) => {
   if (!sku) {
-    return 'https://www.amazon.co.uk';
+    return 'https://www.amazon.co.uk?tag=simplysent09-21';
   }
-  return `https://www.amazon.co.uk/dp/${sku}`;
+  return `https://www.amazon.co.uk/dp/${sku}?tag=simplysent09-21`;
 };
 // Format price with currency symbol
 export const formatPrice = (price: number, currencyCode: string = 'GBP') => {
