@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon, UsersIcon, PartyPopperIcon, SmileIcon } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { buildApiUrl } from '../utils/apiConfig';
+import { buildApiUrl, apiFetch } from '../utils/apiConfig';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -254,13 +254,13 @@ export function GiftRecommenderForm() {
       
       const apiUrl = buildApiUrl('/recommend', queryParams);
       
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestData)
-      });
+      }, 'POST /recommend');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -278,11 +278,12 @@ export function GiftRecommenderForm() {
       }
     } catch (error) {
       console.error('Error getting recommendations (test):', error);
-      navigate('/products', {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      navigate('/error', {
         state: {
-          error: true,
           formData: newFormData,
-          reqId: uuidv4()
+          reqId: uuidv4(),
+          errorMessage
         }
       });
     } finally {
@@ -437,13 +438,13 @@ export function GiftRecommenderForm() {
       });
       console.log('Request body:', requestData);
       
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestData)
-      });
+      }, 'POST /recommend');
       
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
@@ -475,9 +476,8 @@ export function GiftRecommenderForm() {
         stack: error instanceof Error ? error.stack : undefined,
         name: error instanceof Error ? error.name : undefined
       });
-      navigate('/products', {
+      navigate('/error', {
         state: {
-          error: true,
           formData,
           reqId: uuidv4(),
           errorMessage

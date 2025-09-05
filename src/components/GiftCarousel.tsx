@@ -239,7 +239,7 @@ export function GiftCarousel({
           </button>
         </div>
         {/* Add this style tag to disable hover effects on touch devices */}
-        <style jsx global>{`
+        <style>{`
           .touch-device .no-hover-scale:hover {
             transform: none !important;
           }

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeftIcon, WrenchIcon } from 'lucide-react';
+import { ArrowLeftIcon, AlertTriangleIcon } from 'lucide-react';
 import { getApiBaseUrl } from '../utils/apiConfig';
 interface ErrorPageProps {
   formData?: {
@@ -13,6 +13,7 @@ interface ErrorPageProps {
     maxBudget: number | null;
   };
   reqId?: string;
+  errorMessage?: string;
 }
 export function ErrorPage() {
   const navigate = useNavigate();
@@ -22,20 +23,17 @@ export function ErrorPage() {
     const reportError = async () => {
       try {
         const errorPayload = {
-          message: "TypeError: Cannot read property 'products' of undefined",
-          stack: "TypeError: Cannot read property 'products' of undefined\n    at RecommendationCard.render (RecommendationCard.js:42:17)",
-          componentStack: '    in RecommendationCard (at RecommendationList.js:23)\n    in RecommendationList',
+          message: state?.errorMessage || 'Unknown error',
           url: window.location.href,
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
           reqId: state?.reqId || 'unknown',
-          llmEnabled: true,
           recommendation: state?.formData ? {
             interests: state.formData.interests,
             budget_min: state.formData.minBudget,
             budget_max: state.formData.maxBudget,
             age: parseInt(state.formData.personAge),
-            drink: state.formData.favoritedrink.toLowerCase(),
+            drink: state.formData.favoritedrink?.toLowerCase(),
             size: state.formData.clothesSize
           } : undefined
         };
@@ -62,25 +60,17 @@ export function ErrorPage() {
     opacity: 0,
     y: -20
   }} className="text-center space-y-6">
-      <div className="relative w-64 h-64 mx-auto mb-8">
-        <motion.div initial={{
-        rotate: 0
-      }} animate={{
-        rotate: 360
-      }} transition={{
-        duration: 60,
-        repeat: Infinity,
-        ease: 'linear'
-      }} className="absolute inset-0 flex items-center justify-center">
-          <WrenchIcon className="w-24 h-24 text-purple-300" />
-        </motion.div>
+      <div className="relative w-40 h-40 mx-auto mb-2">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-200/60 to-pink-200/60 blur-2xl"></div>
+        <div className="relative w-full h-full flex items-center justify-center">
+          <AlertTriangleIcon className="w-20 h-20 text-purple-500" />
+        </div>
       </div>
       <h2 className="text-2xl font-bold text-gray-900">
-        Oops! We're Having a Moment
+        Something went wrong. This is embarrassing.
       </h2>
       <p className="text-gray-600 max-w-md mx-auto">
-        Our gift-finding elves are doing some maintenance. Please try again in a
-        few minutes!
+        We’re working on it. Please try again in a few minutes.
       </p>
       <motion.button whileHover={{
       scale: 1.02
@@ -88,7 +78,7 @@ export function ErrorPage() {
       scale: 0.98
     }} onClick={() => navigate('/')} className="inline-flex items-center px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg transition-colors">
         <ArrowLeftIcon className="w-5 h-5 mr-2" />
-        Try Again
+        Back to Home
       </motion.button>
     </motion.div>;
 }
