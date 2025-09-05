@@ -485,34 +485,35 @@ export function GiftRecommenderForm() {
   }} transition={{
     duration: 0.4
   }} className="space-y-8 pb-5">
-      {/* Add Back Button and Test Button - fixed to show on /results path */}
-      {isAnySandboxMode() && <div className="flex items-center mb-6 justify-between">
-          <motion.button initial={{
-        opacity: 0,
-        x: -20
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} transition={{
-        delay: 0.2
-      }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back to Home
-          </motion.button>
-          {/* Add Fill Form button for testing */}
-          <motion.button initial={{
-        opacity: 0,
-        x: 20
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} transition={{
-        delay: 0.2
-      }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg">
-            <SparklesIcon className="w-4 h-4 mr-2" />
-            Fill Form (Testing)
-          </motion.button>
-        </div>}
+      {/* Back Button - always show */}
+      <div className="flex items-center mb-6 justify-between">
+        <motion.button initial={{
+          opacity: 0,
+          x: -20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} transition={{
+          delay: 0.2
+        }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
+          <ArrowLeftIcon className="w-4 h-4 mr-2" />
+          Back to Home
+        </motion.button>
+        
+        {/* Fill Form button for testing - only show in sandbox modes */}
+        {isAnySandboxMode() && <motion.button initial={{
+          opacity: 0,
+          x: 20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} transition={{
+          delay: 0.2
+        }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg">
+          <SparklesIcon className="w-4 h-4 mr-2" />
+          Fill Form (Testing)
+        </motion.button>}
+      </div>
 
       {/* First Card - Keep purple gradient */}
       <div className="bg-gradient-to-r from-purple-100 to-violet-100 rounded-2xl shadow-xl p-8 relative overflow-hidden">
@@ -671,9 +672,9 @@ export function GiftRecommenderForm() {
           </div>
           <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 p-2">
-              {getSortedInterests(formData.gender).map(interest => <label key={interest} className={`group flex items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${formData.interests.includes(interest) ? 'bg-gradient-to-r from-pink-100 to-rose-100 border-2 border-pink-300 shadow-md scale-105' : 'bg-gradient-to-r from-white to-gray-50 border-2 border-gray-100 hover:border-pink-200 hover:from-pink-50 hover:to-rose-50'}`}>
+              {getSortedInterests(formData.gender).map(interest => <label key={interest} className={`group flex items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${formData.interests.includes(interest) ? 'bg-gradient-to-r from-pink-100 to-rose-100 border-2 border-pink-300 shadow-md scale-105' : 'bg-gradient-to-r from-white to-gray-50 border-2 border-gray-100 hover:border-gray-300 hover:from-gray-50 hover:to-gray-100'}`}>
                   <input type="checkbox" checked={formData.interests.includes(interest)} onChange={() => handleInterestToggle(interest)} className="sr-only" />
-                  <span className={`text-xs sm:text-sm font-medium text-center leading-tight break-words hyphens-auto transition-colors duration-200 ${formData.interests.includes(interest) ? 'text-pink-700' : 'text-gray-600 group-hover:text-pink-600'}`} style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
+                  <span className={`text-xs sm:text-sm font-medium text-center leading-tight break-words hyphens-auto transition-colors duration-200 ${formData.interests.includes(interest) ? 'text-pink-700' : 'text-gray-600 group-hover:text-gray-800'}`} style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                     {interest}
                   </span>
                 </label>)}
