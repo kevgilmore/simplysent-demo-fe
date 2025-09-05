@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon, UsersIcon, PartyPopperIcon, SmileIcon } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { buildApiUrl, apiFetch } from '../utils/apiConfig';
+import { buildApiUrl, apiFetch, isAnySandboxMode } from '../utils/apiConfig';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -432,12 +432,6 @@ export function GiftRecommenderForm() {
       
       const apiUrl = buildApiUrl('/recommend', queryParams);
       
-      console.log('Making API call to:', apiUrl);
-      console.log('Request headers:', {
-        'Content-Type': 'application/json'
-      });
-      console.log('Request body:', requestData);
-      
       const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -445,17 +439,13 @@ export function GiftRecommenderForm() {
         },
         body: JSON.stringify(requestData)
       }, 'POST /recommend');
-      
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error Response:', errorText);
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       const data: ApiResponse = await response.json();
-      console.log('API Response:', data);
+      // intentionally minimal logging; apiConfig logs request and outcome in sandbox modes
       // Ensure the products array exists and has items before navigating
       if (data.products && data.products.length > 0) {
         navigate('/products', {
@@ -471,11 +461,7 @@ export function GiftRecommenderForm() {
     } catch (error) {
       console.error('Error getting recommendations:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error details:', {
-        message: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined
-      });
+      // minimal error logging
       navigate('/error', {
         state: {
           formData,
@@ -500,7 +486,7 @@ export function GiftRecommenderForm() {
     duration: 0.4
   }} className="space-y-8 pb-5">
       {/* Add Back Button and Test Button - fixed to show on /results path */}
-      {(location.pathname === '/fathers-day' || location.pathname === '/results') && <div className="flex items-center mb-6 justify-between">
+      {isAnySandboxMode() && <div className="flex items-center mb-6 justify-between">
           <motion.button initial={{
         opacity: 0,
         x: -20

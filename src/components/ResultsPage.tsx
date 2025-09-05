@@ -30,11 +30,8 @@ interface FormData {
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  // Add debugging for component mount and state
+  // Scroll to top when component mounts
   useEffect(() => {
-    console.log('ResultsPage mounted');
-    console.log('Location state:', location.state);
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, [location]);
   // Safely extract state data with fallbacks
@@ -57,7 +54,6 @@ export function ResultsPage() {
       // Map and normalize the data structure
       const normalizedProducts = recommendations.map(product => {
         // Log each product to understand its structure
-        console.log('Processing product:', product);
         return {
           sku: product.sku || product.ASIN || '',
           productTitle: product.productTitle || product.name || '',
@@ -272,10 +268,6 @@ export function ResultsPage() {
     navigate('/error', { state: { errorMessage: 'No recommendations available', formData } });
     return null;
   }
-  // Debug the top recommendation
-  console.log('Top recommendation:', topRecommendation);
-  console.log('Top recommendation title:', topRecommendation.productTitle || topRecommendation.name);
-  console.log('Top recommendation image:', topRecommendation.imageUrl || topRecommendation.image_url);
   return <>
       <motion.div initial={{
       opacity: 0,
@@ -426,9 +418,6 @@ export function ResultsPage() {
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {otherRecommendations.map((item, index) => {
             const feedbackIndex = index + 1;
-            // Debug each item
-            console.log(`Item ${index} title:`, getProductTitle(item));
-            console.log(`Item ${index} image:`, item.imageUrl || item.image_url);
             return <motion.div key={item.sku} variants={itemVariants} className="bg-gradient-to-b from-purple-50 to-pink-50 rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
                     {/* Add image section at the top */}
                     <div className="relative">
