@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon, UsersIcon, PartyPopperIcon, SmileIcon } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { buildApiUrl } from '../utils/apiConfig';
+import { buildApiUrl, getApiHeaders, getCurrentMode } from '../utils/apiConfig';
+import { ModeIndicator } from './ModeIndicator';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -252,13 +253,13 @@ export function GiftRecommenderForm() {
       queryParams.append('client_origin', origin);
       queryParams.append('client_request_id', reqId);
       
-      const apiUrl = buildApiUrl('/recommend', queryParams);
+      const mode = getCurrentMode();
+      const apiUrl = buildApiUrl('/recommend', queryParams, mode);
+      const headers = getApiHeaders(mode);
       
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify(requestData)
       });
       if (!response.ok) {
@@ -429,19 +430,41 @@ export function GiftRecommenderForm() {
       queryParams.append('client_origin', origin);
       queryParams.append('client_request_id', reqId);
       
-      const apiUrl = buildApiUrl('/recommend', queryParams);
+      const mode = getCurrentMode();
+      const apiUrl = buildApiUrl('/recommend', queryParams, mode);
+      const headers = getApiHeaders(mode);
       
       console.log('Making API call to:', apiUrl);
-      console.log('Request headers:', {
-        'Content-Type': 'application/json'
-      });
+      console.log('Request headers:', headers);
       console.log('Request body:', requestData);
+      console.log('Mode:', mode);
       
+      if (mode === 'training') {
+        // Fire-and-forget: send training submission, ignore CORS/errors, do not navigate
+        fetch(apiUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(requestData)
+        }).catch(err => console.warn('Training submission failed (ignored):', err));
+        setFormData({
+          personAge: '',
+          interests: [],
+          favoritedrink: '',
+          clothesSize: '',
+          minBudget: 10,
+          maxBudget: 110,
+          relationship: '',
+          occasion: '',
+          sentiment: '',
+          gender: 'male'
+        });
+        setBudgetRange([10, 110]);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify(requestData)
       });
       
@@ -455,7 +478,7 @@ export function GiftRecommenderForm() {
       }
       const data: ApiResponse = await response.json();
       console.log('API Response:', data);
-      // Ensure the products array exists and has items before navigating
+      // Default behavior: show results
       if (data.products && data.products.length > 0) {
         navigate('/products', {
           state: {
@@ -487,18 +510,23 @@ export function GiftRecommenderForm() {
       setIsLoading(false);
     }
   };
-  return <motion.div initial={{
-    opacity: 0,
-    y: 20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} exit={{
-    opacity: 0,
-    y: -20
-  }} transition={{
-    duration: 0.4
-  }} className="space-y-8 pb-5">
+  const currentMode = getCurrentMode();
+  return (
+    <>
+      
+      <motion.div initial={{
+        opacity: 0,
+        y: 20
+      }} animate={{
+        opacity: 1,
+        y: 0
+      }} exit={{
+        opacity: 0,
+        y: -20
+      }} transition={{
+        duration: 0.4
+      }} className="space-y-8 pb-5">
+      {/* Mode pill always visible on the recommender form page - moved into header row below for layout consistency */}
       {/* Add Back Button and Test Button - fixed to show on /results path */}
       {(location.pathname === '/fathers-day' || location.pathname === '/results') && <div className="flex items-center mb-6 justify-between">
           <motion.button initial={{
@@ -513,6 +541,7 @@ export function GiftRecommenderForm() {
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back to Home
           </motion.button>
+          <ModeIndicator />
           {/* Add Fill Form button for testing */}
           <motion.button initial={{
         opacity: 0,
@@ -898,8 +927,10 @@ export function GiftRecommenderForm() {
             </motion.span>
           </motion.div> : <div className="flex items-center justify-center">
             <GiftIcon className="w-6 h-6 mr-3" />
-            Find Perfect Gifts
+            {currentMode === 'training' ? 'Save and add another' : 'Find Perfect Gifts'}
           </div>}
       </motion.button>
-    </motion.div>;
+    </motion.div>
+    </>
+  );
 }

@@ -86,7 +86,7 @@ export function App() {
       <Analytics measurementId={GA_MEASUREMENT_ID} />
       <MetaPixel pixelId={META_PIXEL_ID} />
       <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 pt-8 px-4 overflow-x-hidden">
-        <style jsx global>{`
+        <style>{`
           .no-scrollbar {
             -ms-overflow-style: none; /* IE and Edge */
             scrollbar-width: none; /* Firefox */

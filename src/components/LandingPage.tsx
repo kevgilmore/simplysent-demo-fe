@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { GiftIcon, SparklesIcon, ShoppingBagIcon, ShoppingCartIcon, MenuIcon, SearchIcon, ChevronRightIcon, StarIcon, ZapIcon, ArrowRightIcon, CheckCircleIcon } from 'lucide-react';
 import { GiftCarousel } from './GiftCarousel';
 import { fetchCollectionProducts, ShopifyProduct } from '../services/shopifyService';
+import { ModeIndicator } from './ModeIndicator';
 export function LandingPage() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -122,15 +123,18 @@ export function LandingPage() {
       });
     }
   };
-  return <motion.div initial={{
-    opacity: 0
-  }} animate={{
-    opacity: 1
-  }} exit={{
-    opacity: 0
-  }} transition={{
-    duration: 0.4
-  }} className="w-full">
+  return (
+    <>
+      
+      <motion.div initial={{
+        opacity: 0
+      }} animate={{
+        opacity: 1
+      }} exit={{
+        opacity: 0
+      }} transition={{
+        duration: 0.4
+      }} className="w-full">
       {/* Header */}
       <header className="py-4 border-b border-gray-100">
         <div className="container mx-auto px-4">
@@ -152,10 +156,13 @@ export function LandingPage() {
                 AI Gift Finder
               </Link>
             </nav>
-            {/* Mobile Menu Button */}
-            <button className="md:hidden text-gray-700 hover:text-purple-600" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <MenuIcon className="w-6 h-6" />
-            </button>
+            {/* Right-side controls: mode pill (always visible) + mobile menu */}
+            <div className="flex items-center gap-3">
+              <ModeIndicator />
+              <button className="md:hidden text-gray-700 hover:text-purple-600" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                <MenuIcon className="w-6 h-6" />
+              </button>
+            </div>
           </div>
           {/* Mobile Navigation - Home removed */}
           {mobileMenuOpen && <motion.div initial={{
@@ -1022,5 +1029,7 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
-    </motion.div>;
+    </motion.div>
+    </>
+  );
 }

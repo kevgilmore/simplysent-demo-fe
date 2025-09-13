@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, CheckCircle2Icon } from 'lucide-react';
 import { getApiBaseUrl } from '../utils/apiConfig';
+import { ModeIndicator } from './ModeIndicator';
 interface Product {
   sku: string;
   productTitle?: string;
@@ -293,7 +294,9 @@ export function ResultsPage() {
   console.log('Top recommendation:', topRecommendation);
   console.log('Top recommendation title:', topRecommendation.productTitle || topRecommendation.name);
   console.log('Top recommendation image:', topRecommendation.imageUrl || topRecommendation.image_url);
-  return <>
+  return (
+    <>
+      
       <motion.div initial={{
       opacity: 0,
       y: 20
@@ -307,7 +310,8 @@ export function ResultsPage() {
       duration: 0.4
     }} className="space-y-8 pb-5">
         {/* Back Button */}
-        <motion.button initial={{
+        <div className="flex items-center mb-6 justify-between">
+          <motion.button initial={{
         opacity: 0,
         x: -20
       }} animate={{
@@ -315,10 +319,12 @@ export function ResultsPage() {
         x: 0
       }} transition={{
         delay: 0.2
-      }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center mb-6">
+      }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
           Start Over
         </motion.button>
+          <ModeIndicator />
+        </div>
 
         {/* Top Recommendation Section */}
         <motion.div initial={{
@@ -620,7 +626,8 @@ export function ResultsPage() {
             </motion.div>
           </motion.div>}
       </AnimatePresence>
-    </>;
+    </>
+  );
 }
 // Helper functions
 const getProductTitle = (product: any): string => {
