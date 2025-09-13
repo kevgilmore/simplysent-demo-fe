@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, SparklesIcon, ShirtIcon, ArrowLeftIcon, UsersIcon, PartyPopperIcon, SmileIcon } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { buildApiUrl, getApiHeaders, getCurrentMode } from '../utils/apiConfig';
+import { buildApiUrl, apiFetch, isAnySandboxMode, getApiHeaders, getCurrentMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 interface FormData {
   personAge: string;
@@ -93,7 +93,6 @@ const getSortedInterests = (gender: string): string[] => {
 };
 export function GiftRecommenderForm() {
   const navigate = useNavigate();
-  const location = useLocation();
   
   const [formData, setFormData] = useState<FormData>({
     personAge: '',
@@ -109,23 +108,8 @@ export function GiftRecommenderForm() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [loadingStage, setLoadingStage] = useState(0);
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [budgetRange, setBudgetRange] = useState([10, 110]);
-  // Add the missing loadingMessages array
-  const loadingMessages = [{
-    icon: '🎁',
-    message: 'Analyzing your preferences...'
-  }, {
-    icon: '🤖',
-    message: 'Finding perfect matches...'
-  }, {
-    icon: '✨',
-    message: 'Curating recommendations...'
-  }, {
-    icon: '🎉',
-    message: 'Almost ready!'
-  }];
   // Handle interest toggle function
   const handleInterestToggle = (interest: string) => {
     setFormData(prev => ({
@@ -254,14 +238,14 @@ export function GiftRecommenderForm() {
       queryParams.append('client_request_id', reqId);
       
       const mode = getCurrentMode();
-      const apiUrl = buildApiUrl('/recommend', queryParams, mode);
-      const headers = getApiHeaders(mode);
+      const apiUrl = buildApiUrl('/recommend', queryParams);
+      const headers = getApiHeaders(mode || undefined);
       
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestData)
-      });
+      }, 'POST /recommend');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -279,11 +263,12 @@ export function GiftRecommenderForm() {
       }
     } catch (error) {
       console.error('Error getting recommendations (test):', error);
-      navigate('/products', {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      navigate('/error', {
         state: {
-          error: true,
           formData: newFormData,
-          reqId: uuidv4()
+          reqId: uuidv4(),
+          errorMessage
         }
       });
     } finally {
@@ -431,9 +416,8 @@ export function GiftRecommenderForm() {
       queryParams.append('client_request_id', reqId);
       
       const mode = getCurrentMode();
-      const apiUrl = buildApiUrl('/recommend', queryParams, mode);
-      const headers = getApiHeaders(mode);
-      
+      const apiUrl = buildApiUrl('/recommend', queryParams);
+      const headers = getApiHeaders(mode || undefined);
       console.log('Making API call to:', apiUrl);
       console.log('Request headers:', headers);
       console.log('Request body:', requestData);
@@ -462,23 +446,19 @@ export function GiftRecommenderForm() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
-      const response = await fetch(apiUrl, {
+      const response = await apiFetch(apiUrl, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestData)
-      });
-      
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-      
+      }, 'POST /recommend');
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error Response:', errorText);
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       const data: ApiResponse = await response.json();
-      console.log('API Response:', data);
-      // Default behavior: show results
+      // intentionally minimal logging; apiConfig logs request and outcome in sandbox modes
+      // Ensure the products array exists and has items before navigating
       if (data.products && data.products.length > 0) {
         navigate('/products', {
           state: {
@@ -493,14 +473,9 @@ export function GiftRecommenderForm() {
     } catch (error) {
       console.error('Error getting recommendations:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error details:', {
-        message: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined
-      });
-      navigate('/products', {
+      // minimal error logging
+      navigate('/error', {
         state: {
-          error: true,
           formData,
           reqId: uuidv4(),
           errorMessage
@@ -513,7 +488,6 @@ export function GiftRecommenderForm() {
   const currentMode = getCurrentMode();
   return (
     <>
-      
       <motion.div initial={{
         opacity: 0,
         y: 20
@@ -526,36 +500,38 @@ export function GiftRecommenderForm() {
       }} transition={{
         duration: 0.4
       }} className="space-y-8 pb-5">
-      {/* Mode pill always visible on the recommender form page - moved into header row below for layout consistency */}
-      {/* Add Back Button and Test Button - fixed to show on /results path */}
-      {(location.pathname === '/fathers-day' || location.pathname === '/results') && <div className="flex items-center mb-6 justify-between">
-          <motion.button initial={{
-        opacity: 0,
-        x: -20
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} transition={{
-        delay: 0.2
-      }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back to Home
-          </motion.button>
+      {/* Back Button - always show */}
+      <div className="flex items-center mb-6 justify-between">
+        <motion.button initial={{
+          opacity: 0,
+          x: -20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} transition={{
+          delay: 0.2
+        }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
+          <ArrowLeftIcon className="w-4 h-4 mr-2" />
+          Back to Home
+        </motion.button>
+        
+        <div className="flex items-center space-x-3">
           <ModeIndicator />
-          {/* Add Fill Form button for testing */}
-          <motion.button initial={{
-        opacity: 0,
-        x: 20
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} transition={{
-        delay: 0.2
-      }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg">
+          {/* Fill Form button for testing - only show in sandbox modes */}
+          {isAnySandboxMode() && <motion.button initial={{
+            opacity: 0,
+            x: 20
+          }} animate={{
+            opacity: 1,
+            x: 0
+          }} transition={{
+            delay: 0.2
+          }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg">
             <SparklesIcon className="w-4 h-4 mr-2" />
             Fill Form (Testing)
-          </motion.button>
-        </div>}
+          </motion.button>}
+        </div>
+      </div>
 
       {/* First Card - Keep purple gradient */}
       <div className="bg-gradient-to-r from-purple-100 to-violet-100 rounded-2xl shadow-xl p-8 relative overflow-hidden">
@@ -714,9 +690,9 @@ export function GiftRecommenderForm() {
           </div>
           <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 p-2">
-              {getSortedInterests(formData.gender).map(interest => <label key={interest} className={`group flex items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${formData.interests.includes(interest) ? 'bg-gradient-to-r from-pink-100 to-rose-100 border-2 border-pink-300 shadow-md scale-105' : 'bg-gradient-to-r from-white to-gray-50 border-2 border-gray-100 hover:border-pink-200 hover:from-pink-50 hover:to-rose-50'}`}>
+              {getSortedInterests(formData.gender).map(interest => <label key={interest} className={`group flex items-center justify-center p-3 rounded-xl cursor-pointer transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${formData.interests.includes(interest) ? 'bg-gradient-to-r from-pink-100 to-rose-100 border-2 border-pink-300 shadow-md scale-105' : 'bg-gradient-to-r from-white to-gray-50 border-2 border-gray-100 hover:border-gray-300 hover:from-gray-50 hover:to-gray-100'}`}>
                   <input type="checkbox" checked={formData.interests.includes(interest)} onChange={() => handleInterestToggle(interest)} className="sr-only" />
-                  <span className={`text-xs sm:text-sm font-medium text-center leading-tight break-words hyphens-auto transition-colors duration-200 ${formData.interests.includes(interest) ? 'text-pink-700' : 'text-gray-600 group-hover:text-pink-600'}`} style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
+                  <span className={`text-xs sm:text-sm font-medium text-center leading-tight break-words hyphens-auto transition-colors duration-200 ${formData.interests.includes(interest) ? 'text-pink-700' : 'text-gray-600 group-hover:text-gray-800'}`} style={{wordBreak: 'break-word', overflowWrap: 'break-word'}}>
                     {interest}
                   </span>
                 </label>)}
@@ -910,21 +886,7 @@ export function GiftRecommenderForm() {
         duration: 0.3
       }}>
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            <motion.span key={loadingStage} initial={{
-          opacity: 0,
-          y: 10
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} exit={{
-          opacity: 0,
-          y: -10
-        }} transition={{
-          duration: 0.5
-        }} className="text-lg">
-              {loadingMessages[loadingStage].icon}{' '}
-              {loadingMessages[loadingStage].message}
-            </motion.span>
+            <span className="text-lg">Finding perfect gifts...</span>
           </motion.div> : <div className="flex items-center justify-center">
             <GiftIcon className="w-6 h-6 mr-3" />
             {currentMode === 'training' ? 'Save and add another' : 'Find Perfect Gifts'}

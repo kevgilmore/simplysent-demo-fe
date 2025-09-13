@@ -1,8 +1,8 @@
 import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, CheckCircle2Icon } from 'lucide-react';
-import { getApiBaseUrl } from '../utils/apiConfig';
+import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon } from 'lucide-react';
+import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 interface Product {
   sku: string;
@@ -31,11 +31,8 @@ interface FormData {
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  // Add debugging for component mount and state
+  // Scroll to top when component mounts
   useEffect(() => {
-    console.log('ResultsPage mounted');
-    console.log('Location state:', location.state);
-    // Scroll to top when component mounts
     window.scrollTo(0, 0);
   }, [location]);
   // Safely extract state data with fallbacks
@@ -58,7 +55,6 @@ export function ResultsPage() {
       // Map and normalize the data structure
       const normalizedProducts = recommendations.map(product => {
         // Log each product to understand its structure
-        console.log('Processing product:', product);
         return {
           sku: product.sku || product.ASIN || '',
           productTitle: product.productTitle || product.name || '',
@@ -151,7 +147,7 @@ export function ResultsPage() {
     if (!recommendationId) return;
     try {
       console.log('Sending feedback for item:', sku, isGood ? 'good' : 'bad');
-      const response = await fetch(`${getApiBaseUrl()}/feedback/label`, {
+      const response = await apiFetch(`${getApiBaseUrl()}/feedback/label`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -163,7 +159,7 @@ export function ResultsPage() {
             feedback_label: isGood ? 1 : 0
           }
         })
-      });
+      }, 'POST /feedback/label');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -177,7 +173,7 @@ export function ResultsPage() {
     if (!recommendationId) return;
     try {
       console.log('Sending click feedback for item:', sku);
-      await fetch(`${getApiBaseUrl()}/feedback/click`, {
+      await apiFetch(`${getApiBaseUrl()}/feedback/click`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -189,7 +185,7 @@ export function ResultsPage() {
             clicked: true
           }
         })
-      });
+      }, 'POST /feedback/click');
       console.log('Click feedback sent successfully');
     } catch (error) {
       console.error('Error sending link click feedback:', error);
@@ -209,7 +205,7 @@ export function ResultsPage() {
     setIsLoading(true);
     try {
       console.log('Submitting feedback comment:', modalFeedback);
-      const response = await fetch(`${getApiBaseUrl()}/feedback/comment?usellm=false&return_new_recommendation=false`, {
+      const response = await apiFetch(`${getApiBaseUrl()}/feedback/comment?usellm=false&return_new_recommendation=false`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -218,7 +214,7 @@ export function ResultsPage() {
           recommendation_id: recommendationId,
           feedback_comment: modalFeedback
         })
-      });
+      }, 'POST /feedback/comment');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -268,35 +264,13 @@ export function ResultsPage() {
       setIsLoading(false);
     }
   };
-  // Render a message if no data is available
+  // Redirect to error page if no data is available
   if (!formData || !products || products.length === 0 || !topRecommendation) {
-    return <motion.div initial={{
-      opacity: 0
-    }} animate={{
-      opacity: 1
-    }} exit={{
-      opacity: 0
-    }} className="text-center p-8">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          No Recommendations Available
-        </h2>
-        <p className="text-gray-600 mb-4">
-          We couldn't find any recommendations. This might be because you
-          accessed this page directly.
-        </p>
-        <button onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center justify-center mx-auto">
-          <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Back to Home
-        </button>
-      </motion.div>;
+    navigate('/error', { state: { errorMessage: 'No recommendations available', formData } });
+    return null;
   }
-  // Debug the top recommendation
-  console.log('Top recommendation:', topRecommendation);
-  console.log('Top recommendation title:', topRecommendation.productTitle || topRecommendation.name);
-  console.log('Top recommendation image:', topRecommendation.imageUrl || topRecommendation.image_url);
   return (
     <>
-      
       <motion.div initial={{
       opacity: 0,
       y: 20
@@ -449,9 +423,6 @@ export function ResultsPage() {
             <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {otherRecommendations.map((item, index) => {
             const feedbackIndex = index + 1;
-            // Debug each item
-            console.log(`Item ${index} title:`, getProductTitle(item));
-            console.log(`Item ${index} image:`, item.imageUrl || item.image_url);
             return <motion.div key={item.sku} variants={itemVariants} className="bg-gradient-to-b from-purple-50 to-pink-50 rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col">
                     {/* Add image section at the top */}
                     <div className="relative">

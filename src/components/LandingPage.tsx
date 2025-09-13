@@ -5,6 +5,7 @@ import { GiftIcon, SparklesIcon, ShoppingBagIcon, ShoppingCartIcon, MenuIcon, Se
 import { GiftCarousel } from './GiftCarousel';
 import { fetchCollectionProducts, ShopifyProduct } from '../services/shopifyService';
 import { ModeIndicator } from './ModeIndicator';
+import { getApiBaseUrl } from '../utils/apiConfig';
 export function LandingPage() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +22,12 @@ export function LandingPage() {
   const [forHerProducts, setForHerProducts] = useState<any[]>([]);
   const [isLoadingHim, setIsLoadingHim] = useState(true);
   const [isLoadingHer, setIsLoadingHer] = useState(true);
+  // Trigger API config detection/logging on initial load (so ?mode=dev prints immediately)
+  useEffect(() => {
+    try {
+      getApiBaseUrl();
+    } catch {}
+  }, []);
   // Fetch products when component mounts
   useEffect(() => {
     const fetchProducts = async () => {
