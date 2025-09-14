@@ -515,7 +515,7 @@ export function GiftRecommenderForm() {
           Back to Home
         </motion.button>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center">
           <ModeIndicator />
           {/* Fill Form button for testing - only show in sandbox modes */}
           {isAnySandboxMode() && <motion.button initial={{
@@ -526,7 +526,7 @@ export function GiftRecommenderForm() {
             x: 0
           }} transition={{
             delay: 0.2
-          }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg">
+          }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg ml-3">
             <SparklesIcon className="w-4 h-4 mr-2" />
             Fill Form (Testing)
           </motion.button>}

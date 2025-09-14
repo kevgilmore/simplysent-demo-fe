@@ -145,11 +145,13 @@ export function LandingPage() {
       {/* Header */}
       <header className="py-4 border-b border-gray-100">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center">
             {/* Logo - removed hover scale effect */}
             <Link to="/" className="flex-shrink-0">
               <img src="/logo.png" alt="SimplySent" className="h-10" />
             </Link>
+            {/* Spacer to push navigation to the right */}
+            <div className="flex-1"></div>
             {/* Desktop Navigation - Home removed */}
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#popular-gift-ideas" onClick={scrollToGiftIdeas} className="text-gray-800 hover:text-purple-600 font-medium">
@@ -164,9 +166,9 @@ export function LandingPage() {
               </Link>
             </nav>
             {/* Right-side controls: mode pill (always visible) + mobile menu */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center ml-4">
               <ModeIndicator />
-              <button className="md:hidden text-gray-700 hover:text-purple-600" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <button className="md:hidden text-gray-700 hover:text-purple-600 ml-3" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                 <MenuIcon className="w-6 h-6" />
               </button>
             </div>

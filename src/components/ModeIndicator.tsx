@@ -18,7 +18,7 @@ export function ModeIndicator({ className = '' }: ModeIndicatorProps) {
     // Remove mode parameter from URL and reload
     const url = new URL(window.location.href);
     url.searchParams.delete('mode');
-    try { localStorage.removeItem('app_mode'); } catch {}
+    try { localStorage.removeItem('ss_api_mode'); } catch {}
     window.location.href = url.toString();
   };
   

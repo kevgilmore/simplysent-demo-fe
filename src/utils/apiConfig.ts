@@ -39,7 +39,7 @@ function getPersistedMode(): ApiMode | undefined {
   const stored = localStorage.getItem(STORAGE_KEY);
   // Back-compat: treat legacy 'dev' as 'sandbox-local'
   if (stored === 'dev') return 'sandbox-local';
-  if (stored === 'sandbox-local' || stored === 'sandbox' || stored === 'prod') return stored as ApiMode;
+  if (stored === 'sandbox-local' || stored === 'sandbox' || stored === 'prod' || stored === 'training') return stored as ApiMode;
   return undefined;
 }
 
@@ -51,11 +51,6 @@ export const getApiMode = (): ApiMode => {
 
 export const getApiBaseUrl = (): string => {
   const mode = getApiMode();
-  if (mode === 'training') {
-    // Training mode uses the same base URL as sandbox-local
-    return DEV_BASE;
-  }
-  const base = mode === 'sandbox-local' ? DEV_BASE : PROD_BASE;
   if (isBrowser) {
     if ((mode === 'sandbox-local' || mode === 'sandbox') && !(window as any).__ssModeLogShown) {
       const label = mode === 'sandbox-local' ? 'Sandbox LOCAL' : 'Sandbox CLOUD';
@@ -68,6 +63,12 @@ export const getApiBaseUrl = (): string => {
     }
     // No mode log in prod
   }
+  
+  if (mode === 'training') {
+    // Training mode uses the same base URL as sandbox-local
+    return DEV_BASE;
+  }
+  const base = mode === 'sandbox-local' ? DEV_BASE : PROD_BASE;
   return base;
 };
 
