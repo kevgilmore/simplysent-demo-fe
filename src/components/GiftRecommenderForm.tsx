@@ -212,9 +212,17 @@ export function GiftRecommenderForm() {
     setIsLoading(true);
     try {
       if (window.fbq) {
-        window.fbq('track', 'FormCompletion', {
+        const eventData: any = {
           form_name: 'fday-demo'
-        });
+        };
+        
+        // Add test event code for sandbox mode
+        if (isAnySandboxMode()) {
+          eventData.test_event_code = 'TEST44586';
+          console.log('🧪 Meta Pixel Test Event: Adding test_event_code TEST44586 for sandbox mode');
+        }
+        
+        window.fbq('track', 'FormCompletion', eventData);
       }
       const requestData = {
         age: parseInt(newFormData.personAge),
@@ -402,9 +410,17 @@ export function GiftRecommenderForm() {
       };
       // Track form submission with Meta Pixel
       if (window.fbq) {
-        window.fbq('track', 'FormCompletion', {
+        const eventData: any = {
           form_name: 'fday-demo'
-        });
+        };
+        
+        // Add test event code for sandbox mode
+        if (isAnySandboxMode()) {
+          eventData.test_event_code = 'TEST44586';
+          console.log('🧪 Meta Pixel Test Event: Adding test_event_code TEST44586 for sandbox mode');
+        }
+        
+        window.fbq('track', 'FormCompletion', eventData);
       }
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
