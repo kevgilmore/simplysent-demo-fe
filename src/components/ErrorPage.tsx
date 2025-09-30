@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon, AlertTriangleIcon } from 'lucide-react';
@@ -11,9 +11,17 @@ interface ErrorPageProps {
     personAge: string;
     minBudget: number | null;
     maxBudget: number | null;
+    gender?: string;
+    relationship?: string;
+    occasion?: string;
+    sentiment?: string;
+    clientOrigin?: string;
+    llmEnabled?: boolean;
   };
-  reqId?: string;
+  clientRequestId?: string;
   errorMessage?: string;
+  errorStack?: string;
+  componentStack?: string;
 }
 export function ErrorPage() {
   const navigate = useNavigate();
@@ -24,17 +32,26 @@ export function ErrorPage() {
       try {
         const errorPayload = {
           message: state?.errorMessage || 'Unknown error',
+          stack: state?.errorStack || new Error().stack || 'No stack trace available',
+          componentStack: state?.componentStack,
           url: window.location.href,
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
-          reqId: state?.reqId || 'unknown',
+          client_request_id: state?.clientRequestId || 'unknown',
           recommendation: state?.formData ? {
+            age: parseInt(state.formData.personAge),
+            gender: state.formData.gender,
+            relationship: state.formData.relationship,
+            occasion: state.formData.occasion,
+            sentiment: state.formData.sentiment,
             interests: state.formData.interests,
+            favourite_drink: state.formData.favoritedrink?.toLowerCase(),
+            size: state.formData.clothesSize,
             budget_min: state.formData.minBudget,
             budget_max: state.formData.maxBudget,
-            age: parseInt(state.formData.personAge),
-            drink: state.formData.favoritedrink?.toLowerCase(),
-            size: state.formData.clothesSize
+            client_request_id: state?.clientRequestId,
+            client_origin: state.formData.clientOrigin,
+            llm_enabled: state.formData.llmEnabled
           } : undefined
         };
         await fetch(`${getApiBaseUrl()}/error`, {
