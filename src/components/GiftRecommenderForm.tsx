@@ -16,6 +16,8 @@ interface FormData {
   occasion: string;
   sentiment: string;
   gender: string;
+  clientOrigin?: string;
+  llmEnabled?: boolean;
 }
 interface ApiResponse {
   recommendation_id: string;
@@ -104,12 +106,25 @@ export function GiftRecommenderForm() {
     relationship: '',
     occasion: '',
     sentiment: '',
-    gender: 'male'
+    gender: 'male',
+    clientOrigin: undefined,
+    llmEnabled: false
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [budgetRange, setBudgetRange] = useState([10, 110]);
+  
+  // Set clientOrigin from URL params on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const origin = urlParams.get('origin') || 'meta';
+    setFormData(prev => ({
+      ...prev,
+      clientOrigin: origin
+    }));
+  }, []);
+  
   // Handle interest toggle function
   const handleInterestToggle = (interest: string) => {
     setFormData(prev => ({
@@ -275,7 +290,7 @@ export function GiftRecommenderForm() {
       navigate('/error', {
         state: {
           formData: newFormData,
-          reqId: uuidv4(),
+          clientRequestId: uuidv4(),
           errorMessage
         }
       });
@@ -493,7 +508,7 @@ export function GiftRecommenderForm() {
       navigate('/error', {
         state: {
           formData,
-          reqId: uuidv4(),
+          clientRequestId: uuidv4(),
           errorMessage
         }
       });

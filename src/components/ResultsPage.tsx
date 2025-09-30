@@ -27,6 +27,8 @@ interface FormData {
   occasion: string;
   sentiment: string;
   gender: string;
+  clientOrigin?: string;
+  llmEnabled?: boolean;
 }
 export function ResultsPage() {
   const location = useLocation();
@@ -266,7 +268,7 @@ export function ResultsPage() {
   };
   // Redirect to error page if no data is available
   if (!formData || !products || products.length === 0 || !topRecommendation) {
-    navigate('/error', { state: { errorMessage: 'No recommendations available', formData } });
+    navigate('/error', { state: { errorMessage: 'No recommendations available', formData, clientRequestId: 'unknown' } });
     return null;
   }
   return (
