@@ -160,7 +160,7 @@ export function LandingPage() {
               <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-gray-800 hover:text-purple-600 font-medium">
                 Blog
               </a>
-              <Link to="/results" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center">
+              <Link to={`/results${window.location.search}`} className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center">
                 <SparklesIcon className="w-4 h-4 mr-2 text-purple-200" />
                 AI Gift Finder
               </Link>
@@ -191,7 +191,7 @@ export function LandingPage() {
                 <a href="#gift-inspiration" onClick={scrollToGiftInspiration} className="text-gray-800 hover:text-purple-600 font-medium">
                   Blog
                 </a>
-                <Link to="/results" className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center w-fit">
+                <Link to={`/results${window.location.search}`} className="text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 font-medium px-6 py-3 rounded-2xl shadow-md transition-all transform hover:scale-105 flex items-center w-fit">
                   <SparklesIcon className="w-4 h-4 mr-2 text-purple-200" />
                   AI Gift Finder
                 </Link>
@@ -447,7 +447,7 @@ export function LandingPage() {
               </a>
               <div className="relative">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-2xl blur-2xl"></div>
-                <Link to="/results" className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center">
+                <Link to={`/results${window.location.search}`} className="relative bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg transition-all flex items-center justify-center">
                   <SparklesIcon className="w-5 h-5 mr-2 text-pink-200" />
                   <span>Try the AI Gift Finder</span>
                 </Link>
@@ -732,7 +732,7 @@ export function LandingPage() {
             duration: 0.4,
             delay: 0.2
           }} className="mt-12 text-center">
-              <Link to="/results" className="group bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all inline-flex items-center">
+              <Link to={`/results${window.location.search}`} className="group bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg transition-all inline-flex items-center">
                 <SparklesIcon className="w-5 h-5 mr-2 text-purple-200" />
                 <span>Try the AI Gift Finder</span>
                 <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -943,7 +943,7 @@ export function LandingPage() {
                     </Link>
                   </li>
                   <li>
-                    <Link to="/results" className="text-purple-200 hover:text-white transition-colors flex items-center">
+                    <Link to={`/results${window.location.search}`} className="text-purple-200 hover:text-white transition-colors flex items-center">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-400 mr-2"></span>
                       AI Gift Finder
                     </Link>

@@ -118,11 +118,13 @@ export function GiftRecommenderForm() {
   // Set clientOrigin from URL params on component mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const origin = urlParams.get('origin') || 'meta';
-    setFormData(prev => ({
-      ...prev,
-      clientOrigin: origin
-    }));
+    const origin = urlParams.get('origin');
+    if (origin) {
+      setFormData(prev => ({
+        ...prev,
+        clientOrigin: origin
+      }));
+    }
   }, []);
   
   // Handle interest toggle function
@@ -253,11 +255,13 @@ export function GiftRecommenderForm() {
       };
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
-      const origin = urlParams.get('origin') || 'meta';
+      const origin = urlParams.get('origin');
       
       const queryParams = new URLSearchParams();
       queryParams.append('llm_enabled', 'false');
-      queryParams.append('client_origin', origin);
+      if (origin) {
+        queryParams.append('client_origin', origin);
+      }
       queryParams.append('client_request_id', reqId);
       
       const mode = getCurrentMode();
@@ -439,11 +443,13 @@ export function GiftRecommenderForm() {
       }
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
-      const origin = urlParams.get('origin') || 'meta';
+      const origin = urlParams.get('origin');
       
       const queryParams = new URLSearchParams();
       queryParams.append('llm_enabled', 'false');
-      queryParams.append('client_origin', origin);
+      if (origin) {
+        queryParams.append('client_origin', origin);
+      }
       queryParams.append('client_request_id', reqId);
       
       const mode = getCurrentMode();
