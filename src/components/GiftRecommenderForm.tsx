@@ -118,7 +118,7 @@ export function GiftRecommenderForm() {
   // Set clientOrigin from URL params on component mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const origin = urlParams.get('origin');
+    const origin = urlParams.get('client_origin');
     if (origin) {
       setFormData(prev => ({
         ...prev,
@@ -255,7 +255,7 @@ export function GiftRecommenderForm() {
       };
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
-      const origin = urlParams.get('origin');
+      const origin = urlParams.get('client_origin');
       
       const queryParams = new URLSearchParams();
       queryParams.append('llm_enabled', 'false');
@@ -443,7 +443,7 @@ export function GiftRecommenderForm() {
       }
       const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
-      const origin = urlParams.get('origin');
+      const origin = urlParams.get('client_origin');
       
       const queryParams = new URLSearchParams();
       queryParams.append('llm_enabled', 'false');
