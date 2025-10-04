@@ -114,6 +114,8 @@ export function GiftRecommenderForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isDragging, setIsDragging] = useState<'min' | 'max' | null>(null);
   const [budgetRange, setBudgetRange] = useState([10, 110]);
+  const [showJsonModal, setShowJsonModal] = useState(false);
+  const [jsonInput, setJsonInput] = useState('');
   
   // Set clientOrigin from URL params on component mount
   useEffect(() => {
@@ -210,6 +212,48 @@ export function GiftRecommenderForm() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Parse JSON and fill form
+  const parseJsonAndFillForm = () => {
+    try {
+      const data = JSON.parse(jsonInput);
+      const context = data.context;
+      
+      if (!context) {
+        alert('Invalid JSON: Missing "context" object');
+        return;
+      }
+
+      // Map JSON context to form data
+      const newFormData = {
+        personAge: context.age?.toString() || '',
+        gender: context.gender || 'male',
+        relationship: context.relationship ? context.relationship.charAt(0).toUpperCase() + context.relationship.slice(1) : '',
+        occasion: context.occasion ? context.occasion.charAt(0).toUpperCase() + context.occasion.slice(1) : '',
+        sentiment: context.sentiment ? context.sentiment.charAt(0).toUpperCase() + context.sentiment.slice(1) : '',
+        interests: context.interests || [],
+        favoritedrink: context.favourite_drink ? context.favourite_drink.charAt(0).toUpperCase() + context.favourite_drink.slice(1) : '',
+        clothesSize: context.size || '',
+        minBudget: context.budget_min || 10,
+        maxBudget: context.budget_max || 110,
+        clientOrigin: formData.clientOrigin,
+        llmEnabled: formData.llmEnabled
+      };
+
+      // Update form data and budget range
+      setFormData(newFormData);
+      setBudgetRange([newFormData.minBudget, newFormData.maxBudget]);
+      
+      // Close modal and clear input
+      setShowJsonModal(false);
+      setJsonInput('');
+      
+      console.log('Form filled with JSON data:', newFormData);
+    } catch (error) {
+      alert('Invalid JSON format. Please check your input.');
+      console.error('JSON parsing error:', error);
+    }
+  };
   // Fill form and submit (testing) - now uses real API without artificial delay
   const fillFormAndSubmit = async () => {
     const newFormData = {
@@ -554,19 +598,35 @@ export function GiftRecommenderForm() {
         
         <div className="flex items-center">
           <ModeIndicator />
-          {/* Fill Form button for testing - only show in sandbox modes */}
-          {isAnySandboxMode() && <motion.button initial={{
-            opacity: 0,
-            x: 20
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} transition={{
-            delay: 0.2
-          }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg ml-3">
-            <SparklesIcon className="w-4 h-4 mr-2" />
-            Fill Form (Testing)
-          </motion.button>}
+          {/* Testing buttons - only show in sandbox modes */}
+          {isAnySandboxMode() && (
+            <>
+              <motion.button initial={{
+                opacity: 0,
+                x: 20
+              }} animate={{
+                opacity: 1,
+                x: 0
+              }} transition={{
+                delay: 0.2
+              }} onClick={fillFormAndSubmit} className="text-purple-600 hover:text-purple-700 font-medium flex items-center bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg ml-3">
+                <SparklesIcon className="w-4 h-4 mr-2" />
+                Fill Form (Testing)
+              </motion.button>
+              <motion.button initial={{
+                opacity: 0,
+                x: 20
+              }} animate={{
+                opacity: 1,
+                x: 0
+              }} transition={{
+                delay: 0.3
+              }} onClick={() => setShowJsonModal(true)} className="text-blue-600 hover:text-blue-700 font-medium flex items-center bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg ml-2">
+                <GiftIcon className="w-4 h-4 mr-2" />
+                JSON Import
+              </motion.button>
+            </>
+          )}
         </div>
       </div>
 
@@ -930,6 +990,66 @@ export function GiftRecommenderForm() {
           </div>}
       </motion.button>
     </motion.div>
+
+    {/* JSON Import Modal */}
+    {showJsonModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+        >
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Import JSON Data</h3>
+            <p className="text-gray-600 text-sm">
+              Paste your JSON data below. The context object will be used to fill the form.
+            </p>
+          </div>
+          
+          <div className="p-6">
+            <textarea
+              value={jsonInput}
+              onChange={(e) => setJsonInput(e.target.value)}
+              placeholder={`Paste your JSON here, for example:
+{
+  "context": {
+    "age": 18,
+    "gender": "male",
+    "relationship": "brother",
+    "occasion": "birthday",
+    "sentiment": "thoughtful",
+    "favourite_drink": "non-drinker",
+    "size": "L",
+    "budget_min": 10.0,
+    "budget_max": 100.0,
+    "interests": ["Tech", "Video Gaming", "Baking"]
+  }
+}`}
+              className="w-full h-64 p-4 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <button
+              onClick={() => {
+                setShowJsonModal(false);
+                setJsonInput('');
+              }}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={parseJsonAndFillForm}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            >
+              Fill Form
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    )}
     </>
   );
 }
