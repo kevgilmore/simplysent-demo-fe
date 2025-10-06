@@ -17,6 +17,19 @@ function generateBase62(length: number): string {
   return result;
 }
 
+// Check if anonymous ID exists without creating one
+export function hasExistingAnonId(): boolean {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    const anonId = localStorage.getItem(ANON_ID_KEY);
+    return anonId !== null && anonId !== '';
+  } catch (error) {
+    console.warn('Failed to check for existing anonymous ID:', error);
+    return false;
+  }
+}
+
 // Generate anonymous ID (persists across sessions)
 export function getOrCreateAnonId(): string {
   if (typeof window === 'undefined') return '';
@@ -55,7 +68,7 @@ export function getOrCreateSessionId(): string {
 export type TrackingEvent = 'visit_start' | 'visit_ping';
 
 // Track an event (fire-and-forget)
-export async function trackEvent(event: TrackingEvent): Promise<void> {
+export async function trackEvent(event: TrackingEvent, clientOrigin?: string): Promise<void> {
   // Skip tracking in sandbox modes
   if (isAnySandboxMode()) {
     return;
@@ -65,11 +78,16 @@ export async function trackEvent(event: TrackingEvent): Promise<void> {
     const anonId = getOrCreateAnonId();
     const sessionId = getOrCreateSessionId();
     
-    const payload = {
+    const payload: any = {
       event,
       anon_id: anonId,
       session_id: sessionId
     };
+
+    // Add client_origin if provided
+    if (clientOrigin) {
+      payload.client_origin = clientOrigin;
+    }
 
     const response = await fetch(`${getApiBaseUrl()}/track`, {
       method: 'POST',

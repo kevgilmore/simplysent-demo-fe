@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { buildApiUrl, apiFetch, isAnySandboxMode, getApiHeaders, getCurrentMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
-import { getOrCreateAnonId } from '../utils/tracking';
+import { getOrCreateAnonId, hasExistingAnonId } from '../utils/tracking';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -126,11 +126,22 @@ export function GiftRecommenderForm() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const origin = urlParams.get('client_origin');
+    
     if (origin) {
+      // Use the client_origin from URL if provided
       setFormData(prev => ({
         ...prev,
         clientOrigin: origin
       }));
+    } else {
+      // Check if user is a returning visitor (has anon_id in localStorage)
+      if (hasExistingAnonId()) {
+        // User has visited before, set as returning visitor
+        setFormData(prev => ({
+          ...prev,
+          clientOrigin: 'visit_returning'
+        }));
+      }
     }
   }, []);
   

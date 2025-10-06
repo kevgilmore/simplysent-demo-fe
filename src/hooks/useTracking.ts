@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { trackEvent, getOrCreateAnonId, getOrCreateSessionId } from '../utils/tracking';
+import { trackEvent, getOrCreateAnonId, getOrCreateSessionId, hasExistingAnonId } from '../utils/tracking';
 
 interface UseTrackingOptions {
   sendVisitStart?: boolean;
@@ -20,7 +20,21 @@ export function useTracking(options: UseTrackingOptions = {}) {
 
     // Send visit_start only if this is a new session (different session ID)
     if (sendVisitStart && currentSessionId !== sessionId) {
-      trackEvent('visit_start');
+      // Determine client origin for tracking
+      let clientOrigin: string | undefined;
+      
+      // Check URL params first
+      const urlParams = new URLSearchParams(window.location.search);
+      const originFromUrl = urlParams.get('client_origin');
+      
+      if (originFromUrl) {
+        clientOrigin = originFromUrl;
+      } else if (hasExistingAnonId()) {
+        // User has visited before, set as returning visitor
+        clientOrigin = 'visit_returning';
+      }
+      
+      trackEvent('visit_start', clientOrigin);
       currentSessionId = sessionId;
     }
 
