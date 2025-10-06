@@ -361,7 +361,7 @@ export function ResultsPage() {
               console.error('Image load error:', e);
               e.currentTarget.src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
             }} />
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-5 py-2.5 rounded-full shadow-lg ring-2 ring-yellow-300/60">
+              <div className="absolute bottom-4 right-4 md:top-4 md:right-4 bg-white/90 backdrop-blur px-5 py-2.5 rounded-full shadow-lg ring-2 ring-yellow-300/60">
                 <span className="text-2xl font-extrabold bg-gradient-to-r from-fuchsia-600 via-pink-600 to-amber-500 bg-clip-text text-transparent">
                   £{topRecommendation.price}
                 </span>
