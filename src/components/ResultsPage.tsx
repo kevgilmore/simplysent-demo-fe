@@ -1,7 +1,7 @@
 import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon } from 'lucide-react';
+import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon } from 'lucide-react';
 import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 interface Product {
@@ -47,6 +47,7 @@ export function ResultsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalFeedback, setModalFeedback] = useState('');
+  const [modalEmail, setModalEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [modalError, setModalError] = useState('');
   const [submissionCount, setSubmissionCount] = useState(0);
@@ -193,11 +194,23 @@ export function ResultsPage() {
       console.error('Error sending link click feedback:', error);
     }
   };
+  // Handle modal close and reset
+  const handleModalClose = () => {
+    setShowModal(false);
+    setModalFeedback('');
+    setModalEmail('');
+    setModalError('');
+  };
+
   // Handle modal feedback submission
   const handleModalSubmit = async () => {
     if (!recommendationId) return;
     if (modalFeedback.length < 10) {
       setModalError('Please provide at least 10 characters of feedback');
+      return;
+    }
+    if (!modalEmail || !modalEmail.includes('@')) {
+      setModalError('Please provide a valid email address');
       return;
     }
     // If we've already made 2 requests, don't proceed
@@ -206,7 +219,8 @@ export function ResultsPage() {
     }
     setIsLoading(true);
     try {
-      console.log('Submitting feedback comment:', modalFeedback);
+      const feedbackWithEmail = `${modalFeedback}\n\nEmail: ${modalEmail}`;
+      console.log('Submitting feedback comment with email:', feedbackWithEmail);
       const response = await apiFetch(`${getApiBaseUrl()}/feedback/comment?usellm=false&return_new_recommendation=false`, {
         method: 'POST',
         headers: {
@@ -214,7 +228,7 @@ export function ResultsPage() {
         },
         body: JSON.stringify({
           recommendation_id: recommendationId,
-          feedback_comment: modalFeedback
+          feedback_comment: feedbackWithEmail
         })
       }, 'POST /feedback/comment');
       if (!response.ok) {
@@ -223,13 +237,14 @@ export function ResultsPage() {
       setSubmissionCount(prev => prev + 1);
       const text = await response.text();
       setModalFeedback('');
+      setModalEmail('');
       console.log('Feedback response:', text);
       
       // Since return_new_recommendation=false, just show thank you message
       setIsSubmitted(true);
       setTimeout(() => {
         setIsSubmitted(false);
-        setShowModal(false);
+        handleModalClose();
       }, 2000);
       
       // Keep the old code for when return_new_recommendation=true (commented out)
@@ -351,6 +366,14 @@ export function ResultsPage() {
                   £{topRecommendation.price}
                 </span>
               </div>
+              <div className="absolute top-4 left-4">
+                <div className="bg-white text-[#343e47] px-4 py-1 rounded-full shadow-lg border-2 border-[#343e47]">
+                  <div className="flex items-center">
+                    <span className="font-black text-base tracking-tight mr-0.5" style={{fontWeight: '900', textShadow: '0.5px 0.5px 0px rgba(0,0,0,0.1)'}}>Check</span>
+                    <img src="/prime_day_logo2.png" alt="Prime Day" className="h-10 w-auto" />
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="p-6">
               <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
@@ -364,11 +387,20 @@ export function ResultsPage() {
                 </p>
               </div>
               {/* Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="space-y-3">
                 <a href={generateAmazonUrl(topRecommendation.sku)} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(topRecommendation.sku)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center no-underline">
                   <ShoppingCartIcon className="w-5 h-5 mr-2" />
-                  Show on Amazon
+                  Open on Amazon
                 </a>
+                
+                
+                {/* Sales CTA for top recommendation */}
+                <div className="text-center py-2 px-4">
+                  <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                    🎯 <span className="text-orange-600 font-semibold">Perfect match!</span> Add to your Amazon wishlist or cart
+                  </p>
+                </div>
+                
                 {/* Row 2: Good and Bad buttons */}
                 <div className="flex gap-2">
                   <motion.button whileHover={{
@@ -383,9 +415,9 @@ export function ResultsPage() {
                     }));
                     handleFeedback(topRecommendation.sku, true);
                   }
-                }} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'down'}>
+                }} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg border-2 border-green-400' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 text-green-700 border border-green-200 hover:border-green-300'} px-4 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold`} disabled={productFeedback[0] === 'down'}>
                     <ThumbsUpIcon className="w-5 h-5" />
-                    <span className="font-medium">Good</span>
+                    <span>Love it!</span>
                   </motion.button>
                   <motion.button whileHover={{
                   scale: productFeedback[0] !== 'up' ? 1.05 : 1
@@ -399,9 +431,9 @@ export function ResultsPage() {
                     }));
                     handleFeedback(topRecommendation.sku, false);
                   }
-                }} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} px-4 py-3 rounded-lg transition-colors flex items-center justify-center gap-2`} disabled={productFeedback[0] === 'up'}>
+                }} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg border-2 border-red-400' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-red-100 to-rose-100 hover:from-red-200 hover:to-rose-200 text-red-700 border border-red-200 hover:border-red-300'} px-4 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold`} disabled={productFeedback[0] === 'up'}>
                     <ThumbsDownIcon className="w-5 h-5" />
-                    <span className="font-medium">Bad</span>
+                    <span>Not for me</span>
                   </motion.button>
                 </div>
               </div>
@@ -437,6 +469,14 @@ export function ResultsPage() {
                           £{item.price}
                         </span>
                       </div>
+                      <div className="absolute top-4 left-4">
+                        <div className="bg-white text-[#343e47] px-3 py-0.5 rounded-full shadow-md border border-[#343e47]">
+                          <div className="flex items-center">
+                            <span className="font-black text-sm tracking-tight mr-0.5" style={{fontWeight: '900', textShadow: '0.5px 0.5px 0px rgba(0,0,0,0.1)'}}>Check</span>
+                            <img src="/prime_day_logo2.png" alt="Prime Day" className="h-8 w-auto" />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div className="p-4 flex flex-col flex-1">
                       <h4 className="text-lg font-bold text-gray-900 mb-2">
@@ -453,8 +493,16 @@ export function ResultsPage() {
                       <div className="space-y-2 mt-auto">
                         <a href={generateAmazonUrl(item.sku)} target="_blank" rel="noopener noreferrer" onClick={() => handleLinkClick(item.sku)} className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center text-sm no-underline">
                           <ShoppingCartIcon className="w-4 h-4 mr-2" />
-                          Show on Amazon
+                          Open on Amazon
                         </a>
+                        
+                        
+                        {/* Sales CTA */}
+                        <div className="text-center py-2">
+                          <p className="text-xs text-gray-600 font-medium">
+                            💡 <span className="text-orange-600 font-semibold">Add to your Amazon wishlist</span> or save for later!
+                          </p>
+                        </div>
                         {/* Row 2: Good and Bad buttons */}
                         <div className="flex gap-2 h-10">
                           <motion.button whileHover={{
@@ -469,9 +517,9 @@ export function ResultsPage() {
                         }));
                         handleFeedback(item.sku, true);
                       }
-                    }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-green-100 text-green-700 border-2 border-green-300' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
+                    }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md border border-green-400' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 text-green-700 border border-green-200 hover:border-green-300'} py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1 font-semibold`}>
                             <ThumbsUpIcon className="w-4 h-4" />
-                            <span className="text-xs font-medium">Good</span>
+                            <span className="text-xs font-medium">Love it!</span>
                           </motion.button>
                           <motion.button whileHover={{
                       scale: productFeedback[feedbackIndex] !== 'up' ? 1.05 : 1
@@ -485,9 +533,9 @@ export function ResultsPage() {
                         }));
                         handleFeedback(item.sku, false);
                       }
-                    }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-red-100 text-red-700 border-2 border-red-300' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'} py-2 px-3 rounded-lg transition-colors flex items-center justify-center gap-1`}>
+                    }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md border border-red-400' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-red-100 to-rose-100 hover:from-red-200 hover:to-rose-200 text-red-700 border border-red-200 hover:border-red-300'} py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1 font-semibold`}>
                             <ThumbsDownIcon className="w-4 h-4" />
-                            <span className="text-xs font-medium">Bad</span>
+                            <span className="text-xs font-medium">Not for me</span>
                           </motion.button>
                         </div>
                       </div>
@@ -507,8 +555,18 @@ export function ResultsPage() {
       }} transition={{
         delay: 0.7
       }}>
-          <button onClick={() => submissionCount < 2 && setShowModal(true)} className={`w-full font-semibold py-3 px-8 rounded-xl shadow-lg transition-all transform ${submissionCount >= 2 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-600 hover:bg-gray-700 hover:scale-[1.02]'} text-white`} disabled={submissionCount >= 2}>
-            {submissionCount >= 2 ? 'Maximum recommendations reached' : 'Request New Recommendations'}
+          <button onClick={() => submissionCount < 2 && setShowModal(true)} className={`w-full font-semibold py-4 px-8 rounded-2xl shadow-xl transition-all transform flex items-center justify-center gap-3 ${submissionCount >= 2 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:scale-[1.02] hover:shadow-2xl'} text-white`} disabled={submissionCount >= 2}>
+            {submissionCount >= 2 ? (
+              <>
+                <XIcon className="w-5 h-5" />
+                Maximum recommendations reached
+              </>
+            ) : (
+              <>
+                <SparklesIcon className="w-5 h-5" />
+                Get Different Recommendations
+              </>
+            )}
           </button>
         </motion.div>
       </motion.div>
@@ -521,7 +579,7 @@ export function ResultsPage() {
         opacity: 1
       }} exit={{
         opacity: 0
-      }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={() => setShowModal(false)}>
+      }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={handleModalClose}>
             <motion.div initial={{
           opacity: 0,
           scale: 0.95
@@ -566,16 +624,24 @@ export function ResultsPage() {
                 </motion.div> : <>
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-bold text-gray-900">
-                      Request New Recommendations
+                      Get Different Recommendations
                     </h3>
-                    <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                    <button onClick={handleModalClose} className="text-gray-400 hover:text-gray-600 transition-colors">
                       <XIcon className="w-6 h-6" />
                     </button>
                   </div>
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Tell us what we can do differently...
+                      Include your email and we'll email you an improved recommendation just for you
                     </label>
+                    <input 
+                      type="email" 
+                      value={modalEmail} 
+                      onChange={e => setModalEmail(e.target.value)} 
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors mb-4" 
+                      placeholder="your.email@example.com" 
+                      required
+                    />
                     <textarea value={modalFeedback} onChange={e => {
                 setModalFeedback(e.target.value);
                 if (e.target.value.length >= 10) {
@@ -588,7 +654,7 @@ export function ResultsPage() {
                     </p>
                   </div>
                   <div className="flex gap-3">
-                    <button onClick={() => setShowModal(false)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-colors">
+                    <button onClick={handleModalClose} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-colors">
                       Cancel
                     </button>
                     <button onClick={handleModalSubmit} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
