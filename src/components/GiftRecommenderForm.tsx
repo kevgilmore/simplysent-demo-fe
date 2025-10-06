@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { buildApiUrl, apiFetch, isAnySandboxMode, getApiHeaders, getCurrentMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
+import { getOrCreateAnonId } from '../utils/tracking';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -489,7 +490,7 @@ export function GiftRecommenderForm() {
         
         window.fbq('track', 'FormCompletion', eventData);
       }
-      const reqId = uuidv4();
+      const reqId = getOrCreateAnonId();
       const urlParams = new URLSearchParams(window.location.search);
       const origin = urlParams.get('client_origin');
       
