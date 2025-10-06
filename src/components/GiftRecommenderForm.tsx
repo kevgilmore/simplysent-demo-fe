@@ -5,6 +5,7 @@ import { GiftIcon, UserIcon, CalendarIcon, HeartIcon, BeerIcon, DollarSignIcon, 
 import { v4 as uuidv4 } from 'uuid';
 import { buildApiUrl, apiFetch, isAnySandboxMode, getApiHeaders, getCurrentMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
+import { useTracking } from '../hooks/useTracking';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -95,6 +96,9 @@ const getSortedInterests = (gender: string): string[] => {
 };
 export function GiftRecommenderForm() {
   const navigate = useNavigate();
+  
+  // Initialize tracking with periodic pings
+  useTracking();
   
   const [formData, setFormData] = useState<FormData>({
     personAge: '',

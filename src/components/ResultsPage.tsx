@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon } from 'lucide-react';
 import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
+import { useTracking } from '../hooks/useTracking';
 interface Product {
   sku: string;
   productTitle?: string;
@@ -33,6 +34,10 @@ interface FormData {
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Initialize tracking with periodic pings
+  useTracking();
+  
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);

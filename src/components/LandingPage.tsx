@@ -6,10 +6,14 @@ import { GiftCarousel } from './GiftCarousel';
 import { fetchCollectionProducts, ShopifyProduct } from '../services/shopifyService';
 import { ModeIndicator } from './ModeIndicator';
 import { getApiBaseUrl } from '../utils/apiConfig';
+import { useTracking } from '../hooks/useTracking';
 export function LandingPage() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const popularGiftIdeasRef = useRef<HTMLElement>(null);
+  
+  // Initialize tracking with visit_start
+  useTracking({ sendVisitStart: true });
   
   // Newsletter signup state
   const [newsletterEmail, setNewsletterEmail] = useState('');
