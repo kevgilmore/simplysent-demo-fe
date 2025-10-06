@@ -1,10 +1,21 @@
 import React, { useEffect, useState, Children } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon } from 'lucide-react';
+import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon, Undo2Icon, Redo2Icon } from 'lucide-react';
 import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
+import { StarRating } from './StarRating';
+import { getOrCreateAnonId } from '../utils/tracking';
+
+// Typeform global declaration
+declare global {
+  interface Window {
+    TypeformEmbed: {
+      init: () => void;
+    };
+  }
+}
 interface Product {
   sku: string;
   productTitle?: string;
@@ -37,6 +48,157 @@ export function ResultsPage() {
   
   // Initialize tracking with periodic pings
   useTracking();
+
+  // State declarations
+  const [showVoucherIncentive, setShowVoucherIncentive] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
+  const [showFeedbackBanner, setShowFeedbackBanner] = useState(false);
+  const [bannerReady, setBannerReady] = useState(false);
+
+  // Function to check if user is in 25% feedback cohort
+  const isInFeedbackCohort = (anonId: string): boolean => {
+    let hash = 0;
+    for (let i = 0; i < anonId.length; i++) {
+      hash = ((hash << 5) - hash) + anonId.charCodeAt(i);
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash) % 4 === 0;
+  };
+
+  // Function to submit form response to API
+  const submitFormResponse = async (formResponseId: string) => {
+    if (!recommendationId) {
+      console.error('No recommendation ID available for form submission');
+      return;
+    }
+
+    try {
+      console.log('Submitting form response to API...', {
+        recommendation_id: recommendationId,
+        form_response_id: formResponseId
+      });
+
+      const response = await apiFetch(`${getApiBaseUrl()}/feedback/form`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          recommendation_id: recommendationId,
+          form_response_id: formResponseId
+        })
+      }, 'POST /feedback/form');
+
+      if (response.ok) {
+        console.log('✅ Form response submitted successfully');
+        const responseData = await response.text();
+        console.log('API response:', responseData);
+        
+        // Mark form as submitted and close modal
+        localStorage.setItem('typeform_submitted', 'true');
+        setHasSubmittedForm(true);
+        setShowVoucherIncentive(false);
+      } else {
+        console.error('❌ Failed to submit form response:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ Error submitting form response:', error);
+    }
+  };
+
+  // Listen for Typeform submission events
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Check if the message is from Typeform
+      if (event.origin !== 'https://form.typeform.com') {
+        return;
+      }
+
+      // Log all Typeform events for debugging
+      console.log('Typeform event received:', event.data);
+
+      // Handle different Typeform events
+      if (event.data && typeof event.data === 'object') {
+        // Check for various possible event types
+        const eventType = event.data.type || event.data.eventType || event.data.event;
+        
+        if (eventType === 'form-submit' || eventType === 'form-complete' || eventType === 'submit') {
+          console.log('Form submitted/completed! Event type:', eventType);
+          console.log('Full event data:', event.data);
+          
+          // Look for response ID in various possible locations
+          const responseId = event.data.responseId || 
+                           event.data.response_id || 
+                           event.data.responseToken || 
+                           event.data.token ||
+                           event.data.id;
+          
+          if (responseId) {
+            console.log('🎉 Response ID captured:', responseId);
+            
+            // Submit to /feedback/form endpoint
+            submitFormResponse(responseId);
+          } else {
+            console.log('⚠️ No response ID found in event data');
+          }
+        }
+        
+        // Also check for any response ID regardless of event type
+        const responseId = event.data.responseId || 
+                         event.data.response_id || 
+                         event.data.responseToken || 
+                         event.data.token ||
+                         event.data.id;
+        
+        if (responseId) {
+          console.log('Response ID found in event:', responseId);
+        }
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('message', handleMessage);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
+  // Check localStorage and cohort on component mount
+  useEffect(() => {
+    // Check if user has already submitted
+    const hasSubmitted = localStorage.getItem('typeform_submitted') === 'true';
+    setHasSubmittedForm(hasSubmitted);
+
+    // Check if user is in feedback cohort or has manual override
+    const urlParams = new URLSearchParams(window.location.search);
+    const manualOverride = urlParams.get('show_feedback') === 'true';
+    
+    let shouldShowBanner = false;
+    if (manualOverride) {
+      shouldShowBanner = true;
+    } else {
+      const anonId = getOrCreateAnonId();
+      const inCohort = isInFeedbackCohort(anonId);
+      shouldShowBanner = inCohort;
+    }
+    
+    // Set banner visibility immediately, but delay showing it by 4 seconds
+    setShowFeedbackBanner(shouldShowBanner);
+    
+    if (shouldShowBanner && !hasSubmitted) {
+      const timer = setTimeout(() => {
+        setBannerReady(true);
+      }, 4000); // 4 second delay
+      
+      return () => clearTimeout(timer);
+    } else {
+      setBannerReady(true); // Show immediately if not in cohort or already submitted
+    }
+  }, []);
+
   
   // Scroll to top when component mounts
   useEffect(() => {
@@ -56,6 +218,9 @@ export function ResultsPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [modalError, setModalError] = useState('');
   const [submissionCount, setSubmissionCount] = useState(0);
+  const [recommendationRating, setRecommendationRating] = useState(0);
+  const [showRatingThankYou, setShowRatingThankYou] = useState(false);
+  const [showRatingInput, setShowRatingInput] = useState(true);
   // Process and normalize the recommendations data
   useEffect(() => {
     console.log('Raw recommendations data:', recommendations);
@@ -205,6 +370,47 @@ export function ResultsPage() {
     setModalFeedback('');
     setModalEmail('');
     setModalError('');
+  };
+
+  // Handle rating change
+  const handleRatingChange = async (rating: number) => {
+    setRecommendationRating(rating);
+    setShowRatingThankYou(true);
+    setShowRatingInput(false); // Hide the star input after selection
+    
+    // Submit rating to /v2/feedback endpoint
+    if (recommendationId) {
+      try {
+        const response = await apiFetch(`${getApiBaseUrl()}/feedback/rating`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            recommendation_id: recommendationId,
+            rating: rating
+          })
+        });
+        
+        if (response.ok) {
+          console.log('Rating submitted successfully');
+        } else {
+          console.error('Failed to submit rating');
+        }
+      } catch (error) {
+        console.error('Error submitting rating:', error);
+      }
+    }
+    
+    // Hide thank you message after 3 seconds
+    setTimeout(() => {
+      setShowRatingThankYou(false);
+    }, 3000);
+  };
+
+  // Handle change rating button
+  const handleChangeRating = () => {
+    setShowRatingInput(true);
   };
 
   // Handle modal feedback submission
@@ -445,6 +651,195 @@ export function ResultsPage() {
             </div>
           </motion.div>
         </motion.div>
+
+        {/* Rating Section */}
+        <motion.div initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          delay: 0.4
+        }} className="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              How would you rate these recommendations?
+            </h3>
+            {showRatingInput ? (
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <StarRating
+                  value={recommendationRating}
+                  onChange={handleRatingChange}
+                  size="lg"
+                />
+                {recommendationRating > 0 && (
+                  <span className="text-lg font-semibold text-gray-700">
+                    {recommendationRating} star{recommendationRating !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <StarIcon
+                        key={star}
+                        className={`w-6 h-6 ${
+                          star <= recommendationRating
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-lg font-semibold text-gray-700">
+                    {recommendationRating} star{recommendationRating !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <button
+                  onClick={handleChangeRating}
+                  className="text-xs text-gray-500 hover:text-gray-700 underline transition-colors"
+                >
+                  Change rating
+                </button>
+              </div>
+            )}
+            
+            {/* Thank you message */}
+            <AnimatePresence>
+              {showRatingThankYou && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-center justify-center gap-2 text-green-600 font-semibold"
+                >
+                  <CheckCircle2Icon className="w-5 h-5" />
+                  <span>Thank you for your feedback!</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <p className="text-sm text-gray-500">
+              Your feedback helps us improve our recommendations
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Floating Voucher Incentive */}
+        {!hasSubmittedForm && !bannerDismissed && showFeedbackBanner && bannerReady && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+            className="fixed bottom-6 right-6 z-40"
+          >
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowVoucherIncentive(true)}
+              className="bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-600 rounded-2xl shadow-2xl p-4 max-w-sm cursor-pointer relative overflow-hidden"
+            >
+              {/* Background decoration */}
+              <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-8 translate-x-8"></div>
+              <div className="absolute bottom-0 left-0 w-12 h-12 bg-white/10 rounded-full translate-y-6 -translate-x-6"></div>
+
+              {/* Close button */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBannerDismissed(true);
+                }}
+                className="absolute top-2 right-2 text-white/80 hover:text-white transition-colors z-30 p-1 bg-black/20 rounded-full hover:bg-black/30"
+                title="Close"
+              >
+                <XIcon className="w-6 h-6" />
+              </button>
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                    <TagIcon className="w-5 h-5 text-white" />
+                  </div>
+                  <h4 className="text-white font-bold text-lg drop-shadow-sm">
+                    5 Questions for £5
+                  </h4>
+                </div>
+                
+                <p className="text-white/90 text-sm mb-3 drop-shadow-sm">
+                  Quick feedback form for Amazon voucher
+                </p>
+                
+                <div className="flex items-center justify-between">
+                  <div className="text-white/80 text-xs">
+                    <span className="font-semibold">Quick</span> • 2 min
+                  </div>
+                  <div className="flex items-center gap-1 text-white">
+                    <SparklesIcon className="w-4 h-4" />
+                    <span className="text-sm font-semibold">Start</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {/* Typeform Modal */}
+        <AnimatePresence>
+          {showVoucherIncentive && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowVoucherIncentive(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-4 flex items-center justify-between">
+                  <h3 className="text-white font-bold text-lg">5 Questions for £5 Amazon Voucher</h3>
+                  <button
+                    onClick={() => setShowVoucherIncentive(false)}
+                    className="text-white hover:text-gray-200 transition-colors"
+                  >
+                    <XIcon className="w-6 h-6" />
+                  </button>
+                </div>
+                <div className="p-6">
+                  {hasSubmittedForm ? (
+                    <div className="text-center py-12">
+                      <CheckCircle2Icon className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        Thank You!
+                      </h3>
+                      <p className="text-gray-600">
+                        You've already submitted your feedback.
+                      </p>
+                    </div>
+                  ) : (
+                    <iframe
+                      key={showVoucherIncentive ? 'typeform-open' : 'typeform-closed'}
+                      src="https://form.typeform.com/to/t9PLfcPq"
+                      width="100%"
+                      height="500"
+                      frameBorder="0"
+                      className="rounded-lg"
+                      title="Feedback Form"
+                    ></iframe>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Other Recommendations Section */}
         {otherRecommendations.length > 0 && <motion.div initial={{
