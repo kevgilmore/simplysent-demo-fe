@@ -1653,16 +1653,16 @@ export function ResultsPage() {
                 </motion.div> : (
                   // Original form state
                   <div className="px-3 md:px-6 relative">
-                    <button onClick={handleModalClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10">
+                    <button onClick={handleModalClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors z-10">
                       <XIcon className="w-6 h-6" />
                     </button>
-                    <div style={{ height: '30px' }}></div>
-                    <div className="mb-6">
+                    <div style={{ height: '20px' }}></div>
+                    <div className="mb-4">
                       <h3 className="text-2xl font-bold text-gray-900 text-center">
                         🧞Ready to find better matches!
                       </h3>
                     </div>
-                    <div className="mb-8">
+                    <div className="mb-4">
                       <textarea 
                         value={modalFeedback} 
                         onChange={e => {
@@ -1672,7 +1672,7 @@ export function ResultsPage() {
                           }
                         }} 
                         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-none ${modalError ? 'border-red-300' : 'border-gray-200'}`} 
-                        rows={3} 
+                        rows={5} 
                         placeholder="Anything else we should know? (Optional)" 
                       />
                       {modalError && <p className="text-red-500 text-sm mt-2">{modalError}</p>}
