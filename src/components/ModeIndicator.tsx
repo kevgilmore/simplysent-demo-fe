@@ -64,15 +64,16 @@ export function ModeIndicator({ className = '' }: ModeIndicatorProps) {
       animate={{ opacity: 1, y: 0 }}
       className={className}
     >
-      <div className={`${bgColor} ${textColor} px-3 py-1 rounded-full shadow flex items-center gap-2`}> 
-        <Icon className="w-3.5 h-3.5" />
-        <span className="text-xs font-semibold">{label}</span>
+      <div className={`${bgColor} ${textColor} px-2 py-0.5 sm:px-3 sm:py-1 rounded-full shadow flex items-center justify-center gap-1 sm:gap-2`}> 
+        <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+        <span className="text-xs font-semibold text-center hidden sm:inline">{label}</span>
+        <span className="text-xs font-semibold text-center sm:hidden">{label.split(' ')[0]}</span>
         <button
           onClick={clearMode}
           className="hover:bg-black/10 rounded-full p-0.5 transition-colors"
           title="Clear mode and return to production"
         >
-          <XIcon className="w-3.5 h-3.5" />
+          <XIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
         </button>
       </div>
     </motion.div>

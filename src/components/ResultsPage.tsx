@@ -1,7 +1,7 @@
-import React, { useEffect, useState, Children, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon, Undo2Icon, Redo2Icon } from 'lucide-react';
+import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon, Share2Icon, CopyIcon, CheckIcon } from 'lucide-react';
 import { getApiBaseUrl, apiFetch, isAnySandboxMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
@@ -66,7 +66,11 @@ export function ResultsPage() {
   const [animationStage, setAnimationStage] = useState(0);
   const [titleIndex, setTitleIndex] = useState(0);
   const [showEmailInput, setShowEmailInput] = useState(false);
+  const [showSharePopover, setShowSharePopover] = useState(false);
+  const [sharePopoverPosition, setSharePopoverPosition] = useState<'top' | 'bottom'>('top');
+  const [copySuccess, setCopySuccess] = useState(false);
   const titleIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const bottomShareSectionRef = useRef<HTMLDivElement>(null);
   
   // Update animation stage as text elements appear
   useEffect(() => {
@@ -293,6 +297,20 @@ export function ResultsPage() {
       recommendationId: !!recommendationId
     });
   }, []);
+
+  // Store recommendation data in localStorage for sharing
+  useEffect(() => {
+    if (recommendationId && recommendations && recommendations.length > 0) {
+      const dataToStore = {
+        recommendation_id: recommendationId,
+        recommendations: recommendations,
+        formData: formData,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem(`recommendation_${recommendationId}`, JSON.stringify(dataToStore));
+      console.log('Stored recommendation data in localStorage for sharing:', recommendationId);
+    }
+  }, [recommendationId, recommendations, formData]);
   const routeError = location.state?.error || false;
   const [error, setError] = useState(routeError);
   const [products, setProducts] = useState<Product[]>([]);
@@ -553,6 +571,71 @@ export function ResultsPage() {
     setTitleIndex(0); // Reset title to first one
   };
 
+  const handleCopyLink = async () => {
+    const url = `https://simplysent.co/${recommendationId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    const shareData = {
+      title: 'My Gift Recommendations',
+      text: 'Check out my personalized gift recommendations!',
+      url: `https://simplysent.co/${recommendationId}`
+    };
+
+    try {
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback to copy if native share is not available
+        handleCopyLink();
+      }
+    } catch (err) {
+      console.error('Error sharing:', err);
+      // Fallback to copy on error
+      handleCopyLink();
+    }
+  };
+
+  // Close share popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showSharePopover) {
+        const target = event.target as Element;
+        if (!target.closest('[data-share-popover]')) {
+          setShowSharePopover(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSharePopover]);
+
+  // Smooth scroll to bottom share section when it appears
+  useEffect(() => {
+    if (showSharePopover && sharePopoverPosition === 'bottom' && bottomShareSectionRef.current) {
+      // Small delay to allow the animation to start, then scroll smoothly
+      const timer = setTimeout(() => {
+        bottomShareSectionRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 150);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showSharePopover, sharePopoverPosition]);
+
   // Handle going back to form
   const handleBackToForm = () => {
     handleModalClose();
@@ -755,22 +838,125 @@ export function ResultsPage() {
     }} transition={{
       duration: 0.4
     }} className="space-y-8 pb-5">
-        {/* Back Button */}
+        {/* Back Button and Share */}
         <div className="flex items-center mb-6 justify-between">
           <motion.button initial={{
-        opacity: 0,
-        x: -20
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} transition={{
-        delay: 0.2
-      }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
-          <ArrowLeftIcon className="w-4 h-4 mr-2" />
-          Start Over
-        </motion.button>
-          <ModeIndicator />
+          opacity: 0,
+          x: -20
+        }} animate={{
+          opacity: 1,
+          x: 0
+        }} transition={{
+          delay: 0.2
+        }} onClick={() => navigate('/')} className="text-purple-600 hover:text-purple-700 font-medium flex items-center">
+            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            Start Over
+          </motion.button>
+          
+          <div className="flex-1 flex justify-center">
+            <ModeIndicator />
+          </div>
+          
+          <div className="flex items-center">
+            {/* Share Button - only show if we have a recommendationId */}
+            {recommendationId && (
+              <motion.button
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                onClick={() => {
+                  if (showSharePopover && sharePopoverPosition === 'top') {
+                    setShowSharePopover(false);
+                    setSharePopoverPosition('top'); // Reset position
+                  } else {
+                    setSharePopoverPosition('top');
+                    setShowSharePopover(true);
+                  }
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transition-all flex items-center gap-2"
+              >
+                <Share2Icon className="w-4 h-4" />
+                Share
+              </motion.button>
+            )}
+          </div>
         </div>
+
+        {/* Share Your Recommendations Section - Top */}
+        <AnimatePresence>
+          {showSharePopover && sharePopoverPosition === 'top' && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="relative mb-6"
+              data-share-popover
+            >
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-purple-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Share Your Recommendations</h3>
+                  <button
+                    onClick={() => setShowSharePopover(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Shareable Link
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={`https://simplysent.co/${recommendationId}`}
+                        readOnly
+                        className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleCopyLink}
+                        className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center ${
+                          copySuccess
+                            ? 'bg-green-500 hover:bg-green-600 text-white'
+                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
+                        }`}
+                        title={copySuccess ? 'Copied!' : 'Copy Link'}
+                      >
+                        {copySuccess ? (
+                          <CheckIcon className="w-4 h-4" />
+                        ) : (
+                          <CopyIcon className="w-4 h-4" />
+                        )}
+                      </motion.button>
+                    </div>
+                    
+                    {/* Native Share Button */}
+                    <div className="mt-3">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleNativeShare}
+                        className="w-full px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                      >
+                        <Share2Icon className="w-4 h-4" />
+                        Share via iOS/Android
+                      </motion.button>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600">
+                    Share this link with friends and family so they can see your personalized gift recommendations!
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Top Recommendation Section */}
         <motion.div initial={{
@@ -1418,19 +1604,97 @@ export function ResultsPage() {
           </div>
         </motion.div>
 
-        {/* Request New Recommendations Button */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.7
-      }}>
+        {/* Share Your Recommendations Section - Bottom */}
+        <AnimatePresence>
+          {showSharePopover && sharePopoverPosition === 'bottom' && (
+            <motion.div
+              ref={bottomShareSectionRef}
+              initial={{ opacity: 0, y: 15, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 15, scale: 0.98 }}
+              transition={{ 
+                duration: 0.25,
+                ease: [0.25, 0.46, 0.45, 0.94]
+              }}
+              className="mb-6"
+              data-share-popover
+            >
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-purple-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Share Your Recommendations</h3>
+                  <button
+                    onClick={() => setShowSharePopover(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <XIcon className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Shareable Link
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={`https://simplysent.co/${recommendationId}`}
+                        readOnly
+                        className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleCopyLink}
+                        className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center ${
+                          copySuccess
+                            ? 'bg-green-500 hover:bg-green-600 text-white'
+                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
+                        }`}
+                        title={copySuccess ? 'Copied!' : 'Copy Link'}
+                      >
+                        {copySuccess ? (
+                          <CheckIcon className="w-4 h-4" />
+                        ) : (
+                          <CopyIcon className="w-4 h-4" />
+                        )}
+                      </motion.button>
+                    </div>
+                    
+                    {/* Native Share Button */}
+                    <div className="mt-3">
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleNativeShare}
+                        className="w-full px-4 py-2 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
+                      >
+                        <Share2Icon className="w-4 h-4" />
+                        Share via iOS/Android
+                      </motion.button>
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600">
+                    Share this link with friends and family so they can see your personalized gift recommendations!
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Bottom Action Buttons */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="flex flex-col sm:flex-row gap-3"
+        >
+          {/* Request New Recommendations Button */}
           <button 
             onClick={() => setShowModal(true)} 
-            className={`w-full font-semibold py-4 px-8 rounded-2xl shadow-xl transition-all transform flex items-center justify-center gap-3 ${
+            className={`flex-1 font-semibold py-4 px-8 rounded-2xl shadow-xl transition-all transform flex items-center justify-center gap-3 ${
               getFeedbackCount() < products.length || recommendationRating === 0
                 ? 'bg-gray-300 cursor-not-allowed' 
                 : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:scale-[1.02] hover:shadow-2xl'
@@ -1454,6 +1718,27 @@ export function ResultsPage() {
               </>
             )}
           </button>
+
+          {/* Share Button */}
+          {recommendationId && (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (showSharePopover && sharePopoverPosition === 'bottom') {
+                  setShowSharePopover(false);
+                  setSharePopoverPosition('bottom'); // Reset position
+                } else {
+                  setSharePopoverPosition('bottom');
+                  setShowSharePopover(true);
+                }
+              }}
+              className="px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+              <Share2Icon className="w-5 h-5" />
+              Share
+            </motion.button>
+          )}
         </motion.div>
       </motion.div>
 
@@ -1499,9 +1784,7 @@ export function ResultsPage() {
             opacity: 1,
             scale: 1
           }} 
-              className="pt-10 pb-0 md:pt-10 md:pb-0 lg:pt-10 lg:pb-0"
-            
-          className="flex flex-col items-center justify-center py-6">
+              className="pt-10 pb-0 md:pt-10 md:pb-0 lg:pt-10 lg:pb-0 flex flex-col items-center justify-center py-6">
                   <div className="relative mb-6">
                     {/* Main genie image with floating effect */}
                     <motion.div

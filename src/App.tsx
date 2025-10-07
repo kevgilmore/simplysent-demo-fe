@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { GiftRecommenderForm } from './components/GiftRecommenderForm';
 import { ResultsPage } from './components/ResultsPage';
+import { SharedRecommendationPage } from './components/SharedRecommendationPage';
 import { LandingPage } from './components/LandingPage';
 import { GiftsForHimPage } from './components/GiftsForHimPage';
 import { GiftsForHerPage } from './components/GiftsForHerPage';
@@ -116,7 +117,8 @@ const router = createBrowserRouter([
       { path: 'app-release-blog', element: <BlogPost1 /> },
       { path: 'fathers-day-guide', element: <BlogPost2 /> },
       { path: 'budget-gifts-guide', element: <BlogPost3 /> },
-      { path: 'error', element: <ErrorPage /> }
+      { path: 'error', element: <ErrorPage /> },
+      { path: ':recId', element: <SharedRecommendationPage /> } // Add at end to avoid conflicts
     ]
   }
 ]);
