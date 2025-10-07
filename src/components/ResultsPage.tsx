@@ -53,7 +53,11 @@ export function ResultsPage() {
   const [showVoucherIncentive, setShowVoucherIncentive] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
-  const [showFeedbackBanner, setShowFeedbackBanner] = useState(false);
+  const [showFeedbackBanner, setShowFeedbackBanner] = useState(() => {
+    // Check local storage for show_feedback_form flag
+    const showFeedbackForm = localStorage.getItem('show_feedback_form');
+    return showFeedbackForm === 'true';
+  });
   const [bannerReady, setBannerReady] = useState(false);
   const [showEmailFallback, setShowEmailFallback] = useState(false);
   const [timerProgress, setTimerProgress] = useState(0);
@@ -232,14 +236,25 @@ export function ResultsPage() {
     const hasSubmitted = localStorage.getItem('typeform_submitted') === 'true';
     setHasSubmittedForm(hasSubmitted);
 
+    // Check local storage flag first
+    const showFeedbackForm = localStorage.getItem('show_feedback_form');
+    const localStorageFlag = showFeedbackForm === 'true';
+    
     // Check if user is in feedback cohort or has manual override
     const urlParams = new URLSearchParams(window.location.search);
     const manualOverride = urlParams.get('show_feedback') === 'true';
     
     let shouldShowBanner = false;
-    if (manualOverride) {
+    
+    // Check if local storage flag is explicitly set
+    if (showFeedbackForm !== null) {
+      // Local storage flag is set, use its value
+      shouldShowBanner = localStorageFlag;
+    } else if (manualOverride) {
+      // No local storage flag, check manual override
       shouldShowBanner = true;
     } else {
+      // No local storage flag, use cohort logic
       const anonId = getOrCreateAnonId();
       const inCohort = isInFeedbackCohort(anonId);
       shouldShowBanner = inCohort;
