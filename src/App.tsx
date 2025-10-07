@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { GiftRecommenderForm } from './components/GiftRecommenderForm';
 import { ResultsPage } from './components/ResultsPage';
@@ -122,5 +122,5 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} future={{ v7_startTransition: true, v7_relativeSplatPath: true }} />;
+  return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
 }

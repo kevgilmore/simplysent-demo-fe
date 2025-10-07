@@ -1,8 +1,8 @@
-import React, { useEffect, useState, Children } from 'react';
+import React, { useEffect, useState, Children, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, ThumbsUpIcon, ThumbsDownIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon, Undo2Icon, Redo2Icon } from 'lucide-react';
-import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
+import { getApiBaseUrl, apiFetch, isAnySandboxMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
 import { StarRating } from './StarRating';
@@ -55,6 +55,54 @@ export function ResultsPage() {
   const [hasSubmittedForm, setHasSubmittedForm] = useState(false);
   const [showFeedbackBanner, setShowFeedbackBanner] = useState(false);
   const [bannerReady, setBannerReady] = useState(false);
+  const [showEmailFallback, setShowEmailFallback] = useState(false);
+  const [timerProgress, setTimerProgress] = useState(0);
+  const [emailAddress, setEmailAddress] = useState('');
+  const [showCompletion, setShowCompletion] = useState(false);
+  const [animationStage, setAnimationStage] = useState(0);
+  const [titleIndex, setTitleIndex] = useState(0);
+  const [showEmailInput, setShowEmailInput] = useState(false);
+  const titleIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Update animation stage as text elements appear
+  useEffect(() => {
+    if (showEmailFallback && !showCompletion) {
+      const timer1 = setTimeout(() => setAnimationStage(1), 0);
+      const timer2 = setTimeout(() => setAnimationStage(2), 2000);
+      const timer3 = setTimeout(() => setAnimationStage(3), 4000);
+      const timer4 = setTimeout(() => setAnimationStage(4), 6000);
+      
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+        clearTimeout(timer4);
+      };
+    }
+  }, [showEmailFallback, showCompletion]);
+
+  // Show email input after 2 seconds when email fallback appears
+  useEffect(() => {
+    if (showEmailFallback && !showCompletion) {
+      const timer = setTimeout(() => {
+        setShowEmailInput(true);
+      }, 2000); // Match the delay of the email input animation
+      
+      return () => clearTimeout(timer);
+    } else {
+      setShowEmailInput(false);
+    }
+  }, [showEmailFallback, showCompletion]);
+
+  
+  // Prefill email in sandbox mode
+  useEffect(() => {
+    const isSandbox = window.location.hostname.includes('sandbox') || window.location.hostname.includes('localhost');
+    if (isSandbox) {
+      setEmailAddress('kev@example.com');
+    }
+  }, []);
+
 
   // Function to check if user is in 25% feedback cohort
   const isInFeedbackCohort = (anonId: string): boolean => {
@@ -64,6 +112,18 @@ export function ResultsPage() {
       hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash) % 4 === 0;
+  };
+
+  // Function to count feedback given
+  const getFeedbackCount = (): number => {
+    return Object.values(productFeedback).filter(feedback => feedback !== null).length;
+  };
+
+  // Function to get progress percentage
+  const getProgressPercentage = (): number => {
+    const total = products.length;
+    const given = getFeedbackCount();
+    return total > 0 ? (given / total) * 100 : 0;
   };
 
   // Function to submit form response to API
@@ -208,6 +268,16 @@ export function ResultsPage() {
   const formData = location.state?.formData || null;
   const recommendations = location.state?.recommendations || [];
   const recommendationId = location.state?.recommendationId || null;
+  
+  // Debug logging (only log once)
+  useEffect(() => {
+    console.log('🔍 ResultsPage Debug:', {
+      hasLocationState: !!location.state,
+      formData: !!formData,
+      recommendationsCount: recommendations?.length || 0,
+      recommendationId: !!recommendationId
+    });
+  }, []);
   const routeError = location.state?.error || false;
   const [error, setError] = useState(routeError);
   const [products, setProducts] = useState<Product[]>([]);
@@ -221,13 +291,53 @@ export function ResultsPage() {
   const [recommendationRating, setRecommendationRating] = useState(0);
   const [showRatingThankYou, setShowRatingThankYou] = useState(false);
   const [showRatingInput, setShowRatingInput] = useState(true);
+  
+  // Cycle through titles - FIXED VERSION
+  useEffect(() => {
+    // Clear any existing interval first
+    if (titleIntervalRef.current) {
+      clearInterval(titleIntervalRef.current);
+      titleIntervalRef.current = null;
+    }
+    
+    if (isSubmitted && !showEmailFallback) {
+      console.log('Starting title cycling...');
+      setTitleIndex(0);
+      
+      titleIntervalRef.current = setInterval(() => {
+        setTitleIndex(prev => {
+          console.log('Title cycling from:', prev);
+          if (prev === 0) {
+            console.log('Going to 1');
+            return 1;
+          }
+          if (prev === 1) {
+            console.log('Going to 2');
+            return 2;
+          }
+          if (prev === 2) {
+            console.log('Going to 0');
+            return 0;
+          }
+          return 0;
+        });
+      }, 4000);
+    }
+    
+    return () => {
+      if (titleIntervalRef.current) {
+        clearInterval(titleIntervalRef.current);
+        titleIntervalRef.current = null;
+      }
+    };
+  }, [isSubmitted]); // Only depend on isSubmitted, not showEmailFallback
+  
   // Process and normalize the recommendations data
   useEffect(() => {
     console.log('Raw recommendations data:', recommendations);
     if (recommendations && Array.isArray(recommendations) && recommendations.length > 0) {
       // Map and normalize the data structure
       const normalizedProducts = recommendations.map(product => {
-        // Log each product to understand its structure
         return {
           sku: product.sku || product.ASIN || '',
           productTitle: product.productTitle || product.name || '',
@@ -251,6 +361,38 @@ export function ResultsPage() {
       setProducts(sortedProducts);
     }
   }, [recommendations]);
+
+  // Auto-fill feedback in sandbox mode with localStorage key
+  useEffect(() => {
+    if (isAnySandboxMode() && products.length > 0) {
+      const addLabelsAndRating = localStorage.getItem('add_labels_and_rating');
+      
+      if (addLabelsAndRating === 'true') {
+        console.log('🧪 Auto-filling feedback in sandbox mode with', products.length, 'products');
+        
+        // Auto-fill product feedback with sample data
+        const autoFeedback: Record<number, 'up' | 'down' | null> = {};
+        products.forEach((_, index) => {
+          if (index < 5) { // Only fill first 5 products
+            if (index === 0 || index === 2 || index === 3 || index === 4) {
+              autoFeedback[index] = 'up';    // Thumbs up
+            } else if (index === 1) {
+              autoFeedback[index] = 'down';  // Thumbs down
+            } else {
+              autoFeedback[index] = null;    // No feedback
+            }
+          }
+        });
+        
+        setProductFeedback(autoFeedback);
+        
+        // Auto-fill recommendation rating
+        setRecommendationRating(4); // 4-star rating
+        
+        console.log('✅ Auto-filled feedback:', autoFeedback, 'with 4-star rating');
+      }
+    }
+  }, [products]);
   // Redirect to home if accessed directly without state
   useEffect(() => {
     if (!location.state) {
@@ -364,12 +506,42 @@ export function ResultsPage() {
       console.error('Error sending link click feedback:', error);
     }
   };
+  // Function to get modal height based on current stage
+  const getModalHeight = () => {
+    if (!isSubmitted) {
+      // State 1: Original feedback form "🧞Ready to find better matches!" (same size as state 2)
+      return '380px';
+    } else if (isSubmitted && !showEmailFallback) {
+      // State 2: Genie animation "🧞‍♂️ Cosmic gift energy detected" (same size as state 1)
+      return '380px';
+    } else if (isSubmitted && showEmailFallback && !showEmailInput) {
+      // State 3: Email text appears "Drop your email below..." (slight increase)
+      return '420px';
+    } else if (isSubmitted && showEmailFallback && showEmailInput) {
+      // State 4: Email input and button appear (larger increase)
+      return '480px';
+    }
+    return '380px'; // fallback
+  };
+
   // Handle modal close and reset
   const handleModalClose = () => {
     setShowModal(false);
     setModalFeedback('');
-    setModalEmail('');
     setModalError('');
+    setIsSubmitted(false);
+    setShowEmailFallback(false);
+    setTimerProgress(0);
+    setEmailAddress('');
+    setShowCompletion(false);
+    setShowEmailInput(false);
+    setTitleIndex(0); // Reset title to first one
+  };
+
+  // Handle going back to form
+  const handleBackToForm = () => {
+    handleModalClose();
+    navigate('/');
   };
 
   // Handle rating change
@@ -413,87 +585,144 @@ export function ResultsPage() {
     setShowRatingInput(true);
   };
 
-  // Handle modal feedback submission
-  const handleModalSubmit = async () => {
+  // Handle modal feedback submission - now just starts the timer
+  const handleModalSubmit = () => {
     if (!recommendationId) return;
-    if (modalFeedback.length < 10) {
+    if (modalFeedback.length > 0 && modalFeedback.length < 10) {
       setModalError('Please provide at least 10 characters of feedback');
       return;
     }
-    if (!modalEmail || !modalEmail.includes('@')) {
-      setModalError('Please provide a valid email address');
+    setModalError(''); // Clear any previous errors
+    
+    // Start progress timer instead of submitting immediately
+    setIsSubmitted(true);
+    setTimerProgress(0);
+    setShowEmailFallback(false);
+    
+    // Start 5-hour timer (18,000 seconds)
+    const timerInterval = setInterval(() => {
+      setTimerProgress(prev => {
+        const newProgress = prev + 1;
+        if (newProgress >= 18000) {
+          clearInterval(timerInterval);
+          handleModalClose();
+          return 18000;
+        }
+        return newProgress;
+      });
+    }, 1000);
+    
+    // Show email fallback after 4 seconds
+    setTimeout(() => {
+      setShowEmailFallback(true);
+    }, 4000);
+  };
+
+  // Handle email notification submission
+  const handleEmailNotify = async () => {
+    console.log('handleEmailNotify called', { recommendationId, emailAddress, isLoading });
+    if (!recommendationId) {
+      console.log('No recommendationId, returning');
       return;
     }
-    // If we've already made 2 requests, don't proceed
-    if (submissionCount >= 2) {
+    if (!emailAddress.trim()) {
+      console.log('No email address, setting error');
+      setModalError('Please enter your email address');
       return;
     }
+    
+    console.log('Starting email submission...');
     setIsLoading(true);
+    setModalError(''); // Clear any previous errors
+    
     try {
-      const feedbackWithEmail = `${modalFeedback}\n\nEmail: ${modalEmail}`;
-      console.log('Submitting feedback comment with email:', feedbackWithEmail);
-      const response = await apiFetch(`${getApiBaseUrl()}/feedback/comment?usellm=false&return_new_recommendation=false`, {
+      console.log('Submitting feedback and email:', { modalFeedback, emailAddress });
+      
+      // Submit comment only if there's feedback text
+      if (modalFeedback.trim()) {
+        console.log('Submitting comment feedback...');
+        const commentResponse = await apiFetch(`${getApiBaseUrl()}/feedback/comment?usellm=false&return_new_recommendation=false`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            recommendation_id: recommendationId,
+            feedback_comment: modalFeedback.trim()
+          })
+        }, 'POST /feedback/comment');
+        
+        if (!commentResponse.ok) {
+          const errorText = await commentResponse.text();
+          console.error('Comment API Error Response:', commentResponse.status, errorText);
+          throw new Error(`Comment submission failed: ${commentResponse.status} - ${errorText || 'Unknown error'}`);
+        }
+        
+        const commentText = await commentResponse.text();
+        console.log('Comment feedback response:', commentText);
+      } else {
+        console.log('No comment feedback to submit, skipping comment endpoint');
+      }
+      
+      // Submit email separately
+      console.log('Submitting email notification...');
+      const emailResponse = await apiFetch(`${getApiBaseUrl()}/feedback/email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           recommendation_id: recommendationId,
-          feedback_comment: feedbackWithEmail
+          email: emailAddress.trim(),
+          anon_id: getOrCreateAnonId()
         })
-      }, 'POST /feedback/comment');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      }, 'POST /feedback/email');
+      
+      if (!emailResponse.ok) {
+        const errorText = await emailResponse.text();
+        console.error('Email API Error Response:', emailResponse.status, errorText);
+        throw new Error(`Email submission failed: ${emailResponse.status} - ${errorText || 'Unknown error'}`);
       }
+      
+      const emailText = await emailResponse.text();
+      console.log('Email feedback response:', emailText);
+      
       setSubmissionCount(prev => prev + 1);
-      const text = await response.text();
       setModalFeedback('');
-      setModalEmail('');
-      console.log('Feedback response:', text);
       
-      // Since return_new_recommendation=false, just show thank you message
-      setIsSubmitted(true);
-      setTimeout(() => {
-        setIsSubmitted(false);
-        handleModalClose();
-      }, 2000);
+      // Show completion state in popup (don't navigate away)
+      setShowCompletion(true);
       
-      // Keep the old code for when return_new_recommendation=true (commented out)
-      /*
-      if (text) {
-        try {
-          const data = JSON.parse(text);
-          if (data && data.products) {
-            console.log('New products received:', data.products);
-            setProducts(data.products);
-            window.scrollTo(0, 0);
-            setShowModal(false);
-          }
-        } catch (e) {
-          console.error('Error parsing feedback response:', e);
-          setIsSubmitted(true);
-          setTimeout(() => {
-            setIsSubmitted(false);
-            setShowModal(false);
-          }, 1000);
-        }
-      } else {
-        setIsSubmitted(true);
-        setTimeout(() => {
-          setIsSubmitted(false);
-          setShowModal(false);
-        }, 1000);
-      }
-      */
     } catch (error) {
       console.error('Error sending feedback:', error);
-      setModalError('Failed to submit feedback. Please try again.');
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('Comment submission failed:')) {
+          setModalError(`Comment error: ${error.message.split('Comment submission failed: ')[1]}`);
+        } else if (error.message.includes('Email submission failed:')) {
+          setModalError(`Email error: ${error.message.split('Email submission failed: ')[1]}`);
+        } else if (error.message.includes('Network')) {
+          setModalError('Network error. Please check your connection and try again.');
+        } else {
+          setModalError(`Error: ${error.message}`);
+        }
+      } else {
+        setModalError('An unexpected error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
   // Redirect to error page if no data is available
   if (!formData || !products || products.length === 0 || !topRecommendation) {
+    console.log('🚨 Redirecting to error page. Debug info:', {
+      hasFormData: !!formData,
+      hasProducts: !!products,
+      productsLength: products?.length || 0,
+      hasTopRecommendation: !!topRecommendation,
+      products: products
+    });
     navigate('/error', { state: { errorMessage: 'No recommendations available', formData, clientRequestId: 'unknown' } });
     return null;
   }
@@ -612,119 +841,186 @@ export function ResultsPage() {
                   </p>
                 </div>
                 
-                {/* Row 2: Good and Bad buttons */}
-                <div className="flex gap-2">
-                  <motion.button whileHover={{
-                  scale: productFeedback[0] !== 'down' ? 1.05 : 1
-                }} whileTap={{
-                  scale: productFeedback[0] !== 'down' ? 0.95 : 1
-                }} onClick={() => {
-                  if (productFeedback[0] !== 'down') {
-                    setProductFeedback(prev => ({
-                      ...prev,
-                      0: 'up'
-                    }));
-                    handleFeedback(topRecommendation.sku, true);
-                  }
-                }} className={`flex-1 ${productFeedback[0] === 'up' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg border-2 border-green-400' : productFeedback[0] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 text-green-700 border border-green-200 hover:border-green-300'} px-4 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold`} disabled={productFeedback[0] === 'down'}>
-                    <ThumbsUpIcon className="w-5 h-5" />
-                    <span>Love it!</span>
-                  </motion.button>
-                  <motion.button whileHover={{
-                  scale: productFeedback[0] !== 'up' ? 1.05 : 1
-                }} whileTap={{
-                  scale: productFeedback[0] !== 'up' ? 0.95 : 1
-                }} onClick={() => {
-                  if (productFeedback[0] !== 'up') {
-                    setProductFeedback(prev => ({
-                      ...prev,
-                      0: 'down'
-                    }));
-                    handleFeedback(topRecommendation.sku, false);
-                  }
-                }} className={`flex-1 ${productFeedback[0] === 'down' ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-lg border-2 border-red-400' : productFeedback[0] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-red-100 to-rose-100 hover:from-red-200 hover:to-rose-200 text-red-700 border border-red-200 hover:border-red-300'} px-4 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold`} disabled={productFeedback[0] === 'up'}>
-                    <ThumbsDownIcon className="w-5 h-5" />
-                    <span>Not for me</span>
-                  </motion.button>
+                {/* Floating Action Buttons */}
+                <div className="relative group">
+                  <div className="flex justify-center gap-4">
+                    {/* Love Button */}
+                    <motion.button 
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        if (productFeedback[0] !== 'down') {
+                          setProductFeedback(prev => ({
+                            ...prev,
+                            0: 'up'
+                          }));
+                          handleFeedback(topRecommendation.sku, true);
+                        }
+                      }}
+                      className={`relative w-16 h-16 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
+                        productFeedback[0] === 'up' 
+                          ? 'bg-gradient-to-br from-green-400 to-emerald-500 shadow-green-300/50' 
+                          : productFeedback[0] === 'down'
+                          ? 'bg-gray-300 cursor-not-allowed'
+                          : 'bg-gradient-to-br from-green-100 to-emerald-200 hover:from-green-300 hover:to-emerald-400 shadow-green-200/50 hover:shadow-green-300/70'
+                      }`}
+                      disabled={productFeedback[0] === 'down'}
+                    >
+                      {productFeedback[0] === 'up' ? (
+                        <span className="text-2xl">💚</span>
+                      ) : (
+                        <span className="text-2xl">💚</span>
+                      )}
+                      {productFeedback[0] === 'up' && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"
+                        >
+                          <span className="text-white text-xs">✓</span>
+                        </motion.div>
+                      )}
+                    </motion.button>
+
+                    {/* Not for me Button */}
+                    <motion.button 
+                      whileHover={{ scale: 1.1, rotate: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        if (productFeedback[0] !== 'up') {
+                          setProductFeedback(prev => ({
+                            ...prev,
+                            0: 'down'
+                          }));
+                          handleFeedback(topRecommendation.sku, false);
+                        }
+                      }}
+                      className={`relative w-16 h-16 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center ${
+                        productFeedback[0] === 'down' 
+                          ? 'bg-gradient-to-br from-red-400 to-rose-500 shadow-red-300/50' 
+                          : productFeedback[0] === 'up'
+                          ? 'bg-gray-300 cursor-not-allowed'
+                          : 'bg-gradient-to-br from-red-100 to-rose-200 hover:from-red-300 hover:to-rose-400 shadow-red-200/50 hover:shadow-red-300/70'
+                      }`}
+                      disabled={productFeedback[0] === 'up'}
+                    >
+                      {productFeedback[0] === 'down' ? (
+                        <span className="text-2xl">💔</span>
+                      ) : (
+                        <span className="text-2xl">💔</span>
+                      )}
+                      {productFeedback[0] === 'down' && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center"
+                        >
+                          <span className="text-white text-xs">✗</span>
+                        </motion.div>
+                      )}
+                    </motion.button>
+                  </div>
+                  
+                  {/* Helper text */}
+                  <div className="text-center mt-3">
+                    <p className="text-sm text-gray-600">
+                      {productFeedback[0] === null ? '✨ Teach your genie about this gift' : 
+                       productFeedback[0] === 'up' ? '🧞‍♂️ Genie learned: "More like this!" 💚' :
+                       '🧞‍♂️ Genie learned: "Avoid this style" 💔'}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </motion.div>
         </motion.div>
 
-        {/* Rating Section */}
-        <motion.div initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.4
-        }} className="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+
+        {/* Gift Genie Training Section */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+          className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 rounded-2xl shadow-xl p-8 max-w-2xl mx-auto border-2 border-amber-200"
+        >
           <div className="text-center">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              How would you rate these recommendations?
-            </h3>
-            {showRatingInput ? (
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <StarRating
-                  value={recommendationRating}
-                  onChange={handleRatingChange}
-                  size="lg"
-                />
-                {recommendationRating > 0 && (
-                  <span className="text-lg font-semibold text-gray-700">
-                    {recommendationRating} star{recommendationRating !== 1 ? 's' : ''}
-                  </span>
-                )}
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <div className={`text-5xl ${getFeedbackCount() === 0 ? 'opacity-50' : getFeedbackCount() < products.length ? 'animate-pulse' : 'animate-bounce'}`}>
+                🧞‍♂️
               </div>
-            ) : (
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <StarIcon
-                        key={star}
-                        className={`w-6 h-6 ${
-                          star <= recommendationRating
-                            ? 'text-yellow-400 fill-yellow-400'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-lg font-semibold text-gray-700">
-                    {recommendationRating} star{recommendationRating !== 1 ? 's' : ''}
-                  </span>
+              <div>
+                <h3 className="text-2xl font-bold text-amber-800">
+                  {getFeedbackCount() === 0 ? 'Your Gift Genie Needs Training' : 
+                   getFeedbackCount() < products.length ? 'Training Your Gift Genie' : 
+                   'Your Gift Genie is Ready!'}
+                </h3>
+                <p className="text-amber-700 font-medium">
+                  {getFeedbackCount() === 0 ? 'Your genie is weak - rate products to train it!' :
+                   getFeedbackCount() < products.length ? 'Each rating makes your genie stronger!' :
+                   'Your genie is fully trained and ready to help!'}
+                </p>
+              </div>
+            </div>
+            
+            {/* Magic Crystal Progress */}
+            <div className="mb-6">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                {Array.from({ length: products.length }, (_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scale: 0.8, opacity: 0.3 }}
+                    animate={{ 
+                      scale: i < getFeedbackCount() ? 1.2 : 0.8,
+                      opacity: i < getFeedbackCount() ? 1 : 0.3
+                    }}
+                    transition={{ duration: 0.3, delay: i * 0.1 }}
+                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                      i < getFeedbackCount() 
+                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-600 shadow-lg' 
+                        : 'bg-gray-200 border-gray-300'
+                    }`}
+                  >
+                    {i < getFeedbackCount() ? (
+                      <span className="text-white text-sm font-bold">✨</span>
+                    ) : (
+                      <span className="text-gray-400 text-sm">💎</span>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-amber-700 mb-2">
+                  {getFeedbackCount()}/{products.length}
                 </div>
-                <button
-                  onClick={handleChangeRating}
-                  className="text-xs text-gray-500 hover:text-gray-700 underline transition-colors"
-                >
-                  Change rating
-                </button>
+                <div className="text-sm text-amber-600 font-medium">
+                  Magic crystals collected
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Encouragement */}
+            {getFeedbackCount() === 0 && (
+              <div className="bg-white/60 rounded-xl p-4 border border-amber-200">
+                <p className="text-amber-800 font-medium">
+                  🧞‍♂️ Your genie is weak! Rate products to train it!
+                </p>
               </div>
             )}
-            
-            {/* Thank you message */}
-            <AnimatePresence>
-              {showRatingThankYou && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-center justify-center gap-2 text-green-600 font-semibold"
-                >
-                  <CheckCircle2Icon className="w-5 h-5" />
-                  <span>Thank you for your feedback!</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <p className="text-sm text-gray-500">
-              Your feedback helps us improve our recommendations
-            </p>
+            {getFeedbackCount() > 0 && getFeedbackCount() < products.length && (
+              <div className="bg-white/60 rounded-xl p-4 border border-amber-200">
+                <p className="text-amber-800 font-medium">
+                  🧞‍♂️ Genie is getting stronger! {products.length - getFeedbackCount()} more ratings to fully train it!
+                </p>
+              </div>
+            )}
+            {getFeedbackCount() === products.length && (
+              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4 border-2 border-green-300">
+                <p className="text-green-800 font-bold text-lg">
+                  🧞‍♂️ Your genie is fully trained and ready for magic!
+                </p>
+              </div>
+            )}
           </div>
         </motion.div>
 
@@ -903,40 +1199,84 @@ export function ResultsPage() {
                             💡 <span className="text-orange-600 font-semibold">Add to your Amazon wishlist</span> or save for later!
                           </p>
                         </div>
-                        {/* Row 2: Good and Bad buttons */}
-                        <div className="flex gap-2 h-10">
-                          <motion.button whileHover={{
-                      scale: productFeedback[feedbackIndex] !== 'down' ? 1.05 : 1
-                    }} whileTap={{
-                      scale: productFeedback[feedbackIndex] !== 'down' ? 0.95 : 1
-                    }} onClick={() => {
-                      if (productFeedback[feedbackIndex] !== 'down') {
-                        setProductFeedback(prev => ({
-                          ...prev,
-                          [feedbackIndex]: 'up'
-                        }));
-                        handleFeedback(item.sku, true);
-                      }
-                    }} disabled={productFeedback[feedbackIndex] === 'down'} className={`flex-1 ${productFeedback[feedbackIndex] === 'up' ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md border border-green-400' : productFeedback[feedbackIndex] === 'down' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-green-100 to-emerald-100 hover:from-green-200 hover:to-emerald-200 text-green-700 border border-green-200 hover:border-green-300'} py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1 font-semibold`}>
-                            <ThumbsUpIcon className="w-4 h-4" />
-                            <span className="text-xs font-medium">Love it!</span>
+                        {/* Genie Training Buttons */}
+                        <div className="flex justify-center gap-3 mt-3">
+                          {/* Love Button */}
+                          <motion.button 
+                            whileHover={{ scale: 1.1, rotate: 5 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              if (productFeedback[feedbackIndex] !== 'down') {
+                                setProductFeedback(prev => ({
+                                  ...prev,
+                                  [feedbackIndex]: 'up'
+                                }));
+                                handleFeedback(item.sku, true);
+                              }
+                            }}
+                            className={`relative w-12 h-12 rounded-full shadow-md transition-all duration-300 flex items-center justify-center ${
+                              productFeedback[feedbackIndex] === 'up' 
+                                ? 'bg-gradient-to-br from-green-400 to-emerald-500 shadow-green-300/50' 
+                                : productFeedback[feedbackIndex] === 'down'
+                                ? 'bg-gray-300 cursor-not-allowed'
+                                : 'bg-gradient-to-br from-green-100 to-emerald-200 hover:from-green-300 hover:to-emerald-400 shadow-green-200/50 hover:shadow-green-300/70'
+                            }`}
+                            disabled={productFeedback[feedbackIndex] === 'down'}
+                          >
+                            <span className="text-lg">💚</span>
+                            {productFeedback[feedbackIndex] === 'up' && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center"
+                              >
+                                <span className="text-white text-xs">✓</span>
+                              </motion.div>
+                            )}
                           </motion.button>
-                          <motion.button whileHover={{
-                      scale: productFeedback[feedbackIndex] !== 'up' ? 1.05 : 1
-                    }} whileTap={{
-                      scale: productFeedback[feedbackIndex] !== 'up' ? 0.95 : 1
-                    }} onClick={() => {
-                      if (productFeedback[feedbackIndex] !== 'up') {
-                        setProductFeedback(prev => ({
-                          ...prev,
-                          [feedbackIndex]: 'down'
-                        }));
-                        handleFeedback(item.sku, false);
-                      }
-                    }} disabled={productFeedback[feedbackIndex] === 'up'} className={`flex-1 ${productFeedback[feedbackIndex] === 'down' ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md border border-red-400' : productFeedback[feedbackIndex] === 'up' ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-red-100 to-rose-100 hover:from-red-200 hover:to-rose-200 text-red-700 border border-red-200 hover:border-red-300'} py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-1 font-semibold`}>
-                            <ThumbsDownIcon className="w-4 h-4" />
-                            <span className="text-xs font-medium">Not for me</span>
+
+                          {/* Not for me Button */}
+                          <motion.button 
+                            whileHover={{ scale: 1.1, rotate: -5 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => {
+                              if (productFeedback[feedbackIndex] !== 'up') {
+                                setProductFeedback(prev => ({
+                                  ...prev,
+                                  [feedbackIndex]: 'down'
+                                }));
+                                handleFeedback(item.sku, false);
+                              }
+                            }}
+                            className={`relative w-12 h-12 rounded-full shadow-md transition-all duration-300 flex items-center justify-center ${
+                              productFeedback[feedbackIndex] === 'down' 
+                                ? 'bg-gradient-to-br from-red-400 to-rose-500 shadow-red-300/50' 
+                                : productFeedback[feedbackIndex] === 'up'
+                                ? 'bg-gray-300 cursor-not-allowed'
+                                : 'bg-gradient-to-br from-red-100 to-rose-200 hover:from-red-300 hover:to-rose-400 shadow-red-200/50 hover:shadow-red-300/70'
+                            }`}
+                            disabled={productFeedback[feedbackIndex] === 'up'}
+                          >
+                            <span className="text-lg">💔</span>
+                            {productFeedback[feedbackIndex] === 'down' && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+                              >
+                                <span className="text-white text-xs">✗</span>
+                              </motion.div>
+                            )}
                           </motion.button>
+                        </div>
+                        
+                        {/* Helper text for other recommendations */}
+                        <div className="text-center mt-2">
+                          <p className="text-xs text-gray-500">
+                            {productFeedback[feedbackIndex] === null ? '✨ Teach your genie' : 
+                             productFeedback[feedbackIndex] === 'up' ? '🧞‍♂️ Learned!' :
+                             '🧞‍♂️ Noted!'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -944,6 +1284,124 @@ export function ResultsPage() {
           })}
             </motion.div>
           </motion.div>}
+
+        {/* Rating Section */}
+        <motion.div 
+          initial={{
+            opacity: 0,
+            y: 20
+          }} 
+          animate={{
+            opacity: 1,
+            y: 0,
+            scale: getFeedbackCount() === products.length && recommendationRating === 0 ? 1.05 : 1
+          }} 
+          transition={{
+            delay: 0.6,
+            type: "spring",
+            stiffness: 200
+          }} 
+          className={`rounded-xl shadow-lg p-6 max-w-2xl mx-auto mb-6 transition-all duration-500 ${
+            getFeedbackCount() === products.length && recommendationRating === 0
+              ? 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-4 border-amber-300 shadow-2xl ring-4 ring-amber-200/50'
+              : 'bg-white shadow-lg'
+          }`}
+        >
+          <div className="text-center">
+            {getFeedbackCount() === products.length && recommendationRating === 0 && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.8, type: "spring", stiffness: 300 }}
+                className="mb-4"
+              >
+                <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-full inline-flex items-center gap-2 shadow-lg">
+                  <span className="text-2xl">⭐</span>
+                  <span className="font-bold text-lg">One More Step!</span>
+                  <span className="text-2xl">⭐</span>
+                </div>
+              </motion.div>
+            )}
+            <h3 className={`text-xl font-bold mb-4 ${
+              getFeedbackCount() === products.length && recommendationRating === 0 
+                ? 'text-amber-800' 
+                : 'text-gray-900'
+            }`}>
+              How would you rate these recommendations?
+            </h3>
+            {showRatingInput ? (
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <motion.div
+                  animate={getFeedbackCount() === products.length && recommendationRating === 0 ? {
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 2, -2, 0]
+                  } : {}}
+                  transition={{
+                    duration: 2,
+                    repeat: getFeedbackCount() === products.length && recommendationRating === 0 ? Infinity : 0,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <StarRating
+                    value={recommendationRating}
+                    onChange={handleRatingChange}
+                    size="lg"
+                  />
+                </motion.div>
+                {recommendationRating > 0 && (
+                  <span className="text-lg font-semibold text-gray-700">
+                    {recommendationRating} star{recommendationRating !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <StarIcon
+                        key={star}
+                        className={`w-6 h-6 ${
+                          star <= recommendationRating
+                            ? 'text-yellow-400 fill-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-lg font-semibold text-gray-700">
+                    {recommendationRating} star{recommendationRating !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <button
+                  onClick={handleChangeRating}
+                  className="text-xs text-gray-500 hover:text-gray-700 underline transition-colors"
+                >
+                  Change rating
+                </button>
+              </div>
+            )}
+            
+            {/* Thank you message */}
+            <AnimatePresence>
+              {showRatingThankYou && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-center justify-center gap-2 text-green-600 font-semibold"
+                >
+                  <CheckCircle2Icon className="w-5 h-5" />
+                  <span>Thank you for your feedback!</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <p className="text-sm text-gray-500">
+              Your feedback helps us improve our recommendations
+            </p>
+          </div>
+        </motion.div>
 
         {/* Request New Recommendations Button */}
         <motion.div initial={{
@@ -955,16 +1413,29 @@ export function ResultsPage() {
       }} transition={{
         delay: 0.7
       }}>
-          <button onClick={() => submissionCount < 2 && setShowModal(true)} className={`w-full font-semibold py-4 px-8 rounded-2xl shadow-xl transition-all transform flex items-center justify-center gap-3 ${submissionCount >= 2 ? 'bg-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:scale-[1.02] hover:shadow-2xl'} text-white`} disabled={submissionCount >= 2}>
-            {submissionCount >= 2 ? (
+          <button 
+            onClick={() => setShowModal(true)} 
+            className={`w-full font-semibold py-4 px-8 rounded-2xl shadow-xl transition-all transform flex items-center justify-center gap-3 ${
+              getFeedbackCount() < products.length || recommendationRating === 0
+                ? 'bg-gray-300 cursor-not-allowed' 
+                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 hover:scale-[1.02] hover:shadow-2xl'
+            } text-white`} 
+            disabled={getFeedbackCount() < products.length || recommendationRating === 0}
+          >
+            {getFeedbackCount() < products.length ? (
               <>
-                <XIcon className="w-5 h-5" />
-                Maximum recommendations reached
+                <SparklesIcon className="w-5 h-5" />
+                Rate all products to unlock better recommendations
+              </>
+            ) : recommendationRating === 0 ? (
+              <>
+                <StarIcon className="w-5 h-5" />
+                Add a star rating to unlock better recommendations
               </>
             ) : (
               <>
                 <SparklesIcon className="w-5 h-5" />
-                Get Different Recommendations
+                Show me better ones based on my ratings
               </>
             )}
           </button>
@@ -980,88 +1451,240 @@ export function ResultsPage() {
       }} exit={{
         opacity: 0
       }} className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" onClick={handleModalClose}>
-            <motion.div initial={{
-          opacity: 0,
-          scale: 0.95
-        }} animate={{
-          opacity: 1,
-          scale: 1
-        }} exit={{
-          opacity: 0,
-          scale: 0.95
-        }} className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-              {isLoading ? <motion.div initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} className="flex flex-col items-center justify-center py-8">
-                  <div className="w-16 h-16 mb-8">
-                    <motion.div animate={{
-                rotate: 360
-              }} transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'linear'
-              }} className="w-full h-full border-4 border-purple-200 border-t-purple-600 rounded-full" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center">
-                    Finding New Recommendations
-                  </h3>
-                  <p className="text-gray-600 text-center">
-                    We're analyzing your feedback to find better gift options...
-                  </p>
-                </motion.div> : isSubmitted ? <motion.div initial={{
+            <motion.div 
+              initial={{
+                opacity: 0,
+                scale: 0.95,
+                height: getModalHeight()
+              }} 
+              animate={{
+                opacity: 1,
+                scale: 1,
+                height: getModalHeight()
+              }} 
+              exit={{
+                opacity: 0,
+                scale: 0.95,
+                height: getModalHeight()
+              }} 
+              transition={{
+                duration: 0.5,
+                ease: "easeOut"
+              }} 
+              className={`bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6 ${
+                !isSubmitted ? 'flex flex-col justify-between' : ''
+              }`}
+              onClick={e => e.stopPropagation()}
+            >
+              {isSubmitted ? <motion.div 
+              initial={{
             opacity: 0,
             scale: 0.9
           }} animate={{
             opacity: 1,
             scale: 1
-          }} className="flex flex-col items-center justify-center py-8">
-                  <CheckCircle2Icon className="w-24 h-24 text-blue-500 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    Thank you for your feedback!
-                  </h3>
-                </motion.div> : <>
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900">
-                      Get Different Recommendations
-                    </h3>
-                    <button onClick={handleModalClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+          }} 
+              className="pt-10 pb-0 md:pt-10 md:pb-0 lg:pt-10 lg:pb-0"
+            
+          className="flex flex-col items-center justify-center py-6">
+                  <div className="relative mb-6">
+                    {/* Main genie image with floating effect */}
+                    <motion.div
+                      animate={{ 
+                        y: [0, -10, 0],
+                        rotate: [0, 2, -2, 0]
+                      }}
+                      transition={{ 
+                        duration: 4, 
+                        repeat: Infinity, 
+                        ease: "easeInOut" 
+                      }}
+                      className="relative"
+                    >
+                      <img 
+                        src="/genie3.png" 
+                        alt="Genie working" 
+                        className="w-32 h-32 mx-auto object-contain"
+                      />
+                      
+                      {/* Magical aura around genie */}
+                      <motion.div
+                        animate={{
+                          scale: [1, 1.1, 1],
+                          opacity: [0.3, 0.6, 0.3]
+                        }}
+                        transition={{
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                        className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 rounded-full blur-xl"
+                        style={{ zIndex: -1 }}
+                      />
+                    </motion.div>
+                    
+                    {/* Floating magical particles around genie */}
+                    {[...Array(8)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        animate={{
+                          y: [0, -30, 0],
+                          x: [0, Math.sin(i) * 20, 0],
+                          opacity: [0, 1, 0],
+                          scale: [0.3, 1, 0.3]
+                        }}
+                        transition={{
+                          duration: 3 + (i * 0.2),
+                          repeat: Infinity,
+                          delay: i * 0.4,
+                          ease: "easeInOut"
+                        }}
+                        className="absolute w-3 h-3 rounded-full"
+                        style={{
+                          left: `${30 + (i * 5)}%`,
+                          top: `${20 + (i % 3) * 15}%`,
+                          background: `hsl(${i * 45}, 70%, 60%)`,
+                          boxShadow: `0 0 10px hsl(${i * 45}, 70%, 60%)`
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <motion.h3 
+                    key={titleIndex}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-xl font-semibold text-gray-900 mb-4 text-center"
+                    style={{ height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    {titleIndex === 0 && "🧞‍♂️ Cosmic gift energy detected"}
+                    {titleIndex === 1 && "🧞‍♂️ Running a multi-dimensional vibe check"}
+                    {titleIndex === 2 && "🧞‍♂️ These things can't be rushed."}
+                  </motion.h3>
+                  
+                  {/* Infinite Progress Animation */}
+                  <div className="w-full max-w-xs mb-2">
+                    <div className="text-sm text-gray-500 mb-2 text-center">
+                      CUDA cores at 99%
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        className="bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 h-2 rounded-full"
+                        animate={{
+                          x: ['-100%', '100%']
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                        style={{ width: '50%' }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Email Fallback */}
+                  {showEmailFallback && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="w-full mb-0"
+                    >
+                      {showCompletion ? (
+                        // Confirmation message after email submission
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600 mb-3">
+                            We'll send your personalized recommendations to <span className="font-semibold text-purple-600">{emailAddress}</span> soon.
+                          </p>
+                          <p className="text-xs text-gray-500 italic">
+                            This may take several hours as our genie processes the cosmic gift matrix...
+                          </p>
+                        </div>
+                      ) : (
+                        // Email input form
+                        <>
+                          <motion.p 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: "easeOut", delay: 0 }}
+                            className="text-xs text-gray-600 mb-4 text-center py-2"
+                            style={{ paddingTop: "10px" }}
+                          >
+                            Drop your email below and we'll send your recommendations once he's done meditating.
+                          </motion.p>
+                          <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: "easeOut", delay: 2 }}
+                            className="flex gap-2 mb-2"
+                          >
+                            <input
+                              type="email"
+                              value={emailAddress}
+                              onChange={(e) => setEmailAddress(e.target.value)}
+                              placeholder="your@email.com"
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            />
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                console.log('Notify button clicked!', { isLoading, emailAddress, recommendationId });
+                                handleEmailNotify();
+                              }}
+                              disabled={isLoading}  
+                              className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-medium hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {isLoading ? 'Sending...' : 'Notify'}
+                            </button>
+                          </motion.div>
+                          <motion.p 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, ease: "easeOut", delay: 2.5 }}
+                            className="text-xs text-gray-500 text-center mt-2 mb-2"
+                          >
+                            We'll never email you about anything else
+                          </motion.p>
+                        </>
+                      )}
+                    </motion.div>
+                  )}
+                </motion.div> : (
+                  // Original form state
+                  <div className="px-3 md:px-6 relative">
+                    <button onClick={handleModalClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors z-10">
                       <XIcon className="w-6 h-6" />
                     </button>
+                    <div style={{ height: '30px' }}></div>
+                    <div className="mb-6">
+                      <h3 className="text-2xl font-bold text-gray-900 text-center">
+                        🧞Ready to find better matches!
+                      </h3>
+                    </div>
+                    <div className="mb-8">
+                      <textarea 
+                        value={modalFeedback} 
+                        onChange={e => {
+                          setModalFeedback(e.target.value);
+                          if (e.target.value.length >= 10 || e.target.value.length === 0) {
+                            setModalError('');
+                          }
+                        }} 
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-none ${modalError ? 'border-red-300' : 'border-gray-200'}`} 
+                        rows={3} 
+                        placeholder="Anything else we should know? (Optional)" 
+                      />
+                      {modalError && <p className="text-red-500 text-sm mt-2">{modalError}</p>}
+                    </div>
+                    <div className="flex justify-center">
+                      <button onClick={handleModalSubmit} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                        <SparklesIcon className="w-4 h-4" />
+                        Find My Perfect Matches
+                      </button>
+                    </div>
                   </div>
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Include your email and we'll email you an improved recommendation just for you
-                    </label>
-                    <input 
-                      type="email" 
-                      value={modalEmail} 
-                      onChange={e => setModalEmail(e.target.value)} 
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors mb-4" 
-                      placeholder="your.email@example.com" 
-                      required
-                    />
-                    <textarea value={modalFeedback} onChange={e => {
-                setModalFeedback(e.target.value);
-                if (e.target.value.length >= 10) {
-                  setModalError('');
-                }
-              }} className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-none ${modalError ? 'border-red-300' : 'border-gray-200'}`} rows={4} placeholder="Share your feedback to help us improve our recommendations..." />
-                    {modalError && <p className="text-red-500 text-sm mt-2">{modalError}</p>}
-                    <p className="text-gray-500 text-sm mt-2">
-                      {modalFeedback.length}/10 characters minimum
-                    </p>
-                  </div>
-                  <div className="flex gap-3">
-                    <button onClick={handleModalClose} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-lg transition-colors">
-                      Cancel
-                    </button>
-                    <button onClick={handleModalSubmit} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-                      Submit
-                    </button>
-                  </div>
-                </>}
+                )}
             </motion.div>
           </motion.div>}
       </AnimatePresence>
@@ -1072,10 +1695,15 @@ export function ResultsPage() {
 const getProductTitle = (product: any): string => {
   // Check all possible title fields and use the first one that exists
   const title = product.productTitle || product.name || '';
-  if (!title || typeof title !== 'string' || title.trim() === '') {
-    console.log('No valid title found for product:', product);
+  
+  // Check if title is "Product not found" or similar error messages
+  if (!title || typeof title !== 'string' || title.trim() === '' || 
+      title.toLowerCase().includes('not found') || 
+      title.toLowerCase().includes('error') ||
+      title.toLowerCase().includes('unavailable')) {
     return 'Product Title Not Available';
   }
+  
   return capitalizeWords(title);
 };
 const capitalizeWords = (text: string | undefined | null): string => {
