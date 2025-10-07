@@ -369,8 +369,8 @@ export function GiftRecommenderForm() {
       return true;
     }
     const newErrors: FormErrors = {};
-    // Age validation - 18-99
-    if (!formData.personAge || parseInt(formData.personAge) < 18 || parseInt(formData.personAge) > 99) {
+    // Age validation - 1-99
+    if (!formData.personAge || parseInt(formData.personAge) < 1 || parseInt(formData.personAge) > 99) {
       newErrors.personAge = 'Please enter a valid age';
     }
     if (formData.interests.length === 0) {
@@ -692,7 +692,7 @@ export function GiftRecommenderForm() {
                 <CalendarIcon className="w-4 h-4 mr-2 text-purple-600" />
                 How old are they?
               </label>
-              <input type="number" min="18" max="99" value={formData.personAge} onChange={e => setFormData(prev => ({
+              <input type="number" min="1" max="99" value={formData.personAge} onChange={e => setFormData(prev => ({
               ...prev,
               personAge: e.target.value
             }))} className="w-full px-4 py-3 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors" placeholder="Enter their age" />
@@ -1030,7 +1030,7 @@ export function GiftRecommenderForm() {
               placeholder={`Paste your JSON here, for example:
 {
   "context": {
-    "age": 18,
+    "age": 1,
     "gender": "male",
     "relationship": "brother",
     "occasion": "birthday",

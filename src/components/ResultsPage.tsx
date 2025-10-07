@@ -1142,60 +1142,202 @@ export function ResultsPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
-          className="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 rounded-2xl shadow-xl p-8 max-w-2xl mx-auto border-2 border-amber-200"
+          className={`rounded-3xl shadow-2xl p-8 max-w-2xl mx-auto border-2 relative overflow-hidden ${
+            getFeedbackCount() === products.length 
+              ? 'bg-gradient-to-br from-cyan-50 via-blue-50 to-indigo-100 border-cyan-200 shadow-2xl shadow-cyan-200/30' 
+              : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 border-blue-200 shadow-xl shadow-blue-200/20'
+          }`}
         >
-          <div className="text-center">
+          {/* Magical sparkle overlay */}
+          {getFeedbackCount() === products.length && (
+            <div className="absolute inset-0 pointer-events-none">
+              <motion.div
+                animate={{
+                  rotate: [0, 360],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-r from-cyan-300 to-blue-300 rounded-full opacity-20 blur-sm"
+              />
+              <motion.div
+                animate={{
+                  rotate: [360, 0],
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{
+                  duration: 15,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="absolute bottom-6 left-6 w-6 h-6 bg-gradient-to-r from-blue-300 to-indigo-300 rounded-full opacity-30 blur-sm"
+              />
+              <motion.div
+                animate={{
+                  rotate: [0, -360],
+                  scale: [1, 0.8, 1]
+                }}
+                transition={{
+                  duration: 25,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="absolute top-1/2 left-4 w-4 h-4 bg-gradient-to-r from-cyan-400 to-teal-400 rounded-full opacity-25 blur-sm"
+              />
+            </div>
+          )}
+          <div className="text-center relative z-10">
             <div className="flex items-center justify-center gap-4 mb-6">
-              <div className={`text-5xl ${getFeedbackCount() === 0 ? 'opacity-50' : getFeedbackCount() < products.length ? 'animate-pulse' : 'animate-bounce'}`}>
-                🧞‍♂️
-              </div>
+              {getFeedbackCount() === products.length ? (
+                // Special fully trained genie with image
+                <motion.div
+                  animate={{ 
+                    y: [0, -10, 0],
+                    rotate: [0, 2, -2, 0]
+                  }}
+                  transition={{ 
+                    duration: 4, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                  className="relative"
+                >
+                  <img 
+                    src="/genie3.png" 
+                    alt="Fully trained genie" 
+                    className="w-20 h-20 object-contain"
+                  />
+                  {/* Magical aura around fully trained genie */}
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.3, 0.6, 0.3]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute inset-0 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 rounded-full blur-xl"
+                    style={{ zIndex: -1 }}
+                  />
+                </motion.div>
+              ) : (
+                // Genie image for training states
+                <div className={`${getFeedbackCount() === 0 ? 'opacity-50' : getFeedbackCount() < products.length ? 'animate-pulse' : 'animate-bounce'}`}>
+                  <img 
+                    src="/genie3.png" 
+                    alt="Gift Genie" 
+                    className="w-20 h-20 object-contain"
+                  />
+                </div>
+              )}
               <div>
-                <h3 className="text-2xl font-bold text-amber-800">
+                <h3 className={`text-2xl font-bold ${
+                  getFeedbackCount() === products.length ? 'text-cyan-800' : 'text-blue-800'
+                }`}>
                   {getFeedbackCount() === 0 ? 'Your Gift Genie Needs Training' : 
                    getFeedbackCount() < products.length ? 'Training Your Gift Genie' : 
                    'Your Gift Genie is Ready!'}
                 </h3>
-                <p className="text-amber-700 font-medium">
+                <p className={`font-medium ${
+                  getFeedbackCount() === products.length ? 'text-cyan-700' : 'text-blue-700'
+                }`}>
                   {getFeedbackCount() === 0 ? 'Your genie is weak - rate products to train it!' :
                    getFeedbackCount() < products.length ? 'Each rating makes your genie stronger!' :
-                   'Your genie is fully trained and ready to help!'}
+                   '🧞‍♂️ Your genie is fully trained and ready for magic!'}
                 </p>
+                {getFeedbackCount() === products.length && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="mt-2 text-sm text-cyan-600 font-medium"
+                  >
+                    ✨ The magic is real - your genie can now predict perfect gifts! ✨
+                  </motion.div>
+                )}
               </div>
             </div>
             
             {/* Magic Crystal Progress */}
             <div className="mb-6">
-              <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="flex items-center justify-center gap-3 mb-4">
                 {Array.from({ length: products.length }, (_, i) => (
                   <motion.div
                     key={i}
                     initial={{ scale: 0.8, opacity: 0.3 }}
                     animate={{ 
-                      scale: i < getFeedbackCount() ? 1.2 : 0.8,
+                      scale: i < getFeedbackCount() ? 1.3 : 0.8,
                       opacity: i < getFeedbackCount() ? 1 : 0.3
                     }}
                     transition={{ duration: 0.3, delay: i * 0.1 }}
-                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${
+                    className={`w-12 h-12 rounded-full border-2 flex items-center justify-center relative ${
                       i < getFeedbackCount() 
-                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-600 shadow-lg' 
-                        : 'bg-gray-200 border-gray-300'
+                        ? getFeedbackCount() === products.length
+                          ? 'bg-gradient-to-br from-cyan-200 via-blue-200 to-indigo-200 border-cyan-300 shadow-xl shadow-cyan-200/50'
+                          : 'bg-gradient-to-br from-blue-200 via-cyan-200 to-teal-200 border-blue-300 shadow-lg shadow-blue-200/50'
+                        : 'bg-gradient-to-br from-slate-100 to-gray-200 border-slate-300 shadow-sm'
                     }`}
                   >
                     {i < getFeedbackCount() ? (
-                      <span className="text-white text-sm font-bold">✨</span>
+                      <motion.div
+                        animate={getFeedbackCount() === products.length ? {
+                          rotate: [0, 360],
+                          scale: [1, 1.1, 1]
+                        } : {}}
+                        transition={{
+                          duration: 2,
+                          repeat: getFeedbackCount() === products.length ? Infinity : 0,
+                          ease: "easeInOut"
+                        }}
+                        className="w-8 h-8"
+                      >
+                        <img 
+                          src="/magic_crystal_selected.png" 
+                          alt="Selected Magic Crystal" 
+                          className="w-full h-full object-contain"
+                        />
+                      </motion.div>
                     ) : (
-                      <span className="text-gray-400 text-sm">💎</span>
+                      <img 
+                        src="/magic_crystal.png" 
+                        alt="Magic Crystal" 
+                        className="w-8 h-8 object-contain opacity-40"
+                      />
+                    )}
+                    {/* Magical sparkles for fully trained crystals */}
+                    {i < getFeedbackCount() && getFeedbackCount() === products.length && (
+                      <motion.div
+                        animate={{
+                          scale: [0, 1, 0],
+                          opacity: [0, 1, 0]
+                        }}
+                        transition={{
+                          duration: 1.5,
+                          repeat: Infinity,
+                          delay: i * 0.2
+                        }}
+                        className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full"
+                      />
                     )}
                   </motion.div>
                 ))}
               </div>
               
               <div className="text-center">
-                <div className="text-3xl font-bold text-amber-700 mb-2">
+                <div className={`text-3xl font-bold mb-2 ${
+                  getFeedbackCount() === products.length ? 'text-cyan-700' : 'text-blue-700'
+                }`}>
                   {getFeedbackCount()}/{products.length}
                 </div>
-                <div className="text-sm text-amber-600 font-medium">
-                  Magic crystals collected
+                <div className={`text-sm font-medium ${
+                  getFeedbackCount() === products.length ? 'text-cyan-600' : 'text-blue-600'
+                }`}>
+                  {getFeedbackCount() === products.length ? 'Magic crystals mastered!' : 'Magic crystals collected'}
                 </div>
               </div>
             </div>
@@ -1216,11 +1358,106 @@ export function ResultsPage() {
               </div>
             )}
             {getFeedbackCount() === products.length && (
-              <div className="bg-gradient-to-r from-green-100 to-emerald-100 rounded-xl p-4 border-2 border-green-300">
-                <p className="text-green-800 font-bold text-lg">
-                  🧞‍♂️ Your genie is fully trained and ready for magic!
-                </p>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.6, type: "spring", stiffness: 200 }}
+                className="relative overflow-hidden"
+              >
+                {/* Magical background effects */}
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-200 via-pink-200 to-indigo-200 rounded-xl opacity-50"></div>
+                <motion.div
+                  animate={{
+                    background: [
+                      'linear-gradient(45deg, #8B5CF6, #EC4899, #6366F1)',
+                      'linear-gradient(45deg, #EC4899, #6366F1, #8B5CF6)',
+                      'linear-gradient(45deg, #6366F1, #8B5CF6, #EC4899)'
+                    ]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                  className="absolute inset-0 rounded-xl opacity-20"
+                />
+                
+                {/* Floating magical particles */}
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    animate={{
+                      y: [0, -20, 0],
+                      x: [0, Math.sin(i) * 15, 0],
+                      opacity: [0, 1, 0],
+                      scale: [0.5, 1, 0.5]
+                    }}
+                    transition={{
+                      duration: 3 + (i * 0.3),
+                      repeat: Infinity,
+                      delay: i * 0.5,
+                      ease: "easeInOut"
+                    }}
+                    className="absolute w-2 h-2 rounded-full"
+                    style={{
+                      left: `${20 + (i * 10)}%`,
+                      top: `${30 + (i % 3) * 20}%`,
+                      background: `hsl(${i * 60}, 70%, 60%)`,
+                      boxShadow: `0 0 8px hsl(${i * 60}, 70%, 60%)`
+                    }}
+                  />
+                ))}
+                
+                <div className="relative bg-gradient-to-r from-purple-100 via-pink-100 to-indigo-100 rounded-xl p-6 border-2 border-purple-300 shadow-2xl">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.05, 1],
+                      rotate: [0, 1, -1, 0]
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                    className="text-center"
+                  >
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                      <motion.div
+                        animate={{
+                          rotate: [0, 360]
+                        }}
+                        transition={{
+                          duration: 8,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                        className="text-3xl"
+                      >
+                        ✨
+                      </motion.div>
+                      <h4 className="text-purple-800 font-bold text-xl">
+                        🧞‍♂️ Your genie is fully trained and ready for magic!
+                      </h4>
+                      <motion.div
+                        animate={{
+                          rotate: [0, -360]
+                        }}
+                        transition={{
+                          duration: 8,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                        className="text-3xl"
+                      >
+                        ✨
+                      </motion.div>
+                    </div>
+                    <p className="text-purple-700 font-semibold text-sm">
+                      Your genie has mastered the art of gift-giving and is ready to create perfect recommendations!
+                    </p>
+                  </motion.div>
+                </div>
+              </motion.div>
             )}
           </div>
         </motion.div>
@@ -1893,10 +2130,7 @@ export function ResultsPage() {
                         // Confirmation message after email submission
                         <div className="text-center">
                           <p className="text-sm text-gray-600 mb-3">
-                            We'll send your personalized recommendations to <span className="font-semibold text-purple-600">{emailAddress}</span> soon.
-                          </p>
-                          <p className="text-xs text-gray-500 italic">
-                            This may take several hours as our genie processes the cosmic gift matrix...
+                            We'll send your new recommendations to <span className="font-semibold text-purple-600">{emailAddress}</span> in a few hours.
                           </p>
                         </div>
                       ) : (
