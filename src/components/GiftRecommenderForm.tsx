@@ -363,7 +363,7 @@ export function GiftRecommenderForm() {
     }
   };
   // Modify validateForm to respect test override
-  const validateForm = () => {
+  const validateForm = () => { 
     // Skip validation if this is a test submission
     if ((window as any).tempValidateFormOverride) {
       return true;

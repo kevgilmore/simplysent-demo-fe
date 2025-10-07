@@ -69,8 +69,67 @@ export function ResultsPage() {
   const [showSharePopover, setShowSharePopover] = useState(false);
   const [sharePopoverPosition, setSharePopoverPosition] = useState<'top' | 'bottom'>('top');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [ratingSectionInView, setRatingSectionInView] = useState(false);
+  const [restartRatingAnimation, setRestartRatingAnimation] = useState(false);
   const titleIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const bottomShareSectionRef = useRef<HTMLDivElement>(null);
+  const ratingSectionRef = useRef<HTMLDivElement>(null);
+  
+  // Function to scroll to rating section
+  const scrollToRatingSection = () => {
+    // Reset animation state to trigger restart
+    setRatingSectionInView(false);
+    setRestartRatingAnimation(true);
+    
+    if (ratingSectionRef.current) {
+      ratingSectionRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+    
+    // Reset the restart flag after a short delay
+    setTimeout(() => {
+      setRestartRatingAnimation(false);
+    }, 100);
+  };
+
+  // Intersection observer to detect when rating section is in view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRatingSectionInView(true);
+        }
+      },
+      {
+        threshold: 0.3, // Trigger when 30% of the section is visible
+        rootMargin: '0px 0px -100px 0px' // Trigger a bit before it's fully in view
+      }
+    );
+
+    if (ratingSectionRef.current) {
+      observer.observe(ratingSectionRef.current);
+    }
+
+    return () => {
+      if (ratingSectionRef.current) {
+        observer.unobserve(ratingSectionRef.current);
+      }
+    };
+  }, []);
+
+  // Handle animation restart when button is clicked
+  useEffect(() => {
+    if (restartRatingAnimation) {
+      // Small delay to ensure the scroll has started
+      const timer = setTimeout(() => {
+        setRatingSectionInView(true);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [restartRatingAnimation]);
   
   // Update animation stage as text elements appear
   useEffect(() => {
@@ -1250,16 +1309,7 @@ export function ResultsPage() {
                    getFeedbackCount() < products.length ? 'Each rating makes your genie stronger!' :
                    '🧞‍♂️ Your genie is fully trained and ready for magic!'}
                 </p>
-                {getFeedbackCount() === products.length && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                    className="mt-2 text-sm text-cyan-600 font-medium"
-                  >
-                    ✨ The magic is real - your genie can now predict perfect gifts! ✨
-                  </motion.div>
-                )}
+
               </div>
             </div>
             
@@ -1283,32 +1333,23 @@ export function ResultsPage() {
                         : 'bg-gradient-to-br from-slate-100 to-gray-200 border-slate-300 shadow-sm'
                     }`}
                   >
-                    {i < getFeedbackCount() ? (
-                      <motion.div
-                        animate={getFeedbackCount() === products.length ? {
-                          rotate: [0, 360],
-                          scale: [1, 1.1, 1]
-                        } : {}}
-                        transition={{
-                          duration: 2,
-                          repeat: getFeedbackCount() === products.length ? Infinity : 0,
-                          ease: "easeInOut"
-                        }}
-                        className="w-8 h-8"
-                      >
-                        <img 
-                          src="/magic_crystal_selected.png" 
-                          alt="Selected Magic Crystal" 
-                          className="w-full h-full object-contain"
-                        />
-                      </motion.div>
-                    ) : (
+                    <motion.div
+                      animate={i < getFeedbackCount() && getFeedbackCount() === products.length ? {
+                        scale: [1, 1.1, 1]
+                      } : {}}
+                      transition={{
+                        duration: 2,
+                        repeat: i < getFeedbackCount() && getFeedbackCount() === products.length ? Infinity : 0,
+                        ease: "easeInOut"
+                      }}
+                      className="w-8 h-8"
+                    >
                       <img 
-                        src="/magic_crystal.png" 
-                        alt="Magic Crystal" 
-                        className="w-8 h-8 object-contain opacity-40"
+                        src={i < getFeedbackCount() ? "/magic_crystal_selected.png" : "/magic_crystal.png"}
+                        alt={i < getFeedbackCount() ? "Selected Magic Crystal" : "Magic Crystal"}
+                        className={`w-full h-full object-contain ${i < getFeedbackCount() ? '' : 'opacity-40'}`}
                       />
-                    )}
+                    </motion.div>
                     {/* Magical sparkles for fully trained crystals */}
                     {i < getFeedbackCount() && getFeedbackCount() === products.length && (
                       <motion.div
@@ -1339,126 +1380,25 @@ export function ResultsPage() {
                 }`}>
                   {getFeedbackCount() === products.length ? 'Magic crystals mastered!' : 'Magic crystals collected'}
                 </div>
+                {getFeedbackCount() === products.length && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="mt-4"
+                  >
+                    <button
+                      onClick={scrollToRatingSection}
+                      className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-2 mx-auto"
+                    >
+                      <span>⭐</span>
+                      <span>Rate Your Recommendations</span>
+                      <span>⭐</span>
+                    </button>
+                  </motion.div>
+                )}
               </div>
             </div>
-
-            {/* Dynamic Encouragement */}
-            {getFeedbackCount() === 0 && (
-              <div className="bg-white/60 rounded-xl p-4 border border-amber-200">
-                <p className="text-amber-800 font-medium">
-                  🧞‍♂️ Your genie is weak! Rate products to train it!
-                </p>
-              </div>
-            )}
-            {getFeedbackCount() > 0 && getFeedbackCount() < products.length && (
-              <div className="bg-white/60 rounded-xl p-4 border border-amber-200">
-                <p className="text-amber-800 font-medium">
-                  🧞‍♂️ Genie is getting stronger! {products.length - getFeedbackCount()} more ratings to fully train it!
-                </p>
-              </div>
-            )}
-            {getFeedbackCount() === products.length && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.6, type: "spring", stiffness: 200 }}
-                className="relative overflow-hidden"
-              >
-                {/* Magical background effects */}
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-200 via-pink-200 to-indigo-200 rounded-xl opacity-50"></div>
-                <motion.div
-                  animate={{
-                    background: [
-                      'linear-gradient(45deg, #8B5CF6, #EC4899, #6366F1)',
-                      'linear-gradient(45deg, #EC4899, #6366F1, #8B5CF6)',
-                      'linear-gradient(45deg, #6366F1, #8B5CF6, #EC4899)'
-                    ]
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                  className="absolute inset-0 rounded-xl opacity-20"
-                />
-                
-                {/* Floating magical particles */}
-                {[...Array(6)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    animate={{
-                      y: [0, -20, 0],
-                      x: [0, Math.sin(i) * 15, 0],
-                      opacity: [0, 1, 0],
-                      scale: [0.5, 1, 0.5]
-                    }}
-                    transition={{
-                      duration: 3 + (i * 0.3),
-                      repeat: Infinity,
-                      delay: i * 0.5,
-                      ease: "easeInOut"
-                    }}
-                    className="absolute w-2 h-2 rounded-full"
-                    style={{
-                      left: `${20 + (i * 10)}%`,
-                      top: `${30 + (i % 3) * 20}%`,
-                      background: `hsl(${i * 60}, 70%, 60%)`,
-                      boxShadow: `0 0 8px hsl(${i * 60}, 70%, 60%)`
-                    }}
-                  />
-                ))}
-                
-                <div className="relative bg-gradient-to-r from-purple-100 via-pink-100 to-indigo-100 rounded-xl p-6 border-2 border-purple-300 shadow-2xl">
-                  <motion.div
-                    animate={{
-                      scale: [1, 1.05, 1],
-                      rotate: [0, 1, -1, 0]
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                    className="text-center"
-                  >
-                    <div className="flex items-center justify-center gap-3 mb-3">
-                      <motion.div
-                        animate={{
-                          rotate: [0, 360]
-                        }}
-                        transition={{
-                          duration: 8,
-                          repeat: Infinity,
-                          ease: "linear"
-                        }}
-                        className="text-3xl"
-                      >
-                        ✨
-                      </motion.div>
-                      <h4 className="text-purple-800 font-bold text-xl">
-                        🧞‍♂️ Your genie is fully trained and ready for magic!
-                      </h4>
-                      <motion.div
-                        animate={{
-                          rotate: [0, -360]
-                        }}
-                        transition={{
-                          duration: 8,
-                          repeat: Infinity,
-                          ease: "linear"
-                        }}
-                        className="text-3xl"
-                      >
-                        ✨
-                      </motion.div>
-                    </div>
-                    <p className="text-purple-700 font-semibold text-sm">
-                      Your genie has mastered the art of gift-giving and is ready to create perfect recommendations!
-                    </p>
-                  </motion.div>
-                </div>
-              </motion.div>
-            )}
           </div>
         </motion.div>
 
@@ -1724,33 +1664,35 @@ export function ResultsPage() {
           </motion.div>}
 
         {/* Rating Section */}
-        <motion.div 
-          initial={{
-            opacity: 0,
-            y: 20
-          }} 
-          animate={{
-            opacity: 1,
-            y: 0,
-            scale: getFeedbackCount() === products.length && recommendationRating === 0 ? 1.05 : 1
-          }} 
-          transition={{
-            delay: 0.6,
-            type: "spring",
-            stiffness: 200
-          }} 
-          className={`rounded-xl shadow-lg p-6 max-w-2xl mx-auto mb-6 transition-all duration-500 ${
-            getFeedbackCount() === products.length && recommendationRating === 0
-              ? 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-4 border-amber-300 shadow-2xl ring-4 ring-amber-200/50'
-              : 'bg-white shadow-lg'
-          }`}
-        >
+        <div ref={ratingSectionRef}>
+          <motion.div 
+            initial={{
+              opacity: 0,
+              y: 20
+            }} 
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: getFeedbackCount() === products.length && recommendationRating === 0 ? 1.05 : 1
+            }} 
+            transition={{
+              delay: 0.6,
+              type: "spring",
+              stiffness: 200
+            }} 
+            className={`rounded-xl shadow-lg p-6 max-w-2xl mx-auto mb-6 transition-all duration-500 ${
+              getFeedbackCount() === products.length && recommendationRating === 0
+                ? 'bg-gradient-to-br from-yellow-50 via-amber-50 to-orange-50 border-4 border-amber-300 shadow-2xl ring-4 ring-amber-200/50'
+                : 'bg-white shadow-lg'
+            }`}
+          >
           <div className="text-center">
-            {getFeedbackCount() === products.length && recommendationRating === 0 && (
+            {getFeedbackCount() === products.length && recommendationRating === 0 && ratingSectionInView && (
               <motion.div
+                key={`one-more-step-${restartRatingAnimation ? Date.now() : 'initial'}`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.8, type: "spring", stiffness: 300 }}
+                transition={{ delay: 0.3, type: "spring", stiffness: 300 }}
                 className="mb-4"
               >
                 <div className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-full inline-flex items-center gap-2 shadow-lg">
@@ -1770,13 +1712,14 @@ export function ResultsPage() {
             {showRatingInput ? (
               <div className="flex items-center justify-center gap-4 mb-4">
                 <motion.div
-                  animate={getFeedbackCount() === products.length && recommendationRating === 0 ? {
+                  key={`star-animation-${restartRatingAnimation ? Date.now() : 'initial'}`}
+                  animate={getFeedbackCount() === products.length && recommendationRating === 0 && ratingSectionInView ? {
                     scale: [1, 1.1, 1],
                     rotate: [0, 2, -2, 0]
                   } : {}}
                   transition={{
                     duration: 2,
-                    repeat: getFeedbackCount() === products.length && recommendationRating === 0 ? Infinity : 0,
+                    repeat: getFeedbackCount() === products.length && recommendationRating === 0 && ratingSectionInView ? Infinity : 0,
                     ease: "easeInOut"
                   }}
                 >
@@ -1840,6 +1783,7 @@ export function ResultsPage() {
             </p>
           </div>
         </motion.div>
+        </div>
 
         {/* Share Your Recommendations Section - Bottom */}
         <AnimatePresence>
