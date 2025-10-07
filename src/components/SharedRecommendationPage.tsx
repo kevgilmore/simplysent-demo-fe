@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, AlertTriangleIcon, SparklesIcon, ChevronDownIcon, ChevronUpIcon, ThumbsUpIcon, ThumbsDownIcon, StarIcon } from 'lucide-react';
 import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
+import { getOrCreateAnonId, getOrCreateSessionId } from '../utils/tracking';
 
 interface Product {
   sku: string;
@@ -44,6 +45,38 @@ export function SharedRecommendationPage() {
       setComment('');
       setShowCommentInput(false);
       setShowThankYou(true);
+    }
+  };
+
+  // Track visit to shared recommendation page
+  const trackSharedVisit = async () => {
+    try {
+      const anonId = getOrCreateAnonId();
+      const sessionId = getOrCreateSessionId();
+      
+      const payload = {
+        event: 'visit_shared_rec',
+        anon_id: anonId,
+        session_id: sessionId,
+        rec_id: recId
+      };
+
+      const response = await fetch(`${getApiBaseUrl()}/track`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        console.warn(`Tracking event visit_shared_rec failed with status ${response.status}`);
+      }
+    } catch (error) {
+      // Silent failure - don't log to avoid spam
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Tracking event visit_shared_rec failed:', error);
+      }
     }
   };
 
@@ -203,6 +236,8 @@ export function SharedRecommendationPage() {
     
     if (recId && recId.startsWith('rec_')) {
       loadRecommendation();
+      // Track the visit to shared recommendation page
+      trackSharedVisit();
     } else {
       setError(true);
       setLoading(false);
