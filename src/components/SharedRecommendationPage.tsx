@@ -2,8 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, AlertTriangleIcon, SparklesIcon, ChevronDownIcon, ChevronUpIcon, ThumbsUpIcon, ThumbsDownIcon, StarIcon } from 'lucide-react';
-import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
+import { getApiBaseUrl, apiFetch, getApiMode } from '../utils/apiConfig';
 import { getOrCreateAnonId, getOrCreateSessionId } from '../utils/tracking';
+
+// Helper function to generate product title when missing
+const getProductTitle = (product: any): string => {
+  if (product.productTitle && product.productTitle.trim() !== '') {
+    return product.productTitle;
+  }
+  if (product.name && product.name.trim() !== '') {
+    return product.name;
+  }
+  if (product.sku) {
+    return `Product ${product.sku}`;
+  }
+  return 'Product Title Not Available';
+};
 
 interface Product {
   sku: string;
@@ -134,66 +148,68 @@ export function SharedRecommendationPage() {
 
   useEffect(() => {
     const loadRecommendation = () => {
-      try {
-        // Try to load from localStorage first
-        const storedData = localStorage.getItem(`recommendation_${recId}`);
-        if (storedData) {
-          const data = JSON.parse(storedData);
-          console.log('Loaded recommendation from localStorage:', data);
-          
-          // Store context info if available
-          if (data.formData) {
-            setContextInfo(data.formData);
-          }
-          
-          // Normalize and set products similar to ResultsPage
-          if (data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
-            const normalizedProducts = data.recommendations.map((product: any) => {
-              return {
-                sku: product.sku || product.ASIN || '',
-                productTitle: product.productTitle || product.name || '',
-                imageUrl: product.imageUrl || product.image_url || '',
-                price: product.price || '0.00',
-                description: product.description || '',
-                rank: product.rank || '999',
-                // Keep original fields too
-                ASIN: product.ASIN,
-                name: product.name,
-                image_url: product.image_url
-              };
-            });
-            
-            // Sort products by rank (as number)
-            const sortedProducts = [...normalizedProducts].sort((a, b) => {
-              const rankA = parseInt(a.rank) || 999;
-              const rankB = parseInt(b.rank) || 999;
-              return rankA - rankB;
-            });
-            
-            setProducts(sortedProducts);
-            setLoading(false);
-            return;
-          }
-        }
-        
-        // If not found in localStorage, try API (for future when backend supports it)
-        const fetchFromAPI = async () => {
+      console.log('Loading recommendation for ID:', recId);
+      console.log('recId type:', typeof recId);
+      console.log('recId length:', recId?.length);
+      
+      const fetchFromAPI = async () => {
           try {
-            const apiUrl = `${getApiBaseUrl()}/recommend/${recId}`;
-            const response = await apiFetch(apiUrl, { method: 'GET' });
+            // Force production API for shared recommendations
+            const prodApiUrl = 'https://catboost-recommender-api-973409790816.europe-west1.run.app/v2';
+            const apiUrl = `${prodApiUrl}/recommend/${recId}`;
+            console.log('Current API Mode:', getApiMode());
+            console.log('API Base URL:', getApiBaseUrl());
+            console.log('Using production API for shared recommendation:', apiUrl);
+            console.log('Fetching recommendation from API:', apiUrl);
+            // Use direct fetch instead of apiFetch to avoid potential header issues
+            const response = await fetch(apiUrl, { 
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
             
             if (!response.ok) {
+              console.error('API response not OK:', response.status, response.statusText);
+              // Try to get response text for more details
+              try {
+                const errorText = await response.text();
+                console.error('Error response body:', errorText);
+              } catch (e) {
+                console.error('Could not read error response body');
+              }
               setError(true);
+              setLoading(false);
               return;
             }
             const data = await response.json();
+            console.log('API response data:', data);
             
-            // Store in localStorage for future use
-            localStorage.setItem(`recommendation_${recId}`, JSON.stringify(data));
+            // Store context info if available (API returns 'context' not 'formData')
+            if (data.context) {
+              // Transform the context data to match the expected format
+              const transformedContext = {
+                personAge: data.context.age?.toString() || '',
+                gender: data.context.gender || '',
+                relationship: data.context.relationship ? data.context.relationship.charAt(0).toUpperCase() + data.context.relationship.slice(1) : '',
+                occasion: data.context.occasion ? data.context.occasion.charAt(0).toUpperCase() + data.context.occasion.slice(1) : '',
+                sentiment: data.context.sentiment ? data.context.sentiment.charAt(0).toUpperCase() + data.context.sentiment.slice(1) : '',
+                interests: data.context.interests || [],
+                favoritedrink: data.context.favourite_drink ? data.context.favourite_drink.charAt(0).toUpperCase() + data.context.favourite_drink.slice(1) : '',
+                clothesSize: data.context.size || '',
+                minBudget: data.context.budget_min || 10,
+                maxBudget: data.context.budget_max || 110
+              };
+              setContextInfo(transformedContext);
+            }
             
             // Normalize and set products
-            if (data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
-              const normalizedProducts = data.recommendations.map((product: any) => {
+            console.log('Raw products from API:', data.products);
+            console.log('Products is array:', Array.isArray(data.products));
+            console.log('Products length:', data.products?.length);
+            if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+              const normalizedProducts = data.products.map((product: any) => {
                 return {
                   sku: product.sku || product.ASIN || '',
                   productTitle: product.productTitle || product.name || '',
@@ -214,34 +230,31 @@ export function SharedRecommendationPage() {
               });
               
               setProducts(sortedProducts);
+              console.log('Products set successfully:', sortedProducts.length, 'products');
             } else {
+              console.error('No recommendations found in API response');
               setError(true);
             }
+            setLoading(false);
           } catch (err) {
             console.error('Failed to fetch recommendation from API:', err);
             setError(true);
-          } finally {
             setLoading(false);
           }
         };
         
+        console.log('About to call fetchFromAPI...');
         fetchFromAPI();
-        
-      } catch (err) {
-        console.error('Failed to load recommendation:', err);
+      };
+      
+      if (recId && recId.startsWith('rec_')) {
+        loadRecommendation();
+        // Track the visit to shared recommendation page
+        trackSharedVisit();
+      } else {
         setError(true);
         setLoading(false);
       }
-    };
-    
-    if (recId && recId.startsWith('rec_')) {
-      loadRecommendation();
-      // Track the visit to shared recommendation page
-      trackSharedVisit();
-    } else {
-      setError(true);
-      setLoading(false);
-    }
   }, [recId]);
 
   // Loading state
@@ -516,7 +529,7 @@ export function SharedRecommendationPage() {
                 {products[0].imageUrl ? (
                   <img
                     src={products[0].imageUrl}
-                    alt={products[0].productTitle}
+                    alt={getProductTitle(products[0])}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -538,7 +551,7 @@ export function SharedRecommendationPage() {
               {/* Product Info */}
               <div className="p-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                  {products[0].productTitle}
+                  {getProductTitle(products[0])}
                 </h3>
                 
                 <p className="text-gray-600 mb-6 text-lg leading-relaxed">
@@ -626,7 +639,7 @@ export function SharedRecommendationPage() {
                     {product.imageUrl ? (
                       <img
                         src={product.imageUrl}
-                        alt={product.productTitle}
+                        alt={getProductTitle(product)}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -648,7 +661,7 @@ export function SharedRecommendationPage() {
                   {/* Product Info */}
                   <div className="p-4 flex flex-col flex-grow">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 flex-grow">
-                      {product.productTitle}
+                      {getProductTitle(product)}
                     </h3>
                     
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-grow">

@@ -7,6 +7,7 @@ import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
 import { StarRating } from './StarRating';
 import { getOrCreateAnonId } from '../utils/tracking';
+import { updateGenieTrainingState } from '../utils/recommendationHistory';
 
 // Typeform global declaration
 declare global {
@@ -346,6 +347,7 @@ export function ResultsPage() {
   const formData = location.state?.formData || null;
   const recommendations = location.state?.recommendations || [];
   const recommendationId = location.state?.recommendationId || null;
+  const savedGenieTrainingState = location.state?.genieTrainingState || null;
   
   // Debug logging (only log once)
   useEffect(() => {
@@ -454,6 +456,25 @@ export function ResultsPage() {
     }
   }, [recommendations]);
 
+  // Restore genie training state when component loads
+  useEffect(() => {
+    if (savedGenieTrainingState && recommendationId) {
+      console.log('🔄 Restoring genie training state:', savedGenieTrainingState);
+      
+      // Restore product feedback
+      if (savedGenieTrainingState.productFeedback) {
+        setProductFeedback(savedGenieTrainingState.productFeedback);
+      }
+      
+      // Restore recommendation rating
+      if (savedGenieTrainingState.recommendationRating > 0) {
+        setRecommendationRating(savedGenieTrainingState.recommendationRating);
+        setShowRatingInput(false); // Hide input since rating is already set
+        setShowRatingThankYou(false); // Don't show thank you message on load
+      }
+    }
+  }, [savedGenieTrainingState, recommendationId]);
+
   // Auto-fill feedback in sandbox mode with localStorage key
   useEffect(() => {
     if (isAnySandboxMode() && products.length > 0) {
@@ -549,6 +570,29 @@ export function ResultsPage() {
     3: null,
     4: null
   });
+
+  // Store full recommendation data in localStorage when products are loaded
+  useEffect(() => {
+    if (products.length > 0 && recommendationId && formData) {
+      try {
+        const fullRecommendationData = {
+          formData,
+          recommendations: products,
+          recommendationId,
+          timestamp: Date.now(),
+          genieTrainingState: {
+            productFeedback,
+            recommendationRating
+          }
+        };
+        
+        localStorage.setItem(`recommendation_${recommendationId}`, JSON.stringify(fullRecommendationData));
+        console.log('💾 Stored full recommendation data in localStorage:', recommendationId);
+      } catch (error) {
+        console.error('Error storing full recommendation data:', error);
+      }
+    }
+  }, [products, recommendationId, formData, productFeedback, recommendationRating]);
   // Handle feedback submission
   const handleFeedback = async (sku: string, isGood: boolean) => {
     if (!recommendationId) return;
@@ -571,6 +615,12 @@ export function ResultsPage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       console.log('Feedback sent successfully');
+      
+      // Update genie training state in recommendation history
+      updateGenieTrainingState(recommendationId, {
+        productFeedback,
+        recommendationRating
+      });
     } catch (error) {
       console.error('Error sending feedback:', error);
     }
@@ -729,6 +779,12 @@ export function ResultsPage() {
       } catch (error) {
         console.error('Error submitting rating:', error);
       }
+      
+      // Update genie training state in recommendation history
+      updateGenieTrainingState(recommendationId, {
+        productFeedback,
+        recommendationRating: rating
+      });
     }
     
     // Hide thank you message after 3 seconds
@@ -740,6 +796,14 @@ export function ResultsPage() {
   // Handle change rating button
   const handleChangeRating = () => {
     setShowRatingInput(true);
+    
+    // Update genie training state when rating is changed
+    if (recommendationId) {
+      updateGenieTrainingState(recommendationId, {
+        productFeedback,
+        recommendationRating
+      });
+    }
   };
 
   // Handle modal feedback submission - now just starts the timer

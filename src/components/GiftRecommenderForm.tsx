@@ -7,6 +7,7 @@ import { buildApiUrl, apiFetch, isAnySandboxMode, getApiHeaders, getCurrentMode 
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
 import { getOrCreateAnonId, hasExistingAnonId } from '../utils/tracking';
+import { saveRecommendation, getRecommendationHistory, formatRecommendationDate, hasFullRecommendationData, getFullRecommendationData } from '../utils/recommendationHistory';
 interface FormData {
   personAge: string;
   interests: string[];
@@ -121,6 +122,8 @@ export function GiftRecommenderForm() {
   const [budgetRange, setBudgetRange] = useState([10, 110]);
   const [showJsonModal, setShowJsonModal] = useState(false);
   const [jsonInput, setJsonInput] = useState('');
+  const [recommendationHistory, setRecommendationHistory] = useState<any[]>([]);
+  const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
   
   // Set clientOrigin from URL params on component mount
   useEffect(() => {
@@ -151,6 +154,31 @@ export function GiftRecommenderForm() {
       ...prev,
       interests: prev.interests.includes(interest) ? prev.interests.filter(i => i !== interest) : [...prev.interests, interest]
     }));
+  };
+
+  // Handle clicking on a saved recommendation
+  const handleRecommendationClick = (savedRec: any) => {
+    // Check if we have full recommendation data
+    if (hasFullRecommendationData(savedRec.id)) {
+      // Navigate directly to results page
+      const fullData = getFullRecommendationData(savedRec.id);
+      navigate('/products', {
+        state: {
+          formData: fullData.formData,
+          recommendations: fullData.recommendations,
+          recommendationId: savedRec.id,
+          // Include genie training state if available
+          genieTrainingState: savedRec.genieTrainingState || fullData.genieTrainingState
+        }
+      });
+    } else {
+      // Fill the form with saved data
+      setFormData(savedRec.formData);
+      setBudgetRange([savedRec.formData.minBudget, savedRec.formData.maxBudget]);
+      
+      // Scroll to top to show the filled form
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   // Smart gender logic based on relationship
@@ -227,6 +255,16 @@ export function GiftRecommenderForm() {
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, []);
+
+  // Load recommendation history on component mount
+  useEffect(() => {
+    const history = getRecommendationHistory();
+    setRecommendationHistory(history);
+    
+    // Load collapsed state from localStorage
+    const savedExpandedState = localStorage.getItem('rec_history_expanded');
+    setIsHistoryExpanded(savedExpandedState === 'true');
   }, []);
 
   // Parse JSON and fill form
@@ -338,6 +376,9 @@ export function GiftRecommenderForm() {
       }
       const data: ApiResponse = await response.json();
       if (data.products && data.products.length > 0) {
+        // Save to recommendation history
+        saveRecommendation(data.recommendation_id, newFormData, data.products);
+        
         navigate('/products', {
           state: {
             formData: newFormData,
@@ -557,6 +598,9 @@ export function GiftRecommenderForm() {
       // intentionally minimal logging; apiConfig logs request and outcome in sandbox modes
       // Ensure the products array exists and has items before navigating
       if (data.products && data.products.length > 0) {
+        // Save to recommendation history
+        saveRecommendation(data.recommendation_id, formData, data.products);
+        
         navigate('/products', {
           state: {
             formData,
@@ -645,6 +689,80 @@ export function GiftRecommenderForm() {
           )}
         </div>
       </div>
+
+      {/* Recommendation History Section */}
+      {recommendationHistory.length > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4 shadow-sm border border-gray-200"
+        >
+          <button
+            onClick={() => {
+              const newExpanded = !isHistoryExpanded;
+              setIsHistoryExpanded(newExpanded);
+              localStorage.setItem('rec_history_expanded', newExpanded.toString());
+            }}
+            className="flex items-center justify-between w-full text-left"
+          >
+            <div className="flex items-center space-x-2">
+              <GiftIcon className="w-4 h-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">
+                Previous Recommendations ({recommendationHistory.length})
+              </span>
+            </div>
+            <svg 
+              className={`w-4 h-4 text-gray-500 transition-transform ${isHistoryExpanded ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          {isHistoryExpanded && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mt-3 space-y-2"
+            >
+              {recommendationHistory.map((rec) => (
+                <button
+                  key={rec.id}
+                  onClick={() => handleRecommendationClick(rec)}
+                  className="w-full flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 group"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                    <div className="text-left">
+                      <div className="text-sm font-medium text-gray-800 group-hover:text-purple-700">
+                        {rec.relationship} - {rec.occasion}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {formatRecommendationDate(rec.timestamp)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {hasFullRecommendationData(rec.id) && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                        View Results
+                      </span>
+                    )}
+                    <svg className="w-4 h-4 text-gray-400 group-hover:text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
+      )}
 
       {/* First Card - Keep purple gradient */}
       <div className="bg-gradient-to-r from-purple-100 to-violet-100 rounded-2xl shadow-xl p-8 relative overflow-hidden">
