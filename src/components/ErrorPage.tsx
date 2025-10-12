@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon, AlertTriangleIcon } from 'lucide-react';
-import { getApiBaseUrl } from '../utils/apiConfig';
+import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
+import { getOrCreateAnonId } from '../utils/tracking';
 interface ErrorPageProps {
   formData?: {
     interests: string[];
@@ -37,7 +38,6 @@ export function ErrorPage() {
           url: window.location.href,
           timestamp: new Date().toISOString(),
           userAgent: navigator.userAgent,
-          client_request_id: state?.clientRequestId || 'unknown',
           recommendation: state?.formData ? {
             age: parseInt(state.formData.personAge),
             gender: state.formData.gender,
@@ -49,15 +49,20 @@ export function ErrorPage() {
             size: state.formData.clothesSize,
             budget_min: state.formData.minBudget,
             budget_max: state.formData.maxBudget,
-            client_request_id: state?.clientRequestId,
             client_origin: state.formData.clientOrigin,
             llm_enabled: state.formData.llmEnabled
           } : undefined
         };
-        await fetch(`${getApiBaseUrl()}/error`, {
+        await apiFetch(`${getApiBaseUrl()}/error`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'x-anon-id': getOrCreateAnonId(),
+            'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              const r = Math.random() * 16 | 0;
+              const v = c === 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            })
           },
           body: JSON.stringify(errorPayload)
         });

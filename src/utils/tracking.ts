@@ -1,5 +1,5 @@
 // User session tracking utility
-import { getApiBaseUrl, isAnySandboxMode } from './apiConfig';
+import { getApiBaseUrl, isAnySandboxMode, apiFetch } from './apiConfig';
 
 // Base62 character set for ID generation
 const BASE62_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -65,41 +65,72 @@ export function getOrCreateSessionId(): string {
 }
 
 // Track event types
-export type TrackingEvent = 'visit_start' | 'visit_ping';
+export type TrackingEvent = 'visit_start' | 'visit_ping' | 'visit_shared_link';
+
+// Global function to mark visit_start as sent (will be set by useTracking hook)
+let markVisitStartSent: (() => void) | null = null;
+
+export function setMarkVisitStartSentCallback(callback: () => void) {
+  markVisitStartSent = callback;
+}
 
 // Track an event (fire-and-forget)
-export async function trackEvent(event: TrackingEvent, clientOrigin?: string): Promise<void> {
-  // Skip tracking in sandbox modes
-  if (isAnySandboxMode()) {
-    return;
-  }
-
+export async function trackEvent(event: TrackingEvent, clientOrigin?: string, recId?: string): Promise<void> {
+  console.log('📡 trackEvent called:', { event, clientOrigin, recId });
   try {
     const anonId = getOrCreateAnonId();
     const sessionId = getOrCreateSessionId();
+    console.log('📡 Using IDs:', { anonId, sessionId });
     
     const payload: any = {
       event,
-      anon_id: anonId,
       session_id: sessionId
     };
 
-    // Add client_origin if provided
-    if (clientOrigin) {
-      payload.client_origin = clientOrigin;
+    // Add rec_id for visit_shared_link and visit_start events
+    if ((event === 'visit_shared_link' || event === 'visit_start') && recId) {
+      payload.rec_id = recId;
     }
 
-    const response = await fetch(`${getApiBaseUrl()}/track`, {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-anon-id': anonId,
+      'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      })
+    };
+
+    // Add client_origin as header if provided
+    if (clientOrigin) {
+      headers['client_origin'] = clientOrigin;
+    }
+
+    // Add sandbox header for sandbox modes
+    if (isAnySandboxMode()) {
+      headers['X-Sandbox-Mode'] = 'true';
+    }
+
+    console.log('📡 Sending to:', `${getApiBaseUrl()}/track`);
+    console.log('📡 Payload:', payload);
+    console.log('📡 Headers:', headers);
+    
+    const response = await apiFetch(`${getApiBaseUrl()}/track`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers,
       body: JSON.stringify(payload)
     });
+    
+    console.log('📡 Response status:', response.status);
 
     // Don't throw on non-200 responses - fire-and-forget
     if (!response.ok) {
       console.warn(`Tracking event ${event} failed with status ${response.status}`);
+      // Note: Toast notifications are handled at component level for better specificity
+    } else if (event === 'visit_start' && markVisitStartSent) {
+      // Mark that visit_start has been sent successfully
+      markVisitStartSent();
     }
   } catch (error) {
     // Silent failure - don't log to avoid spam
@@ -107,5 +138,7 @@ export async function trackEvent(event: TrackingEvent, clientOrigin?: string): P
     if (process.env.NODE_ENV === 'development') {
       console.warn(`Tracking event ${event} failed:`, error);
     }
+    
+    // Note: Toast notifications are handled at component level for better specificity
   }
 }

@@ -2,11 +2,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, XIcon, StarIcon, CheckCircle2Icon, SparklesIcon, Share2Icon, CopyIcon, CheckIcon } from 'lucide-react';
-import { getApiBaseUrl, apiFetch, isAnySandboxMode } from '../utils/apiConfig';
+import { getApiBaseUrl, apiFetch, isAnySandboxMode, getApiMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
 import { StarRating } from './StarRating';
-import { getOrCreateAnonId } from '../utils/tracking';
+import { getOrCreateAnonId, getOrCreateSessionId } from '../utils/tracking';
+import { useToastContext } from '../contexts/ToastContext';
+import { showApiError } from '../services/toastService';
 import { updateGenieTrainingState } from '../utils/recommendationHistory';
 
 // Typeform global declaration
@@ -46,9 +48,11 @@ interface FormData {
 export function ResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showError, showSuccess } = useToastContext();
   
   // Initialize tracking with periodic pings
   useTracking();
+
 
   // State declarations
   const [showVoucherIncentive, setShowVoucherIncentive] = useState(false);
@@ -598,21 +602,28 @@ export function ResultsPage() {
     if (!recommendationId) return;
     try {
       console.log('Sending feedback for item:', sku, isGood ? 'good' : 'bad');
-      const response = await apiFetch(`${getApiBaseUrl()}/feedback/label`, {
+      const anonId = getOrCreateAnonId();
+      const sessionId = getOrCreateSessionId();
+      
+      const response = await apiFetch(`${getApiBaseUrl()}/interactions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: buildInteractionHeaders(),
         body: JSON.stringify({
-          recommendation_id: recommendationId,
-          item_feedback: {
-            sku: sku,
-            feedback_label: isGood ? 1 : 0
-          }
+          event: 'label',
+          session_id: sessionId,
+          rec_id: recommendationId,
+          sku: sku,
+          label: isGood ? 1 : 0
         })
-      }, 'POST /feedback/label');
+      });
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.warn(`Feedback interaction failed with status ${response.status}`);
+        // Show toast for interaction errors in sandbox modes
+        if (isAnySandboxMode()) {
+          showApiError('/interactions', `HTTP ${response.status}`, response.status);
+        }
+        return; // Don't throw, just return to avoid duplicate toast in catch block
       }
       console.log('Feedback sent successfully');
       
@@ -623,29 +634,59 @@ export function ResultsPage() {
       });
     } catch (error) {
       console.error('Error sending feedback:', error);
+      // Show toast for network errors in sandbox modes (only for actual network errors, not HTTP errors)
+      if (isAnySandboxMode()) {
+        showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
+      }
     }
   };
+  // Helper function to build interaction headers
+  const buildInteractionHeaders = () => {
+    const anonId = getOrCreateAnonId();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-anon-id': anonId,
+      'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      })
+    };
+
+    // Add client_origin header if available
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientOrigin = urlParams.get('client_origin');
+    if (clientOrigin) {
+      headers['client_origin'] = clientOrigin;
+    }
+
+    return headers;
+  };
+
   // Handle link click tracking
   const handleLinkClick = async (sku: string) => {
     if (!recommendationId) return;
     try {
-      console.log('Sending click feedback for item:', sku);
-      await apiFetch(`${getApiBaseUrl()}/feedback/click`, {
+      console.log('Sending click interaction for item:', sku);
+      const sessionId = getOrCreateSessionId();
+      
+      await apiFetch(`${getApiBaseUrl()}/interactions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: buildInteractionHeaders(),
         body: JSON.stringify({
-          recommendation_id: recommendationId,
-          item_feedback: {
-            sku: sku,
-            clicked: true
-          }
+          event: 'click',
+          session_id: sessionId,
+          rec_id: recommendationId,
+          sku: sku
         })
-      }, 'POST /feedback/click');
-      console.log('Click feedback sent successfully');
+      });
+      console.log('Click interaction sent successfully');
     } catch (error) {
-      console.error('Error sending link click feedback:', error);
+      console.error('Error sending click interaction:', error);
+      // Show toast for interaction errors in sandbox modes
+      if (isAnySandboxMode()) {
+        showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
+      }
     }
   };
   // Function to get modal height based on current stage
@@ -681,7 +722,8 @@ export function ResultsPage() {
   };
 
   const handleCopyLink = async () => {
-    const url = `https://simplysent.co/${recommendationId}`;
+    const baseUrl = isAnySandboxMode() ? 'http://localhost:3000' : 'https://simplysent.co';
+    const url = `${baseUrl}/${recommendationId}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopySuccess(true);
@@ -692,10 +734,11 @@ export function ResultsPage() {
   };
 
   const handleNativeShare = async () => {
+    const baseUrl = isAnySandboxMode() ? 'http://localhost:3000' : 'https://simplysent.co';
     const shareData = {
       title: 'My Gift Recommendations',
       text: 'Check out my personalized gift recommendations!',
-      url: `https://simplysent.co/${recommendationId}`
+      url: `${baseUrl}/${recommendationId}`
     };
 
     try {
@@ -757,17 +800,20 @@ export function ResultsPage() {
     setShowRatingThankYou(true);
     setShowRatingInput(false); // Hide the star input after selection
     
-    // Submit rating to /v2/feedback endpoint
+    // Submit rating to /interactions endpoint
     if (recommendationId) {
       try {
-        const response = await apiFetch(`${getApiBaseUrl()}/feedback/rating`, {
+        const anonId = getOrCreateAnonId();
+        const sessionId = getOrCreateSessionId();
+        
+        const response = await apiFetch(`${getApiBaseUrl()}/interactions`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: buildInteractionHeaders(),
           body: JSON.stringify({
-            recommendation_id: recommendationId,
-            rating: rating
+            event: 'rate',
+            session_id: sessionId,
+            rec_id: recommendationId,
+            rating: rating.toString()
           })
         });
         
@@ -775,9 +821,17 @@ export function ResultsPage() {
           console.log('Rating submitted successfully');
         } else {
           console.error('Failed to submit rating');
+          // Show toast for interaction errors in sandbox modes
+          if (isAnySandboxMode()) {
+            showApiError('/interactions', `HTTP ${response.status}`, response.status);
+          }
         }
       } catch (error) {
         console.error('Error submitting rating:', error);
+        // Show toast for network errors in sandbox modes
+        if (isAnySandboxMode()) {
+          showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
+        }
       }
       
       // Update genie training state in recommendation history
@@ -862,21 +916,29 @@ export function ResultsPage() {
       // Submit comment only if there's feedback text
       if (modalFeedback.trim()) {
         console.log('Submitting comment feedback...');
-        const commentResponse = await apiFetch(`${getApiBaseUrl()}/feedback/comment?usellm=false&return_new_recommendation=false`, {
+        const anonId = getOrCreateAnonId();
+        const sessionId = getOrCreateSessionId();
+        
+        const commentResponse = await apiFetch(`${getApiBaseUrl()}/interactions`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: buildInteractionHeaders(),
           body: JSON.stringify({
-            recommendation_id: recommendationId,
-            feedback_comment: modalFeedback.trim()
+            event: 'comment',
+            session_id: sessionId,
+            rec_id: recommendationId,
+            comment: modalFeedback.trim()
           })
-        }, 'POST /feedback/comment');
+        });
         
         if (!commentResponse.ok) {
           const errorText = await commentResponse.text();
           console.error('Comment API Error Response:', commentResponse.status, errorText);
-          throw new Error(`Comment submission failed: ${commentResponse.status} - ${errorText || 'Unknown error'}`);
+          // Show toast for interaction errors in sandbox modes
+          if (isAnySandboxMode()) {
+            showApiError('/interactions', `HTTP ${commentResponse.status}`, commentResponse.status);
+          }
+          // Don't throw error to avoid duplicate toast in catch block
+          return;
         }
         
         const commentText = await commentResponse.text();
@@ -887,17 +949,16 @@ export function ResultsPage() {
       
       // Submit email separately
       console.log('Submitting email notification...');
-      const emailResponse = await apiFetch(`${getApiBaseUrl()}/feedback/email`, {
+      const emailResponse = await apiFetch(`${getApiBaseUrl()}/interactions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: buildInteractionHeaders(),
         body: JSON.stringify({
-          recommendation_id: recommendationId,
-          email: emailAddress.trim(),
-          anon_id: getOrCreateAnonId()
+          event: 'email',
+          session_id: getOrCreateSessionId(),
+          rec_id: recommendationId,
+          email: emailAddress.trim()
         })
-      }, 'POST /feedback/email');
+      });
       
       if (!emailResponse.ok) {
         const errorText = await emailResponse.text();
@@ -916,6 +977,11 @@ export function ResultsPage() {
       
     } catch (error) {
       console.error('Error sending feedback:', error);
+      
+      // Show toast for network errors in sandbox modes
+      if (isAnySandboxMode()) {
+        showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
+      }
       
       // Provide more specific error messages
       if (error instanceof Error) {
@@ -949,6 +1015,7 @@ export function ResultsPage() {
   }
   return (
     <>
+      
       <motion.div initial={{
       opacity: 0,
       y: 20
@@ -1035,7 +1102,7 @@ export function ResultsPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
-                        value={`https://simplysent.co/${recommendationId}`}
+                        value={`${isAnySandboxMode() ? 'http://localhost:3000' : 'https://simplysent.co'}/${recommendationId}`}
                         readOnly
                         className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />
@@ -1883,7 +1950,7 @@ export function ResultsPage() {
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
-                        value={`https://simplysent.co/${recommendationId}`}
+                        value={`${isAnySandboxMode() ? 'http://localhost:3000' : 'https://simplysent.co'}/${recommendationId}`}
                         readOnly
                         className="flex-1 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                       />

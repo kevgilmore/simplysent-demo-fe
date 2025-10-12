@@ -1,7 +1,10 @@
 // API configuration with URL param + localStorage-based mode switching (non-Shopify)
-const PROD_BASE = 'https://catboost-recommender-api-973409790816.europe-west1.run.app/v2';
-const DEV_BASE = 'http://localhost:8080/v2';
+const PROD_BASE = 'https://catboost-recommender-api-973409790816.europe-west1.run.app/v3';
+const DEV_BASE = 'http://localhost:8080/v3';
 const STORAGE_KEY = 'ss_api_mode'; // 'sandbox-local' | 'sandbox' | 'prod' (legacy: 'dev')
+
+// Import tracking utilities for anon ID
+import { getOrCreateAnonId } from './tracking';
 
 type ApiMode = 'sandbox-local' | 'sandbox' | 'prod' | 'training';
 
@@ -82,7 +85,7 @@ export const isAnySandboxMode = (): boolean => {
 // Helper function to build full API URLs (only for recommender/feedback API)
 export const buildApiUrl = (endpoint: string, queryParams?: URLSearchParams): string => {
   const baseUrl = getApiBaseUrl();
-  // Ensure exactly one slash between base and endpoint and preserve /v2 path
+  // Ensure exactly one slash between base and endpoint and preserve /v3 path
   const normalizedBase = baseUrl.replace(/\/$/, '');
   const normalizedEndpoint = endpoint.replace(/^\//, '');
   const url = new URL(`${normalizedBase}/${normalizedEndpoint}`);
@@ -119,6 +122,21 @@ export const getApiHeaders = (mode?: string): Record<string, string> => {
   return headers;
 };
 
+// Helper function to get anon ID for API requests (always use ss_anon_id from localStorage)
+export const getApiAnonId = (): string => {
+  return getOrCreateAnonId();
+};
+
+// Helper function to generate request ID using UUID4
+export const generateRequestId = (): string => {
+  // Generate a proper UUID4
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
+
 // Wrapper around fetch to log API calls in dev mode (excludes Shopify by usage)
 export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: string): Promise<Response> => {
   const urlString = typeof input === 'string' ? input : (input instanceof URL ? input.toString() : (input as Request).url);
@@ -129,21 +147,35 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
     const method = init?.method || 'GET';
     console.log(`➡️ API CALL${label ? ` (${label})` : ''}: ${method} ${urlString}`);
   }
-  // Inject sandbox header for non-Shopify API calls during sandbox modes
-  if (isOurApi && sandbox) {
+  
+  // Always inject required headers for our API calls
+  if (isOurApi) {
     const headers = new Headers(init?.headers || {});
-    headers.set('X-Sandbox-Mode', 'true');
+    headers.set('x-anon-id', getApiAnonId());
+    headers.set('x-request-id', generateRequestId());
+    
+    // Inject sandbox header for sandbox modes
+    if (sandbox) {
+      headers.set('X-Sandbox-Mode', 'true');
+    }
+    
     return fetch(input as any, { ...(init as any), headers } as any)
       .then(res => {
         if (shouldLog) {
           console.log(res.ok ? '✅ /recommend success' : `❌ /recommend failed ${res.status}`);
         }
+        
+        // Note: Toast notifications are handled at component level for better specificity
+        
         return res;
       })
       .catch(err => {
         if (shouldLog) {
           console.log(`❌ /recommend network error: ${err?.message || err}`);
         }
+        
+        // Note: Toast notifications are handled at component level for better specificity
+        
         throw err;
       });
   }

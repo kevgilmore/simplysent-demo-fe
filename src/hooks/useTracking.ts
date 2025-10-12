@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { trackEvent, getOrCreateAnonId, getOrCreateSessionId, hasExistingAnonId } from '../utils/tracking';
+import { trackEvent, getOrCreateAnonId, getOrCreateSessionId, hasExistingAnonId, setMarkVisitStartSentCallback } from '../utils/tracking';
 
 interface UseTrackingOptions {
   sendVisitStart?: boolean;
@@ -9,6 +9,7 @@ interface UseTrackingOptions {
 // Global tracking state to prevent multiple intervals
 let globalInterval: NodeJS.Timeout | null = null;
 let currentSessionId: string | null = null;
+let visitStartSent: boolean = false;
 
 export function useTracking(options: UseTrackingOptions = {}) {
   const { sendVisitStart = false, pingInterval = 30000 } = options;
@@ -18,24 +19,11 @@ export function useTracking(options: UseTrackingOptions = {}) {
     getOrCreateAnonId();
     const sessionId = getOrCreateSessionId();
 
-    // Send visit_start only if this is a new session (different session ID)
-    if (sendVisitStart && currentSessionId !== sessionId) {
-      // Determine client origin for tracking
-      let clientOrigin: string | undefined;
-      
-      // Check URL params first
-      const urlParams = new URLSearchParams(window.location.search);
-      const originFromUrl = urlParams.get('client_origin');
-      
-      if (originFromUrl) {
-        clientOrigin = originFromUrl;
-      } else if (hasExistingAnonId()) {
-        // User has visited before, set as returning visitor
-        clientOrigin = 'visit_returning';
-      }
-      
-      trackEvent('visit_start', clientOrigin);
+    // Don't send visit_start automatically - it should be sent after /recommend
+    // Just track the session ID for ping purposes
+    if (currentSessionId !== sessionId) {
       currentSessionId = sessionId;
+      visitStartSent = false; // Reset visit start flag for new session
     }
 
     // Clear any existing global interval
@@ -43,9 +31,11 @@ export function useTracking(options: UseTrackingOptions = {}) {
       clearInterval(globalInterval);
     }
 
-    // Set up new global ping interval
+    // Set up new global ping interval - only start pinging after visit_start is sent
     globalInterval = setInterval(() => {
-      trackEvent('visit_ping');
+      if (visitStartSent) {
+        trackEvent('visit_ping');
+      }
     }, pingInterval);
 
     // Cleanup: clear global interval when component unmounts
@@ -57,10 +47,21 @@ export function useTracking(options: UseTrackingOptions = {}) {
     };
   }, [sendVisitStart, pingInterval]);
 
+  // Function to mark that visit_start has been sent
+  const markVisitStartSent = () => {
+    visitStartSent = true;
+  };
+
+  // Register the callback with the tracking utility
+  useEffect(() => {
+    setMarkVisitStartSentCallback(markVisitStartSent);
+  }, []);
+
   // Return tracking functions for manual use if needed
   return {
     trackEvent,
     getAnonId: getOrCreateAnonId,
-    getSessionId: getOrCreateSessionId
+    getSessionId: getOrCreateSessionId,
+    markVisitStartSent
   };
 }

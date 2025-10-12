@@ -16,6 +16,9 @@ import { AnimatePresence } from 'framer-motion';
 import { ErrorPage } from './components/ErrorPage';
 import { Analytics } from './components/Analytics';
 import { MetaPixel } from './components/MetaPixel';
+import { ToastContainer, useToast } from './components/Toast';
+import { ToastProvider, useToastContext } from './contexts/ToastContext';
+import { setToastFunctions } from './services/toastService';
 const GA_MEASUREMENT_ID = 'G-JRT058C4VQ';
 const META_PIXEL_ID = '907664617393399';
 // Import Google Fonts in the head section
@@ -64,12 +67,18 @@ function addGoogleFonts() {
 }
 function AppShell() {
   const location = useLocation();
+  const { toasts, removeToast, showError } = useToastContext();
+  
   useEffect(() => {
     addGoogleFonts();
-  }, []);
+    // Register toast functions for use in non-React contexts
+    setToastFunctions({ showError });
+  }, [showError]);
+  
   return <>
       <Analytics measurementId={GA_MEASUREMENT_ID} />
       <MetaPixel pixelId={META_PIXEL_ID} />
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
       <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 pt-8 px-4 overflow-x-hidden">
         <style>{`
           .no-scrollbar {
@@ -124,5 +133,9 @@ const router = createBrowserRouter([
 ]);
 
 export function App() {
-  return <RouterProvider router={router} future={{ v7_startTransition: true }} />;
+  return (
+    <ToastProvider>
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
+    </ToastProvider>
+  );
 }

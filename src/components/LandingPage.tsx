@@ -13,7 +13,7 @@ export function LandingPage() {
   const popularGiftIdeasRef = useRef<HTMLElement>(null);
   
   // Initialize tracking with visit_start
-  useTracking({ sendVisitStart: true });
+  useTracking();
   
   // Newsletter signup state
   const [newsletterEmail, setNewsletterEmail] = useState('');

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeftIcon, TagIcon, ShoppingCartIcon, AlertTriangleIcon, SparklesIcon, ChevronDownIcon, ChevronUpIcon, ThumbsUpIcon, ThumbsDownIcon, StarIcon } from 'lucide-react';
-import { getApiBaseUrl, apiFetch, getApiMode } from '../utils/apiConfig';
+import { getApiBaseUrl, apiFetch, getApiMode, isAnySandboxMode } from '../utils/apiConfig';
 import { getOrCreateAnonId, getOrCreateSessionId } from '../utils/tracking';
+import { useToastContext } from '../contexts/ToastContext';
+import { showApiError } from '../services/toastService';
 
 // Helper function to generate product title when missing
 const getProductTitle = (product: any): string => {
@@ -35,6 +37,7 @@ interface Product {
 export function SharedRecommendationPage() {
   const { recId } = useParams<{ recId: string }>();
   const navigate = useNavigate();
+  const { showError } = useToastContext();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -50,15 +53,76 @@ export function SharedRecommendationPage() {
       ...prev,
       [productSku]: prev[productSku] === rating ? null : rating
     }));
+    
+    // Send interaction to API
+    sendInteraction('label', productSku, rating === 1 ? '1' : '0');
   };
 
   const handleCommentSubmit = () => {
     if (comment.trim()) {
-      // Here you would typically send the comment to your backend
-      console.log('Comment submitted:', comment);
+      // Send comment interaction to API
+      sendInteraction('comment', undefined, undefined, comment);
       setComment('');
       setShowCommentInput(false);
       setShowThankYou(true);
+    }
+  };
+
+  // Send interaction to API
+  const sendInteraction = async (event: string, sku?: string, label?: string, comment?: string, rating?: string) => {
+    try {
+      const anonId = getOrCreateAnonId();
+      const sessionId = getOrCreateSessionId();
+      
+      const payload: any = {
+        event,
+        session_id: sessionId,
+        rec_id: recId
+      };
+
+      if (sku) payload.sku = sku;
+      if (label) payload.label = label;
+      if (comment) payload.comment = comment;
+      if (rating) payload.rating = rating;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-anon-id': anonId,
+        'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        })
+      };
+
+      // Add client_origin header if available
+      const urlParams = new URLSearchParams(window.location.search);
+      const clientOrigin = urlParams.get('client_origin');
+      if (clientOrigin) {
+        headers['client_origin'] = clientOrigin;
+      }
+
+      const response = await apiFetch(`${getApiBaseUrl()}/interactions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        console.warn(`Interaction ${event} failed with status ${response.status}`);
+        // Show toast for interaction errors in sandbox modes
+        if (isAnySandboxMode()) {
+          showApiError('/interactions', `HTTP ${response.status}`, response.status);
+        }
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Interaction ${event} failed:`, error);
+      }
+      // Show toast for network errors in sandbox modes
+      if (isAnySandboxMode()) {
+        showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
+      }
     }
   };
 
@@ -69,27 +133,40 @@ export function SharedRecommendationPage() {
       const sessionId = getOrCreateSessionId();
       
       const payload = {
-        event: 'visit_shared_rec',
-        anon_id: anonId,
-        session_id: sessionId,
-        rec_id: recId
+        event: 'visit_shared_link',
+        rec_id: recId,
+        session_id: sessionId
       };
 
-      const response = await fetch(`${getApiBaseUrl()}/track`, {
+      const response = await apiFetch(`${getApiBaseUrl()}/track`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-anon-id': anonId,
+          'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          })
         },
         body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
-        console.warn(`Tracking event visit_shared_rec failed with status ${response.status}`);
+        console.warn(`Tracking event visit_shared_link failed with status ${response.status}`);
+        // Show toast for tracking errors in sandbox modes
+        if (isAnySandboxMode()) {
+          showApiError('/track', `HTTP ${response.status}`, response.status);
+        }
       }
     } catch (error) {
       // Silent failure - don't log to avoid spam
+      // Show toast for network errors in sandbox modes
+      if (isAnySandboxMode()) {
+        showApiError('/track', error instanceof Error ? error.message : 'Network error');
+      }
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Tracking event visit_shared_rec failed:', error);
+        console.warn('Tracking event visit_shared_link failed:', error);
       }
     }
   };
@@ -154,19 +231,25 @@ export function SharedRecommendationPage() {
       
       const fetchFromAPI = async () => {
           try {
-            // Force production API for shared recommendations
-            const prodApiUrl = 'https://catboost-recommender-api-973409790816.europe-west1.run.app/v2';
-            const apiUrl = `${prodApiUrl}/recommend/${recId}`;
+            // Use the proper API base URL that respects sandbox mode
+            const apiUrl = `${getApiBaseUrl()}/recommend/${recId}`;
             console.log('Current API Mode:', getApiMode());
             console.log('API Base URL:', getApiBaseUrl());
-            console.log('Using production API for shared recommendation:', apiUrl);
+            console.log('Using API for shared recommendation:', apiUrl);
             console.log('Fetching recommendation from API:', apiUrl);
-            // Use direct fetch instead of apiFetch to avoid potential header issues
-            const response = await fetch(apiUrl, { 
+            // Use direct fetch with required headers
+            const anonId = getOrCreateAnonId();
+            const response = await apiFetch(apiUrl, { 
               method: 'GET',
               headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'x-anon-id': anonId,
+                'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                  const r = Math.random() * 16 | 0;
+                  const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                  return v.toString(16);
+                })
               }
             });
             
@@ -179,6 +262,12 @@ export function SharedRecommendationPage() {
               } catch (e) {
                 console.error('Could not read error response body');
               }
+              
+              // Show toast for /recommend errors in sandbox modes
+              if (isAnySandboxMode()) {
+                showApiError('/recommend', `HTTP ${response.status}`, response.status);
+              }
+              
               setError(true);
               setLoading(false);
               return;
@@ -238,6 +327,12 @@ export function SharedRecommendationPage() {
             setLoading(false);
           } catch (err) {
             console.error('Failed to fetch recommendation from API:', err);
+            
+            // Show toast for network errors in sandbox modes
+            if (isAnySandboxMode()) {
+              showApiError('/recommend', err instanceof Error ? err.message : 'Network error');
+            }
+            
             setError(true);
             setLoading(false);
           }
@@ -600,6 +695,7 @@ export function SharedRecommendationPage() {
                   href={`https://www.amazon.co.uk/dp/${products[0].ASIN || products[0].sku}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => sendInteraction('click', products[0].sku)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-3 text-lg"
@@ -711,6 +807,7 @@ export function SharedRecommendationPage() {
                         href={`https://www.amazon.co.uk/dp/${product.ASIN || product.sku}`}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => sendInteraction('click', product.sku)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
@@ -825,7 +922,10 @@ export function SharedRecommendationPage() {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <motion.button
                     key={star}
-                    onClick={() => handleRating('overall', star)}
+                    onClick={() => {
+                      handleRating('overall', star);
+                      sendInteraction('rate', undefined, undefined, undefined, star.toString());
+                    }}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     className="transition-all"

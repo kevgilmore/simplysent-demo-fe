@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { buildApiUrl, apiFetch, isAnySandboxMode, getApiHeaders, getCurrentMode } from '../utils/apiConfig';
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
-import { getOrCreateAnonId, hasExistingAnonId } from '../utils/tracking';
+import { getOrCreateAnonId, hasExistingAnonId, trackEvent, getOrCreateSessionId } from '../utils/tracking';
 import { saveRecommendation, getRecommendationHistory, formatRecommendationDate, hasFullRecommendationData, getFullRecommendationData } from '../utils/recommendationHistory';
 interface FormData {
   personAge: string;
@@ -340,18 +340,20 @@ export function GiftRecommenderForm() {
         window.fbq('track', 'FormCompletion', eventData);
       }
       const requestData = {
-        age: parseInt(newFormData.personAge),
-        gender: newFormData.gender,
-        relationship: newFormData.relationship.toLowerCase(),
-        occasion: newFormData.occasion.toLowerCase(),
-        sentiment: newFormData.sentiment.toLowerCase(),
-        interests: newFormData.interests,
-        favourite_drink: newFormData.favoritedrink.toLowerCase(),
-        size: newFormData.clothesSize,
-        budget_min: newFormData.minBudget,
-        budget_max: newFormData.maxBudget
+        session_id: getOrCreateSessionId(),
+        context: {
+          age: parseInt(newFormData.personAge),
+          gender: newFormData.gender,
+          relationship: newFormData.relationship.toLowerCase(),
+          occasion: newFormData.occasion.toLowerCase(),
+          sentiment: newFormData.sentiment.toLowerCase(),
+          interests: newFormData.interests,
+          favourite_drink: newFormData.favoritedrink.toLowerCase(),
+          size: newFormData.clothesSize,
+          budget_min: newFormData.minBudget,
+          budget_max: newFormData.maxBudget
+        }
       };
-      const reqId = uuidv4();
       const urlParams = new URLSearchParams(window.location.search);
       const origin = urlParams.get('client_origin');
       
@@ -360,7 +362,6 @@ export function GiftRecommenderForm() {
       if (origin) {
         queryParams.append('client_origin', origin);
       }
-      queryParams.append('client_request_id', reqId);
       
       const mode = getCurrentMode();
       const apiUrl = buildApiUrl('/recommend', queryParams);
@@ -379,6 +380,10 @@ export function GiftRecommenderForm() {
         // Save to recommendation history
         saveRecommendation(data.recommendation_id, newFormData, data.products);
         
+        // Track visit_start event
+        console.log('🎯 About to send visit_start with rec_id (test):', data.recommendation_id);
+        trackEvent('visit_start', origin, data.recommendation_id);
+        
         navigate('/products', {
           state: {
             formData: newFormData,
@@ -387,6 +392,7 @@ export function GiftRecommenderForm() {
           }
         });
       } else {
+        console.log('❌ Condition not met - no products or empty array');
         throw new Error('No product recommendations received');
       }
     } catch (error) {
@@ -517,16 +523,19 @@ export function GiftRecommenderForm() {
     setIsLoading(true);
     try {
       const requestData = {
-        age: parseInt(formData.personAge),
-        gender: formData.gender,
-        relationship: formData.relationship.toLowerCase(),
-        occasion: formData.occasion.toLowerCase(),
-        sentiment: formData.sentiment.toLowerCase(),
-        interests: formData.interests,
-        favourite_drink: formData.favoritedrink.toLowerCase(),
-        size: formData.clothesSize,
-        budget_min: formData.minBudget,
-        budget_max: formData.maxBudget
+        session_id: getOrCreateSessionId(),
+        context: {
+          age: parseInt(formData.personAge),
+          gender: formData.gender,
+          relationship: formData.relationship.toLowerCase(),
+          occasion: formData.occasion.toLowerCase(),
+          sentiment: formData.sentiment.toLowerCase(),
+          interests: formData.interests,
+          favourite_drink: formData.favoritedrink.toLowerCase(),
+          size: formData.clothesSize,
+          budget_min: formData.minBudget,
+          budget_max: formData.maxBudget
+        }
       };
       // Track form submission with Meta Pixel
       if (window.fbq) {
@@ -542,7 +551,6 @@ export function GiftRecommenderForm() {
         
         window.fbq('track', 'FormCompletion', eventData);
       }
-      const reqId = getOrCreateAnonId();
       const urlParams = new URLSearchParams(window.location.search);
       const origin = urlParams.get('client_origin');
       
@@ -551,7 +559,6 @@ export function GiftRecommenderForm() {
       if (origin) {
         queryParams.append('client_origin', origin);
       }
-      queryParams.append('client_request_id', reqId);
       
       const mode = getCurrentMode();
       const apiUrl = buildApiUrl('/recommend', queryParams);
@@ -595,11 +602,23 @@ export function GiftRecommenderForm() {
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       const data: ApiResponse = await response.json();
+      console.log('🔍 API Response data:', data);
+      console.log('🔍 Products check:', { 
+        hasProducts: !!data.products, 
+        productsLength: data.products?.length,
+        products: data.products 
+      });
+      console.log('🔍 About to check condition...');
       // intentionally minimal logging; apiConfig logs request and outcome in sandbox modes
       // Ensure the products array exists and has items before navigating
       if (data.products && data.products.length > 0) {
+        console.log('✅ Condition met - entering if block');
         // Save to recommendation history
         saveRecommendation(data.recommendation_id, formData, data.products);
+        
+        // Track visit_start event
+        console.log('🎯 About to send visit_start with rec_id:', data.recommendation_id);
+        trackEvent('visit_start', origin, data.recommendation_id);
         
         navigate('/products', {
           state: {
@@ -609,6 +628,7 @@ export function GiftRecommenderForm() {
           }
         });
       } else {
+        console.log('❌ Condition not met - no products or empty array');
         throw new Error('No product recommendations received');
       }
     } catch (error) {
