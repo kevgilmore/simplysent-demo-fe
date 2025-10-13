@@ -82,6 +82,15 @@ export const isAnySandboxMode = (): boolean => {
   return m === 'sandbox-local' || m === 'sandbox';
 };
 
+// Special function for /error endpoint that doesn't include /v3
+export const getErrorApiUrl = (): string => {
+  const mode = getApiMode();
+  if (mode === 'training') {
+    return 'http://localhost:8080';
+  }
+  return mode === 'sandbox-local' ? 'http://localhost:8080' : 'https://catboost-recommender-api-973409790816.europe-west1.run.app';
+};
+
 // Helper function to build full API URLs (only for recommender/feedback API)
 export const buildApiUrl = (endpoint: string, queryParams?: URLSearchParams): string => {
   const baseUrl = getApiBaseUrl();

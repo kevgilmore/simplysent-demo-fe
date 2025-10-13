@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon, AlertTriangleIcon } from 'lucide-react';
-import { getApiBaseUrl, apiFetch } from '../utils/apiConfig';
+import { getErrorApiUrl, apiFetch } from '../utils/apiConfig';
 import { getOrCreateAnonId } from '../utils/tracking';
 interface ErrorPageProps {
   formData?: {
@@ -53,7 +53,7 @@ export function ErrorPage() {
             llm_enabled: state.formData.llmEnabled
           } : undefined
         };
-        await apiFetch(`${getApiBaseUrl()}/error`, {
+        await apiFetch(`${getErrorApiUrl()}/error`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
