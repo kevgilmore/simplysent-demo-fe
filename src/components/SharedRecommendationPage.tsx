@@ -47,6 +47,7 @@ export function SharedRecommendationPage() {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [comment, setComment] = useState('');
   const [showThankYou, setShowThankYou] = useState(false);
+  const [visitPingInterval, setVisitPingInterval] = useState<NodeJS.Timeout | null>(null);
 
   const handleRating = (productSku: string, rating: number) => {
     setProductRatings(prev => ({
@@ -122,6 +123,59 @@ export function SharedRecommendationPage() {
       // Show toast for network errors in sandbox modes
       if (isAnySandboxMode()) {
         showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
+      }
+    }
+  };
+
+  // Send visit_ping to /interactions endpoint
+  const sendVisitPing = async () => {
+    try {
+      const anonId = getOrCreateAnonId();
+      const sessionId = getOrCreateSessionId();
+      
+      const payload = {
+        event: 'visit_ping',
+        session_id: sessionId,
+        rec_id: recId
+      };
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-anon-id': anonId,
+        'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        })
+      };
+
+      // Add client_origin header if available
+      const urlParams = new URLSearchParams(window.location.search);
+      const clientOrigin = urlParams.get('client_origin');
+      if (clientOrigin) {
+        headers['client_origin'] = clientOrigin;
+      }
+
+      const response = await apiFetch(`${getApiBaseUrl()}/track`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        console.warn(`Visit ping failed with status ${response.status}`);
+        // Show toast for tracking errors in sandbox modes
+        if (isAnySandboxMode()) {
+          showApiError('/track', `HTTP ${response.status}`, response.status);
+        }
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Visit ping failed:', error);
+      }
+      // Show toast for network errors in sandbox modes
+      if (isAnySandboxMode()) {
+        showApiError('/track', error instanceof Error ? error.message : 'Network error');
       }
     }
   };
@@ -222,6 +276,25 @@ export function SharedRecommendationPage() {
       updateMetaName('description', description);
     }
   }, [products, contextInfo, recId]);
+
+  // Start visit_ping interval when component loads
+  useEffect(() => {
+    if (recId && recId.startsWith('rec_')) {
+      // Start the visit_ping interval (every 30 seconds)
+      const interval = setInterval(() => {
+        sendVisitPing();
+      }, 30000); // 30 seconds
+      
+      setVisitPingInterval(interval);
+      
+      // Cleanup interval on unmount
+      return () => {
+        if (interval) {
+          clearInterval(interval);
+        }
+      };
+    }
+  }, [recId]);
 
   useEffect(() => {
     const loadRecommendation = () => {
