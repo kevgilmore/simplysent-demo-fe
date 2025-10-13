@@ -10,6 +10,7 @@ import { getOrCreateAnonId, getOrCreateSessionId } from '../utils/tracking';
 import { useToastContext } from '../contexts/ToastContext';
 import { showApiError } from '../services/toastService';
 import { updateGenieTrainingState } from '../utils/recommendationHistory';
+import { logInteractionError } from '../utils/errorLogger';
 
 // Typeform global declaration
 declare global {
@@ -652,6 +653,17 @@ export function ResultsPage() {
       
       if (!response.ok) {
         console.warn(`Feedback interaction failed with status ${response.status}`);
+        
+        // Log error to /error endpoint
+        await logInteractionError(
+          '/interactions',
+          'POST',
+          `HTTP ${response.status}`,
+          response.status,
+          recommendationId,
+          sessionId
+        );
+        
         // Show toast for interaction errors in sandbox modes
         if (isAnySandboxMode()) {
           showApiError('/interactions', `HTTP ${response.status}`, response.status);
@@ -669,6 +681,17 @@ export function ResultsPage() {
       } as any);
     } catch (error) {
       console.error('Error sending feedback:', error);
+      
+      // Log error to /error endpoint
+      await logInteractionError(
+        '/interactions',
+        'POST',
+        error instanceof Error ? error.message : 'Network error',
+        undefined,
+        recommendationId,
+        getOrCreateSessionId()
+      );
+      
       // Show toast for network errors in sandbox modes (only for actual network errors, not HTTP errors)
       if (isAnySandboxMode()) {
         showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
@@ -718,6 +741,17 @@ export function ResultsPage() {
       console.log('Click interaction sent successfully');
     } catch (error) {
       console.error('Error sending click interaction:', error);
+      
+      // Log error to /error endpoint
+      await logInteractionError(
+        '/interactions',
+        'POST',
+        error instanceof Error ? error.message : 'Network error',
+        undefined,
+        recommendationId,
+        sessionId
+      );
+      
       // Show toast for interaction errors in sandbox modes
       if (isAnySandboxMode()) {
         showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
@@ -859,6 +893,17 @@ export function ResultsPage() {
           console.log('Rating submitted successfully');
         } else {
           console.error('Failed to submit rating');
+          
+          // Log error to /error endpoint
+          await logInteractionError(
+            '/interactions',
+            'POST',
+            `HTTP ${response.status}`,
+            response.status,
+            recommendationId,
+            sessionId
+          );
+          
           // Show toast for interaction errors in sandbox modes
           if (isAnySandboxMode()) {
             showApiError('/interactions', `HTTP ${response.status}`, response.status);
@@ -866,6 +911,17 @@ export function ResultsPage() {
         }
       } catch (error) {
         console.error('Error submitting rating:', error);
+        
+        // Log error to /error endpoint
+        await logInteractionError(
+          '/interactions',
+          'POST',
+          error instanceof Error ? error.message : 'Network error',
+          undefined,
+          recommendationId,
+          sessionId
+        );
+        
         // Show toast for network errors in sandbox modes
         if (isAnySandboxMode()) {
           showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
@@ -932,6 +988,17 @@ export function ResultsPage() {
         if (!commentResponse.ok) {
           const errorText = await commentResponse.text();
           console.error('Comment API Error Response:', commentResponse.status, errorText);
+          
+          // Log error to /error endpoint
+          await logInteractionError(
+            '/interactions',
+            'POST',
+            `HTTP ${commentResponse.status}: ${errorText}`,
+            commentResponse.status,
+            recommendationId,
+            sessionId
+          );
+          
           // Show toast for interaction errors in sandbox modes
           if (isAnySandboxMode()) {
             showApiError('/interactions', `HTTP ${commentResponse.status}`, commentResponse.status);
@@ -947,6 +1014,17 @@ export function ResultsPage() {
         setHasSubmittedComment(true);
       } catch (error) {
         console.error('Error submitting comment:', error);
+        
+        // Log error to /error endpoint
+        await logInteractionError(
+          '/interactions',
+          'POST',
+          error instanceof Error ? error.message : 'Network error',
+          undefined,
+          recommendationId,
+          sessionId
+        );
+        
         // Show toast for network errors in sandbox modes
         if (isAnySandboxMode()) {
           showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
@@ -1016,6 +1094,17 @@ export function ResultsPage() {
       if (!emailResponse.ok) {
         const errorText = await emailResponse.text();
         console.error('Email API Error Response:', emailResponse.status, errorText);
+        
+        // Log error to /error endpoint
+        await logInteractionError(
+          '/interactions',
+          'POST',
+          `HTTP ${emailResponse.status}: ${errorText}`,
+          emailResponse.status,
+          recommendationId,
+          getOrCreateSessionId()
+        );
+        
         throw new Error(`Email submission failed: ${emailResponse.status} - ${errorText || 'Unknown error'}`);
       }
       
@@ -1033,6 +1122,16 @@ export function ResultsPage() {
       
     } catch (error) {
       console.error('Error sending feedback:', error);
+      
+      // Log error to /error endpoint
+      await logInteractionError(
+        '/interactions',
+        'POST',
+        error instanceof Error ? error.message : 'Network error',
+        undefined,
+        recommendationId,
+        getOrCreateSessionId()
+      );
       
       // Show toast for network errors in sandbox modes
       if (isAnySandboxMode()) {

@@ -19,6 +19,20 @@ export function useTracking(options: UseTrackingOptions = {}) {
     getOrCreateAnonId();
     const sessionId = getOrCreateSessionId();
 
+    // Check if there are existing recommendations in localStorage
+    const hasExistingRecommendations = () => {
+      try {
+        const history = localStorage.getItem('rec_history');
+        if (history) {
+          const parsed = JSON.parse(history);
+          return Array.isArray(parsed) && parsed.length > 0;
+        }
+        return false;
+      } catch (error) {
+        return false;
+      }
+    };
+
     // Don't send visit_start automatically - it should be sent after /recommend
     // Just track the session ID for ping purposes
     if (currentSessionId !== sessionId) {
@@ -31,9 +45,9 @@ export function useTracking(options: UseTrackingOptions = {}) {
       clearInterval(globalInterval);
     }
 
-    // Set up new global ping interval - only start pinging after visit_start is sent
+    // Set up new global ping interval - start pinging if visit_start was sent OR if there are existing recommendations
     globalInterval = setInterval(() => {
-      if (visitStartSent) {
+      if (visitStartSent || hasExistingRecommendations()) {
         trackEvent('visit_ping');
       }
     }, pingInterval);
