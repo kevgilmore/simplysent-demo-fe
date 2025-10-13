@@ -74,6 +74,8 @@ export function ResultsPage() {
   const [showSharePopover, setShowSharePopover] = useState(false);
   const [sharePopoverPosition, setSharePopoverPosition] = useState<'top' | 'bottom'>('top');
   const [copySuccess, setCopySuccess] = useState(false);
+  const [hasSubmittedComment, setHasSubmittedComment] = useState(false);
+  const [hasSubmittedEmail, setHasSubmittedEmail] = useState(false);
   const [ratingSectionInView, setRatingSectionInView] = useState(false);
   const [restartRatingAnimation, setRestartRatingAnimation] = useState(false);
   const titleIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -462,19 +464,48 @@ export function ResultsPage() {
 
   // Restore genie training state when component loads
   useEffect(() => {
-    if (savedGenieTrainingState && recommendationId) {
-      console.log('🔄 Restoring genie training state:', savedGenieTrainingState);
+    if (recommendationId) {
+      let genieTrainingState = savedGenieTrainingState;
       
-      // Restore product feedback
-      if (savedGenieTrainingState.productFeedback) {
-        setProductFeedback(savedGenieTrainingState.productFeedback);
+      // If no state from navigation, try to load from localStorage
+      if (!genieTrainingState) {
+        try {
+          const storedData = localStorage.getItem(`recommendation_${recommendationId}`);
+          if (storedData) {
+            const parsed = JSON.parse(storedData);
+            genieTrainingState = parsed.genieTrainingState;
+            console.log('🔄 Loaded genie training state from localStorage:', genieTrainingState);
+          }
+        } catch (error) {
+          console.error('Error loading genie training state from localStorage:', error);
+        }
       }
       
-      // Restore recommendation rating
-      if (savedGenieTrainingState.recommendationRating > 0) {
-        setRecommendationRating(savedGenieTrainingState.recommendationRating);
-        setShowRatingInput(false); // Hide input since rating is already set
-        setShowRatingThankYou(false); // Don't show thank you message on load
+      if (genieTrainingState) {
+        console.log('🔄 Restoring genie training state:', genieTrainingState);
+        
+        // Restore product feedback
+        if (genieTrainingState.productFeedback) {
+          setProductFeedback(genieTrainingState.productFeedback);
+        }
+        
+        // Restore recommendation rating
+        if (genieTrainingState.recommendationRating > 0) {
+          setRecommendationRating(genieTrainingState.recommendationRating);
+          setShowRatingInput(false); // Hide input since rating is already set
+          setShowRatingThankYou(false); // Don't show thank you message on load
+        }
+        
+        // Restore comment submission state
+        if (genieTrainingState.hasSubmittedComment) {
+          setHasSubmittedComment(true);
+        }
+        
+        // Restore email submission state
+        if (genieTrainingState.hasSubmittedEmail) {
+          setHasSubmittedEmail(true);
+          setShowCompletion(true); // Show completion state
+        }
       }
     }
   }, [savedGenieTrainingState, recommendationId]);
@@ -586,7 +617,9 @@ export function ResultsPage() {
           timestamp: Date.now(),
           genieTrainingState: {
             productFeedback,
-            recommendationRating
+            recommendationRating,
+            hasSubmittedComment,
+            hasSubmittedEmail
           }
         };
         
@@ -596,7 +629,7 @@ export function ResultsPage() {
         console.error('Error storing full recommendation data:', error);
       }
     }
-  }, [products, recommendationId, formData, productFeedback, recommendationRating]);
+  }, [products, recommendationId, formData, productFeedback, recommendationRating, hasSubmittedComment, hasSubmittedEmail]);
   // Handle feedback submission
   const handleFeedback = async (sku: string, isGood: boolean) => {
     if (!recommendationId) return;
@@ -630,8 +663,10 @@ export function ResultsPage() {
       // Update genie training state in recommendation history
       updateGenieTrainingState(recommendationId, {
         productFeedback,
-        recommendationRating
-      });
+        recommendationRating,
+        hasSubmittedComment,
+        hasSubmittedEmail
+      } as any);
     } catch (error) {
       console.error('Error sending feedback:', error);
       // Show toast for network errors in sandbox modes (only for actual network errors, not HTTP errors)
@@ -691,18 +726,21 @@ export function ResultsPage() {
   };
   // Function to get modal height based on current stage
   const getModalHeight = () => {
-    if (!isSubmitted) {
+    if (!isSubmitted && !hasSubmittedComment) {
       // State 1: Original feedback form "🧞Ready to find better matches!" (same size as state 2)
       return '380px';
-    } else if (isSubmitted && !showEmailFallback) {
+    } else if ((isSubmitted || hasSubmittedComment) && !showEmailFallback) {
       // State 2: Genie animation "🧞‍♂️ Cosmic gift energy detected" (same size as state 1)
       return '380px';
-    } else if (isSubmitted && showEmailFallback && !showEmailInput) {
+    } else if ((isSubmitted || hasSubmittedComment) && showEmailFallback && !showEmailInput && !hasSubmittedEmail) {
       // State 3: Email text appears "Drop your email below..." (slight increase)
       return '420px';
-    } else if (isSubmitted && showEmailFallback && showEmailInput) {
+    } else if ((isSubmitted || hasSubmittedComment) && showEmailFallback && showEmailInput && !hasSubmittedEmail) {
       // State 4: Email input and button appear (larger increase)
       return '480px';
+    } else if (hasSubmittedEmail) {
+      // State 5: Email confirmation message (smaller)
+      return '380px';
     }
     return '380px'; // fallback
   };
@@ -837,8 +875,10 @@ export function ResultsPage() {
       // Update genie training state in recommendation history
       updateGenieTrainingState(recommendationId, {
         productFeedback,
-        recommendationRating: rating
-      });
+        recommendationRating: rating,
+        hasSubmittedComment,
+        hasSubmittedEmail
+      } as any);
     }
     
     // Hide thank you message after 3 seconds
@@ -855,13 +895,15 @@ export function ResultsPage() {
     if (recommendationId) {
       updateGenieTrainingState(recommendationId, {
         productFeedback,
-        recommendationRating
-      });
+        recommendationRating,
+        hasSubmittedComment,
+        hasSubmittedEmail
+      } as any);
     }
   };
 
-  // Handle modal feedback submission - now just starts the timer
-  const handleModalSubmit = () => {
+  // Handle modal feedback submission - submit comment and start timer
+  const handleModalSubmit = async () => {
     if (!recommendationId) return;
     if (modalFeedback.length > 0 && modalFeedback.length < 10) {
       setModalError('Please provide at least 10 characters of feedback');
@@ -869,7 +911,52 @@ export function ResultsPage() {
     }
     setModalError(''); // Clear any previous errors
     
-    // Start progress timer instead of submitting immediately
+    // Submit comment to /interactions endpoint if there's feedback
+    if (modalFeedback.trim()) {
+      try {
+        console.log('Submitting comment feedback...');
+        const anonId = getOrCreateAnonId();
+        const sessionId = getOrCreateSessionId();
+        
+        const commentResponse = await apiFetch(`${getApiBaseUrl()}/interactions`, {
+          method: 'POST',
+          headers: buildInteractionHeaders(),
+          body: JSON.stringify({
+            event: 'comment',
+            session_id: sessionId,
+            rec_id: recommendationId,
+            comment: modalFeedback.trim()
+          })
+        });
+        
+        if (!commentResponse.ok) {
+          const errorText = await commentResponse.text();
+          console.error('Comment API Error Response:', commentResponse.status, errorText);
+          // Show toast for interaction errors in sandbox modes
+          if (isAnySandboxMode()) {
+            showApiError('/interactions', `HTTP ${commentResponse.status}`, commentResponse.status);
+          }
+          setModalError(`Failed to submit comment: ${commentResponse.status}`);
+          return;
+        }
+        
+        const commentText = await commentResponse.text();
+        console.log('Comment feedback response:', commentText);
+        
+        // Mark comment as submitted
+        setHasSubmittedComment(true);
+      } catch (error) {
+        console.error('Error submitting comment:', error);
+        // Show toast for network errors in sandbox modes
+        if (isAnySandboxMode()) {
+          showApiError('/interactions', error instanceof Error ? error.message : 'Network error');
+        }
+        setModalError('Failed to submit comment. Please try again.');
+        return;
+      }
+    }
+    
+    // Start progress timer after successful comment submission
     setIsSubmitted(true);
     setTimerProgress(0);
     setShowEmailFallback(false);
@@ -911,43 +998,9 @@ export function ResultsPage() {
     setModalError(''); // Clear any previous errors
     
     try {
-      console.log('Submitting feedback and email:', { modalFeedback, emailAddress });
+      console.log('Submitting email notification:', { emailAddress });
       
-      // Submit comment only if there's feedback text
-      if (modalFeedback.trim()) {
-        console.log('Submitting comment feedback...');
-        const anonId = getOrCreateAnonId();
-        const sessionId = getOrCreateSessionId();
-        
-        const commentResponse = await apiFetch(`${getApiBaseUrl()}/interactions`, {
-          method: 'POST',
-          headers: buildInteractionHeaders(),
-          body: JSON.stringify({
-            event: 'comment',
-            session_id: sessionId,
-            rec_id: recommendationId,
-            comment: modalFeedback.trim()
-          })
-        });
-        
-        if (!commentResponse.ok) {
-          const errorText = await commentResponse.text();
-          console.error('Comment API Error Response:', commentResponse.status, errorText);
-          // Show toast for interaction errors in sandbox modes
-          if (isAnySandboxMode()) {
-            showApiError('/interactions', `HTTP ${commentResponse.status}`, commentResponse.status);
-          }
-          // Don't throw error to avoid duplicate toast in catch block
-          return;
-        }
-        
-        const commentText = await commentResponse.text();
-        console.log('Comment feedback response:', commentText);
-      } else {
-        console.log('No comment feedback to submit, skipping comment endpoint');
-      }
-      
-      // Submit email separately
+      // Submit email
       console.log('Submitting email notification...');
       const emailResponse = await apiFetch(`${getApiBaseUrl()}/interactions`, {
         method: 'POST',
@@ -971,6 +1024,9 @@ export function ResultsPage() {
       
       setSubmissionCount(prev => prev + 1);
       setModalFeedback('');
+      
+      // Mark email as submitted
+      setHasSubmittedEmail(true);
       
       // Show completion state in popup (don't navigate away)
       setShowCompletion(true);
@@ -2084,11 +2140,11 @@ export function ResultsPage() {
                 ease: "easeOut"
               }} 
               className={`bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden p-6 ${
-                !isSubmitted ? 'flex flex-col justify-between' : ''
+                !isSubmitted && !hasSubmittedComment ? 'flex flex-col justify-between' : ''
               }`}
               onClick={e => e.stopPropagation()}
             >
-              {isSubmitted ? <motion.div 
+              {isSubmitted || hasSubmittedComment ? <motion.div 
               initial={{
             opacity: 0,
             scale: 0.9
@@ -2201,7 +2257,7 @@ export function ResultsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       className="w-full mb-0"
                     >
-                      {showCompletion ? (
+                      {showCompletion || hasSubmittedEmail ? (
                         // Confirmation message after email submission
                         <div className="text-center">
                           <p className="text-sm text-gray-600 mb-3">

@@ -8,6 +8,7 @@ interface SavedRecommendation {
   genieTrainingState?: {
     productFeedback: Record<number, 'up' | 'down' | null>;
     recommendationRating: number;
+    hasSubmittedComment?: boolean;
   };
 }
 
@@ -28,6 +29,7 @@ export const saveRecommendation = (
   genieTrainingState?: {
     productFeedback: Record<number, 'up' | 'down' | null>;
     recommendationRating: number;
+    hasSubmittedComment?: boolean;
   }
 ): void => {
   try {
@@ -155,13 +157,14 @@ export const getFullRecommendationData = (recommendationId: string): any => {
 /**
  * Update genie training state for a recommendation in history
  * @param recommendationId - The recommendation ID
- * @param genieTrainingState - The genie training state to save
+ * @param genieTrainingState - The genie training state to save (includes hasSubmittedComment)
  */
 export const updateGenieTrainingState = (
   recommendationId: string,
   genieTrainingState: {
     productFeedback: Record<number, 'up' | 'down' | null>;
     recommendationRating: number;
+    hasSubmittedComment?: boolean;
   }
 ): void => {
   try {
