@@ -179,14 +179,42 @@ export function ResultsPage() {
   }, []);
 
 
-  // Function to check if user is in 25% feedback cohort
+  // Function to check if user is in 25% feedback cohort (DISABLED - now shows for all users)
   const isInFeedbackCohort = (anonId: string): boolean => {
+    // Keep hash function for potential future use, but always return true
     let hash = 0;
     for (let i = 0; i < anonId.length; i++) {
       hash = ((hash << 5) - hash) + anonId.charCodeAt(i);
       hash = hash & hash; // Convert to 32bit integer
     }
-    return Math.abs(hash) % 4 === 0;
+    // return Math.abs(hash) % 4 === 0; // Original cohort logic
+    return true; // Show feedback for all users
+  };
+
+  // Function to check if user has dismissed feedback banner this session
+  const hasDismissedFeedbackThisSession = (): boolean => {
+    return sessionStorage.getItem('feedback_dismissed') === 'true';
+  };
+
+  // Function to check if user has completed the survey (persistent across sessions)
+  const hasCompletedSurvey = (): boolean => {
+    return localStorage.getItem('survey_completed') === 'true';
+  };
+
+  // Function to dismiss feedback banner for this session
+  const dismissFeedbackBanner = () => {
+    sessionStorage.setItem('feedback_dismissed', 'true');
+    setShowFeedbackBanner(false);
+    setBannerReady(false);
+  };
+
+  // Function to mark survey as completed
+  const markSurveyCompleted = (typeformId?: string) => {
+    localStorage.setItem('survey_completed', 'true');
+    if (typeformId) {
+      localStorage.setItem('survey_typeform_id', typeformId);
+    }
+    setHasSubmittedForm(true);
   };
 
   // Function to count feedback given
@@ -231,9 +259,52 @@ export function ResultsPage() {
         console.log('API response:', responseData);
         
         // Mark form as submitted and close modal
-        localStorage.setItem('typeform_submitted', 'true');
-        setHasSubmittedForm(true);
+        markSurveyCompleted(responseId);
         setShowVoucherIncentive(false);
+        
+        // Send survey completion to interactions endpoint
+        try {
+          const anonId = getOrCreateAnonId();
+          const sessionId = getOrCreateSessionId();
+          
+          const payload = {
+            event: 'survey',
+            session_id: sessionId,
+            rec_id: recommendationId,
+            survey_id: responseId
+          };
+
+          const headers = {
+            'Content-Type': 'application/json',
+            'x-anon-id': anonId,
+            'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              const r = Math.random() * 16 | 0;
+              const v = c === 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            })
+          };
+
+          // Add client_origin header if available
+          const urlParams = new URLSearchParams(window.location.search);
+          const clientOrigin = urlParams.get('client_origin');
+          if (clientOrigin) {
+            headers['client_origin'] = clientOrigin;
+          }
+
+          const response = await apiFetch(`${getApiBaseUrl()}/interactions`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload)
+          });
+
+          if (response.ok) {
+            console.log('✅ Survey completion tracked successfully');
+          } else {
+            console.warn('⚠️ Failed to track survey completion:', response.status);
+          }
+        } catch (error) {
+          console.error('❌ Error tracking survey completion:', error);
+        }
       } else {
         console.error('❌ Failed to submit form response:', response.status, response.statusText);
       }
@@ -303,13 +374,12 @@ export function ResultsPage() {
 
   // Check localStorage and cohort on component mount
   useEffect(() => {
-    // Check if user has already submitted
-    const hasSubmitted = localStorage.getItem('typeform_submitted') === 'true';
+    // Check if user has already submitted survey (persistent across sessions)
+    const hasSubmitted = hasCompletedSurvey();
     setHasSubmittedForm(hasSubmitted);
 
-    // Check local storage flag first
-    const showFeedbackForm = localStorage.getItem('show_feedback_form');
-    const localStorageFlag = showFeedbackForm === 'true';
+    // Check if user has dismissed feedback this session
+    const dismissedThisSession = hasDismissedFeedbackThisSession();
     
     // Check if user is in feedback cohort or has manual override
     const urlParams = new URLSearchParams(window.location.search);
@@ -317,18 +387,19 @@ export function ResultsPage() {
     
     let shouldShowBanner = false;
     
-    // Check if local storage flag is explicitly set
-    if (showFeedbackForm !== null) {
-      // Local storage flag is set, use its value
-      shouldShowBanner = localStorageFlag;
-    } else if (manualOverride) {
-      // No local storage flag, check manual override
-      shouldShowBanner = true;
-    } else {
-      // No local storage flag, use cohort logic
-      const anonId = getOrCreateAnonId();
-      const inCohort = isInFeedbackCohort(anonId);
-      shouldShowBanner = inCohort;
+    // Show banner if:
+    // 1. User hasn't completed survey (persistent check)
+    // 2. User hasn't dismissed it this session
+    // 3. Manual override is enabled (for testing)
+    if (!hasSubmitted && !dismissedThisSession) {
+      if (manualOverride) {
+        shouldShowBanner = true;
+      } else {
+        // Show for all users (cohort logic disabled)
+        const anonId = getOrCreateAnonId();
+        const inCohort = isInFeedbackCohort(anonId);
+        shouldShowBanner = inCohort;
+      }
     }
     
     // Set banner visibility immediately, but delay showing it by 4 seconds
@@ -1718,7 +1789,7 @@ export function ResultsPage() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setBannerDismissed(true);
+                  dismissFeedbackBanner();
                 }}
                 className="absolute top-2 right-2 text-white/80 hover:text-white transition-colors z-30 p-1 bg-black/20 rounded-full hover:bg-black/30"
                 title="Close"
