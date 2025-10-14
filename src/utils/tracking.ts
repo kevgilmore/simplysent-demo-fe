@@ -1,5 +1,6 @@
 // User session tracking utility
 import { getApiBaseUrl, isAnySandboxMode, apiFetch } from './apiConfig';
+import { logApiError } from './errorLogger';
 
 // Base62 character set for ID generation
 const BASE62_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
@@ -133,9 +134,14 @@ export async function trackEvent(event: TrackingEvent, clientOrigin?: string, re
       markVisitStartSent();
     }
   } catch (error) {
-    // Silent failure - don't log to avoid spam
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
+    // Log API errors to /errors endpoint
+    if (error.apiMetadata) {
+      try {
+        await logApiError(error, error.apiMetadata);
+      } catch (logError) {
+        console.error('Failed to log tracking error:', logError);
+      }
+    } else if (process.env.NODE_ENV === 'development') {
       console.warn(`Tracking event ${event} failed:`, error);
     }
     
