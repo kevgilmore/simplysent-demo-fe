@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon, AlertTriangleIcon } from 'lucide-react';
-import { logApiError, logReactError } from '../utils/errorLogger';
+import { logApiError, logReactError, logNotFoundError } from '../utils/errorLogger';
 import { ApiError } from '../utils/apiConfig';
 
 interface ErrorPageProps {
@@ -33,14 +33,22 @@ export function ErrorPage() {
   useEffect(() => {
     const reportError = async () => {
       try {
+        // Determine the actual page where the error occurred
+        const actualPage = state?.formData ? 
+          `${window.location.origin}/products` : // If we have form data, error came from products page
+          document.referrer || window.location.href; // Otherwise use referrer or current page
+        
         // If we have API error metadata, log as API error
         if (state?.apiError?.apiMetadata) {
-          await logApiError(state.apiError, state.apiError.apiMetadata);
+          await logApiError(state.apiError, state.apiError.apiMetadata, actualPage);
+        } else if (state?.errorMessage === 'No recommendations available') {
+          // Log as NotFound error for business logic cases
+          await logNotFoundError(state.errorMessage, actualPage);
         } else {
           // Otherwise, log as React error
           const error = new Error(state?.errorMessage || 'Unknown error');
           error.stack = state?.errorStack || error.stack;
-          await logReactError(error, state?.componentStack);
+          await logReactError(error, state?.componentStack, actualPage);
         }
       } catch (error) {
         console.error('Failed to report error:', error);

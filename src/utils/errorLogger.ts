@@ -4,7 +4,7 @@ import { getOrCreateAnonId, getOrCreateSessionId } from './tracking';
 interface ErrorLogData {
   anon_id: string;
   session_id: string;
-  error_type: "ApiError" | "ReactError";
+  error_type: "ApiError" | "ReactError" | "NotFound";
   message: string;
   componentStack?: string;
   stack?: string;
@@ -67,7 +67,8 @@ export const logApiError = async (
     response_text: string;
     request_id: string;
     retry_count: number;
-  }
+  },
+  page?: string
 ) => {
   const message = typeof error === 'string' ? error : error.message;
   const stack = typeof error === 'string' ? undefined : error.stack;
@@ -78,7 +79,7 @@ export const logApiError = async (
     error_type: "ApiError",
     message,
     stack,
-    page: window.location.href,
+    page: page || window.location.href,
     api: apiMetadata || undefined,
     userAgent: navigator.userAgent
   });
@@ -89,7 +90,8 @@ export const logApiError = async (
  */
 export const logReactError = async (
   error: Error,
-  componentStack?: string
+  componentStack?: string,
+  page?: string
 ) => {
   await logError({
     anon_id: getOrCreateAnonId(),
@@ -98,7 +100,24 @@ export const logReactError = async (
     message: error.message,
     componentStack,
     stack: error.stack,
-    page: window.location.href,
+    page: page || window.location.href,
+    userAgent: navigator.userAgent
+  });
+};
+
+/**
+ * Log NotFound errors (business logic - no results found)
+ */
+export const logNotFoundError = async (
+  message: string,
+  page?: string
+) => {
+  await logError({
+    anon_id: getOrCreateAnonId(),
+    session_id: getOrCreateSessionId(),
+    error_type: "NotFound",
+    message,
+    page: page || window.location.href,
     userAgent: navigator.userAgent
   });
 };
