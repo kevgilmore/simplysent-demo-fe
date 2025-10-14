@@ -6,7 +6,7 @@ import { getApiBaseUrl, apiFetch, isAnySandboxMode, getApiMode } from '../utils/
 import { ModeIndicator } from './ModeIndicator';
 import { useTracking } from '../hooks/useTracking';
 import { StarRating } from './StarRating';
-import { getOrCreateAnonId, getOrCreateSessionId } from '../utils/tracking';
+import { getOrCreateAnonId, getOrCreateSessionId, trackEvent } from '../utils/tracking';
 import { useToastContext } from '../contexts/ToastContext';
 import { showApiError } from '../services/toastService';
 import { updateGenieTrainingState } from '../utils/recommendationHistory';
@@ -62,7 +62,16 @@ export function ResultsPage() {
   const [showFeedbackBanner, setShowFeedbackBanner] = useState(() => {
     // Check local storage for show_feedback_form flag
     const showFeedbackForm = localStorage.getItem('show_feedback_form');
-    return showFeedbackForm === 'true';
+    if (showFeedbackForm !== null) {
+      return showFeedbackForm === 'true';
+    }
+    // Default: false for sandbox mode, true for production
+    const defaultValue = !isAnySandboxMode();
+    // Only save to localStorage in sandbox mode
+    if (isAnySandboxMode()) {
+      localStorage.setItem('show_feedback_form', defaultValue.toString());
+    }
+    return defaultValue;
   });
   const [bannerReady, setBannerReady] = useState(false);
   const [showEmailFallback, setShowEmailFallback] = useState(false);
@@ -437,6 +446,16 @@ export function ResultsPage() {
     });
   }, []);
 
+  // Track visit_start event after component loads with recommendation data
+  useEffect(() => {
+    if (recommendationId && formData) {
+      console.log('🎯 Sending visit_start from ResultsPage with rec_id:', recommendationId);
+      const urlParams = new URLSearchParams(window.location.search);
+      const origin = urlParams.get('client_origin');
+      trackEvent('visit_start', origin || undefined, recommendationId);
+    }
+  }, [recommendationId, formData]);
+
   // Store recommendation data in localStorage for sharing
   useEffect(() => {
     if (recommendationId && recommendations && recommendations.length > 0) {
@@ -582,12 +601,24 @@ export function ResultsPage() {
     }
   }, [savedGenieTrainingState, recommendationId]);
 
+  // Set default for add_labels_and_rating flag on component mount (sandbox only)
+  useEffect(() => {
+    if (isAnySandboxMode()) {
+      const addLabelsAndRating = localStorage.getItem('add_labels_and_rating');
+      if (addLabelsAndRating === null) {
+        // Default: true for sandbox mode
+        localStorage.setItem('add_labels_and_rating', 'true');
+      }
+    }
+  }, []);
+
   // Auto-fill feedback in sandbox mode with localStorage key
   useEffect(() => {
     if (isAnySandboxMode() && products.length > 0) {
       const addLabelsAndRating = localStorage.getItem('add_labels_and_rating');
+      const shouldAutoFill = addLabelsAndRating === 'true';
       
-      if (addLabelsAndRating === 'true') {
+      if (shouldAutoFill) {
         console.log('🧪 Auto-filling feedback in sandbox mode with', products.length, 'products');
         
         // Auto-fill product feedback with sample data

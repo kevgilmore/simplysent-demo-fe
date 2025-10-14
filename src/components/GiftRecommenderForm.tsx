@@ -380,9 +380,7 @@ export function GiftRecommenderForm() {
         // Save to recommendation history
         saveRecommendation(data.recommendation_id, newFormData, data.products);
         
-        // Track visit_start event
-        console.log('🎯 About to send visit_start with rec_id (test):', data.recommendation_id);
-        trackEvent('visit_start', origin, data.recommendation_id);
+        // visit_start will be tracked from ResultsPage after component loads
         
         navigate('/products', {
           state: {
@@ -619,9 +617,7 @@ export function GiftRecommenderForm() {
         // Save to recommendation history
         saveRecommendation(data.recommendation_id, formData, data.products);
         
-        // Track visit_start event
-        console.log('🎯 About to send visit_start with rec_id:', data.recommendation_id);
-        trackEvent('visit_start', origin, data.recommendation_id);
+        // visit_start will be tracked from ResultsPage after component loads
         
         navigate('/products', {
           state: {
