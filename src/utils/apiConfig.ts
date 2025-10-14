@@ -146,6 +146,19 @@ export const generateRequestId = (): string => {
   });
 };
 
+// Enhanced error type for API errors with metadata
+export interface ApiError extends Error {
+  apiMetadata?: {
+    endpoint: string;
+    method: string;
+    status: number;
+    duration_ms: number;
+    response_text: string;
+    request_id: string;
+    retry_count: number;
+  };
+}
+
 // Wrapper around fetch to log API calls in dev mode (excludes Shopify by usage)
 export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: string): Promise<Response> => {
   const urlString = typeof input === 'string' ? input : (input instanceof URL ? input.toString() : (input as Request).url);
@@ -160,32 +173,82 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
   // Always inject required headers for our API calls
   if (isOurApi) {
     const headers = new Headers(init?.headers || {});
+    const requestId = generateRequestId();
     headers.set('x-anon-id', getApiAnonId());
-    headers.set('x-request-id', generateRequestId());
+    headers.set('x-request-id', requestId);
     
     // Inject sandbox header for sandbox modes
     if (sandbox) {
       headers.set('X-Sandbox-Mode', 'true');
     }
     
+    const startTime = Date.now();
+    
     return fetch(input as any, { ...(init as any), headers } as any)
-      .then(res => {
+      .then(async res => {
+        const duration = Date.now() - startTime;
+        
         if (shouldLog) {
           console.log(res.ok ? '✅ /recommend success' : `❌ /recommend failed ${res.status}`);
         }
         
-        // Note: Toast notifications are handled at component level for better specificity
+        // For non-OK responses, read response text and throw enriched error
+        if (!res.ok) {
+          let responseText = '';
+          try {
+            responseText = await res.text();
+          } catch (e) {
+            responseText = 'Failed to read response text';
+          }
+          
+          const method = init?.method || 'GET';
+          const endpoint = urlString.replace(DEV_BASE, '').replace(PROD_BASE, '') || '/';
+          const requestIdFromHeader = res.headers.get('X-Request-Id') || requestId;
+          
+          const error = new Error(`API Error: ${res.status} ${res.statusText}`) as ApiError;
+          error.apiMetadata = {
+            endpoint,
+            method,
+            status: res.status,
+            duration_ms: duration,
+            response_text: responseText,
+            request_id: requestIdFromHeader,
+            retry_count: 0
+          };
+          
+          throw error;
+        }
         
         return res;
       })
       .catch(err => {
+        const duration = Date.now() - startTime;
+        
         if (shouldLog) {
           console.log(`❌ /recommend network error: ${err?.message || err}`);
         }
         
-        // Note: Toast notifications are handled at component level for better specificity
+        // If it's already an ApiError with metadata, re-throw as-is
+        if (err.apiMetadata) {
+          throw err;
+        }
         
-        throw err;
+        // For network errors, create ApiError with available metadata
+        const method = init?.method || 'GET';
+        const endpoint = urlString.replace(DEV_BASE, '').replace(PROD_BASE, '') || '/';
+        
+        const error = new Error(`Network Error: ${err?.message || 'Unknown network error'}`) as ApiError;
+        error.apiMetadata = {
+          endpoint,
+          method,
+          status: 0, // Network errors don't have HTTP status
+          duration_ms: duration,
+          response_text: err?.message || 'Network error',
+          request_id: requestId,
+          retry_count: 0
+        };
+        
+        throw error;
       });
   }
   return fetch(input as any, init as any)

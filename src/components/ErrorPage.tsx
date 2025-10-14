@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeftIcon, AlertTriangleIcon } from 'lucide-react';
-import { getErrorApiUrl, apiFetch } from '../utils/apiConfig';
-import { getOrCreateAnonId } from '../utils/tracking';
+import { logApiError, logReactError } from '../utils/errorLogger';
+import { ApiError } from '../utils/apiConfig';
+
 interface ErrorPageProps {
   formData?: {
     interests: string[];
@@ -23,6 +24,7 @@ interface ErrorPageProps {
   errorMessage?: string;
   errorStack?: string;
   componentStack?: string;
+  apiError?: ApiError;
 }
 export function ErrorPage() {
   const navigate = useNavigate();
@@ -31,41 +33,15 @@ export function ErrorPage() {
   useEffect(() => {
     const reportError = async () => {
       try {
-        const errorPayload = {
-          message: state?.errorMessage || 'Unknown error',
-          stack: state?.errorStack || new Error().stack || 'No stack trace available',
-          componentStack: state?.componentStack,
-          url: window.location.href,
-          timestamp: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          recommendation: state?.formData ? {
-            age: parseInt(state.formData.personAge),
-            gender: state.formData.gender,
-            relationship: state.formData.relationship,
-            occasion: state.formData.occasion,
-            sentiment: state.formData.sentiment,
-            interests: state.formData.interests,
-            favourite_drink: state.formData.favoritedrink?.toLowerCase(),
-            size: state.formData.clothesSize,
-            budget_min: state.formData.minBudget,
-            budget_max: state.formData.maxBudget,
-            client_origin: state.formData.clientOrigin,
-            llm_enabled: state.formData.llmEnabled
-          } : undefined
-        };
-        await apiFetch(`${getErrorApiUrl()}/error`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-anon-id': getOrCreateAnonId(),
-            'x-request-id': 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-              const r = Math.random() * 16 | 0;
-              const v = c === 'x' ? r : (r & 0x3 | 0x8);
-              return v.toString(16);
-            })
-          },
-          body: JSON.stringify(errorPayload)
-        });
+        // If we have API error metadata, log as API error
+        if (state?.apiError?.apiMetadata) {
+          await logApiError(state.apiError, state.apiError.apiMetadata);
+        } else {
+          // Otherwise, log as React error
+          const error = new Error(state?.errorMessage || 'Unknown error');
+          error.stack = state?.errorStack || error.stack;
+          await logReactError(error, state?.componentStack);
+        }
       } catch (error) {
         console.error('Failed to report error:', error);
       }

@@ -14,6 +14,7 @@ import { BlogPost2 } from './components/BlogPost2';
 import { BlogPost3 } from './components/BlogPost3';
 import { AnimatePresence } from 'framer-motion';
 import { ErrorPage } from './components/ErrorPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Analytics } from './components/Analytics';
 import { MetaPixel } from './components/MetaPixel';
 import { ToastContainer, useToast } from './components/Toast';
@@ -134,8 +135,10 @@ const router = createBrowserRouter([
 
 export function App() {
   return (
-    <ToastProvider>
-      <RouterProvider router={router} future={{ v7_startTransition: true }} />
-    </ToastProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <RouterProvider router={router} future={{ v7_startTransition: true }} />
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }

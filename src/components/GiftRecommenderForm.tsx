@@ -398,11 +398,14 @@ export function GiftRecommenderForm() {
     } catch (error) {
       console.error('Error getting recommendations (test):', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
       navigate('/error', {
         state: {
           formData: newFormData,
           clientRequestId: uuidv4(),
-          errorMessage
+          errorMessage,
+          errorStack,
+          apiError: error
         }
       });
     } finally {
@@ -634,12 +637,15 @@ export function GiftRecommenderForm() {
     } catch (error) {
       console.error('Error getting recommendations:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
       // minimal error logging
       navigate('/error', {
         state: {
           formData,
           clientRequestId: uuidv4(),
-          errorMessage
+          errorMessage,
+          errorStack,
+          apiError: error
         }
       });
     } finally {

@@ -1165,7 +1165,14 @@ export function ResultsPage() {
       hasTopRecommendation: !!topRecommendation,
       products: products
     });
-    navigate('/error', { state: { errorMessage: 'No recommendations available', formData, clientRequestId: 'unknown' } });
+    navigate('/error', { 
+      state: { 
+        errorMessage: 'No recommendations available', 
+        formData, 
+        clientRequestId: 'unknown',
+        errorStack: new Error('No recommendations available').stack
+      } 
+    });
     return null;
   }
   return (

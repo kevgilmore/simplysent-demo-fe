@@ -1,34 +1,39 @@
-import { getErrorApiUrl, apiFetch } from './apiConfig';
-import { getOrCreateAnonId } from './tracking';
+import { getErrorApiUrl, apiFetch, ApiError } from './apiConfig';
+import { getOrCreateAnonId, getOrCreateSessionId } from './tracking';
 
 interface ErrorLogData {
-  endpoint: string;
-  method: string;
-  status?: number;
-  error: string;
-  url?: string;
-  timestamp: string;
-  userAgent: string;
-  recommendation?: {
-    recommendationId?: string;
-    sessionId?: string;
+  anon_id: string;
+  session_id: string;
+  error_type: "ApiError" | "ReactError";
+  message: string;
+  componentStack?: string;
+  stack?: string;
+  page: string;
+  api?: {
+    endpoint: string;
+    method: string;
+    status: number;
+    duration_ms: number;
+    response_text: string;
+    request_id: string;
+    retry_count: number;
   };
+  userAgent: string;
 }
 
 /**
- * Log API errors to the /error endpoint
+ * Log errors to the /errors endpoint
  */
-export const logApiError = async (errorData: Omit<ErrorLogData, 'timestamp' | 'userAgent'>) => {
+export const logError = async (errorData: Omit<ErrorLogData, 'userAgent'>) => {
   try {
     const errorPayload: ErrorLogData = {
       ...errorData,
-      timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent
     };
 
-    console.log('📝 Logging API error to /error endpoint:', errorPayload);
+    console.log('📝 Logging error to /errors endpoint:', errorPayload);
 
-    await apiFetch(`${getErrorApiUrl()}/error`, {
+    await apiFetch(`${getErrorApiUrl()}/errors`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,15 +47,64 @@ export const logApiError = async (errorData: Omit<ErrorLogData, 'timestamp' | 'u
       body: JSON.stringify(errorPayload)
     });
 
-    console.log('✅ API error logged successfully');
+    console.log('✅ Error logged successfully');
   } catch (logError) {
-    console.error('❌ Failed to log API error:', logError);
+    console.error('❌ Failed to log error:', logError);
     // Don't throw - we don't want error logging to break the app
   }
 };
 
 /**
- * Log interaction endpoint errors
+ * Log API errors with metadata
+ */
+export const logApiError = async (
+  error: Error | string,
+  apiMetadata?: {
+    endpoint: string;
+    method: string;
+    status: number;
+    duration_ms: number;
+    response_text: string;
+    request_id: string;
+    retry_count: number;
+  }
+) => {
+  const message = typeof error === 'string' ? error : error.message;
+  const stack = typeof error === 'string' ? undefined : error.stack;
+  
+  await logError({
+    anon_id: getOrCreateAnonId(),
+    session_id: getOrCreateSessionId(),
+    error_type: "ApiError",
+    message,
+    stack,
+    page: window.location.href,
+    api: apiMetadata || undefined,
+    userAgent: navigator.userAgent
+  });
+};
+
+/**
+ * Log React component errors
+ */
+export const logReactError = async (
+  error: Error,
+  componentStack?: string
+) => {
+  await logError({
+    anon_id: getOrCreateAnonId(),
+    session_id: getOrCreateSessionId(),
+    error_type: "ReactError",
+    message: error.message,
+    componentStack,
+    stack: error.stack,
+    page: window.location.href,
+    userAgent: navigator.userAgent
+  });
+};
+
+/**
+ * Log interaction endpoint errors (legacy function for backward compatibility)
  */
 export const logInteractionError = async (
   endpoint: string,
@@ -60,21 +114,19 @@ export const logInteractionError = async (
   recommendationId?: string,
   sessionId?: string
 ) => {
-  await logApiError({
+  await logApiError(error, {
     endpoint,
     method,
-    status,
-    error,
-    url: window.location.href,
-    recommendation: {
-      recommendationId,
-      sessionId
-    }
+    status: status || 0,
+    duration_ms: 0,
+    response_text: error,
+    request_id: 'unknown',
+    retry_count: 0
   });
 };
 
 /**
- * Log tracking endpoint errors
+ * Log tracking endpoint errors (legacy function for backward compatibility)
  */
 export const logTrackingError = async (
   endpoint: string,
@@ -84,21 +136,19 @@ export const logTrackingError = async (
   recommendationId?: string,
   sessionId?: string
 ) => {
-  await logApiError({
+  await logApiError(error, {
     endpoint,
     method,
-    status,
-    error,
-    url: window.location.href,
-    recommendation: {
-      recommendationId,
-      sessionId
-    }
+    status: status || 0,
+    duration_ms: 0,
+    response_text: error,
+    request_id: 'unknown',
+    retry_count: 0
   });
 };
 
 /**
- * Log recommend endpoint errors
+ * Log recommend endpoint errors (legacy function for backward compatibility)
  */
 export const logRecommendError = async (
   endpoint: string,
@@ -107,14 +157,13 @@ export const logRecommendError = async (
   status?: number,
   sessionId?: string
 ) => {
-  await logApiError({
+  await logApiError(error, {
     endpoint,
     method,
-    status,
-    error,
-    url: window.location.href,
-    recommendation: {
-      sessionId
-    }
+    status: status || 0,
+    duration_ms: 0,
+    response_text: error,
+    request_id: 'unknown',
+    retry_count: 0
   });
 };
