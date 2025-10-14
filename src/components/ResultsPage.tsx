@@ -773,8 +773,8 @@ export function ResultsPage() {
       // State 4: Email input and button appear (larger increase)
       return '480px';
     } else if (hasSubmittedEmail) {
-      // State 5: Email confirmation message (smaller)
-      return '380px';
+      // State 5: Email confirmation message (with extra padding)
+      return '420px';
     }
     return '380px'; // fallback
   };
@@ -2361,7 +2361,7 @@ export function ResultsPage() {
                     <motion.div 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="w-full mb-0"
+                      className={`w-full mb-0 ${(showCompletion || hasSubmittedEmail) ? 'pb-6' : ''}`}
                     >
                       {showCompletion || hasSubmittedEmail ? (
                         // Confirmation message after email submission
