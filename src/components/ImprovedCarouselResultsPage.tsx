@@ -135,7 +135,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 },
                 {
                     id: "golf-4",
-                    image: "https://images.unsplash.com/photo-1530028825177-2c0e1d2b2c1b?q=80&w=800&auto=format&fit=crop",
+                    image: "https://images.unsplash.com/photo-1596727362302-b8d891c42ab8?q=80&w=800&auto=format&fit=crop",
                     name: "Golf Club Set - Irons",
                     price: 499.99,
                 },
@@ -516,7 +516,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                         : "transition-transform duration-300 ease-out"
                 } ${isOptionsOpen ? "translate-y-0" : "translate-y-full"}`}
                 style={{
-                    height: "75vh",
+                    height: "85vh",
                     bottom: "0",
                     paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
                     transform: isDragging
@@ -525,7 +525,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 }}
             >
                 <div
-                    className="h-full overflow-y-auto p-6"
+                    className="h-full flex flex-col p-6 overflow-hidden"
                     style={{
                         paddingBottom:
                             "calc(env(safe-area-inset-bottom) + 80px)",

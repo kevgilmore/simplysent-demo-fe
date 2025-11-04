@@ -1,9 +1,16 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, {
+    useMemo,
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import { TabMenu } from "./ui/TabMenu";
 import { Heading } from "./ui/Heading";
 import { ProductCard } from "./ui/ProductCard";
 import { Button } from "./ui/Button";
+import { RangeSlider } from "./ui/RangeSlider";
 
 export const ImprovedGiftResultsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -12,7 +19,27 @@ export const ImprovedGiftResultsPage: React.FC = () => {
     const [favourites, setFavourites] = useState<Set<string>>(new Set());
     const [recipient, setRecipient] = useState("Dad");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+    const [minBudget, setMinBudget] = useState(50);
+    const [maxBudget, setMaxBudget] = useState(300);
+    const [dragStartY, setDragStartY] = useState(0);
+    const [dragCurrentY, setDragCurrentY] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const interestOptions = [
+        "Tech",
+        "Golf",
+        "Gaming",
+        "Sports",
+        "Reading",
+        "Cooking",
+        "Travel",
+        "Music",
+        "Fashion",
+        "Art",
+    ];
 
     const tabs = [
         { id: "ai-picks", label: "AI Picks" },
@@ -102,6 +129,67 @@ export const ImprovedGiftResultsPage: React.FC = () => {
             return next;
         });
     };
+
+    const toggleInterest = (interest: string) => {
+        setSelectedInterests((prev) =>
+            prev.includes(interest)
+                ? prev.filter((i) => i !== interest)
+                : [...prev, interest],
+        );
+    };
+
+    const handleDragStart = useCallback((clientY: number) => {
+        setDragStartY(clientY);
+        setDragCurrentY(clientY);
+        setIsDragging(true);
+    }, []);
+
+    const handleDragMove = useCallback(
+        (clientY: number) => {
+            if (isDragging) {
+                const delta = clientY - dragStartY;
+                if (delta > 0) {
+                    setDragCurrentY(clientY);
+                }
+            }
+        },
+        [isDragging, dragStartY],
+    );
+
+    const handleDragEnd = useCallback(() => {
+        if (isDragging) {
+            const delta = dragCurrentY - dragStartY;
+            if (delta > 100) {
+                setIsOptionsOpen(false);
+            }
+            setIsDragging(false);
+            setDragStartY(0);
+            setDragCurrentY(0);
+        }
+    }, [isDragging, dragCurrentY, dragStartY]);
+
+    useEffect(() => {
+        if (isDragging) {
+            const handleMouseMove = (e: MouseEvent) =>
+                handleDragMove(e.clientY);
+            const handleTouchMove = (e: TouchEvent) =>
+                handleDragMove(e.touches[0].clientY);
+            const handleMouseUp = () => handleDragEnd();
+            const handleTouchEnd = () => handleDragEnd();
+
+            document.addEventListener("mousemove", handleMouseMove);
+            document.addEventListener("touchmove", handleTouchMove);
+            document.addEventListener("mouseup", handleMouseUp);
+            document.addEventListener("touchend", handleTouchEnd);
+
+            return () => {
+                document.removeEventListener("mousemove", handleMouseMove);
+                document.removeEventListener("touchmove", handleTouchMove);
+                document.removeEventListener("mouseup", handleMouseUp);
+                document.removeEventListener("touchend", handleTouchEnd);
+            };
+        }
+    }, [isDragging, handleDragMove, handleDragEnd]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -203,23 +291,38 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                 </div>
 
                 {pageTab === "gifts" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {productsByTab[activeTab]?.map((p) => (
-                            <ProductCard
-                                key={p.id}
-                                image={p.image}
-                                name={p.name}
-                                price={p.price}
-                                className={
-                                    activeTab === "ai-picks"
-                                        ? "border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
-                                        : undefined
-                                }
-                                isFavorite={favourites.has(p.id)}
-                                onFavoriteToggle={() => toggleFavourite(p.id)}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {productsByTab[activeTab]?.map((p) => (
+                                <ProductCard
+                                    key={p.id}
+                                    image={p.image}
+                                    name={p.name}
+                                    price={p.price}
+                                    className={
+                                        activeTab === "ai-picks"
+                                            ? "border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
+                                            : undefined
+                                    }
+                                    isFavorite={favourites.has(p.id)}
+                                    onFavoriteToggle={() =>
+                                        toggleFavourite(p.id)
+                                    }
+                                />
+                            ))}
+                        </div>
+
+                        <div className="mt-8">
+                            <Button
+                                fullWidth
+                                variant="primary"
+                                size="large"
+                                onClick={() => setIsOptionsOpen(true)}
+                            >
+                                Refine
+                            </Button>
+                        </div>
+                    </>
                 )}
 
                 {pageTab === "favourites" && (
@@ -277,9 +380,120 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                 )}
             </div>
 
+            {/* Backdrop blur */}
+            {isOptionsOpen && (
+                <div
+                    className="fixed top-0 left-0 right-0 bg-black/50 backdrop-blur-sm z-40"
+                    style={{ bottom: 0, height: "100dvh" }}
+                    onClick={() => setIsOptionsOpen(false)}
+                ></div>
+            )}
+
+            {/* Slide-in Options Panel */}
+            <div
+                className={`fixed inset-x-0 bg-white rounded-t-3xl shadow-2xl z-50 ${
+                    isDragging
+                        ? ""
+                        : "transition-transform duration-300 ease-out"
+                } ${isOptionsOpen ? "translate-y-0" : "translate-y-full"}`}
+                style={{
+                    height: "85vh",
+                    bottom: "0",
+                    paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
+                    transform: isDragging
+                        ? `translateY(${Math.max(0, dragCurrentY - dragStartY)}px)`
+                        : undefined,
+                }}
+            >
+                <div
+                    className="h-full flex flex-col p-6 overflow-hidden"
+                    style={{
+                        paddingBottom:
+                            "calc(env(safe-area-inset-bottom) + 80px)",
+                    }}
+                >
+                    {/* Handle bar */}
+                    <div
+                        className="flex justify-center mb-6 cursor-grab active:cursor-grabbing py-2"
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            handleDragStart(e.clientY);
+                        }}
+                        onTouchStart={(e) => {
+                            e.stopPropagation();
+                            handleDragStart(e.touches[0].clientY);
+                        }}
+                    >
+                        <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
+                    </div>
+
+                    {/* Interests Section */}
+                    <div className="mb-8">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                            Interests
+                        </h3>
+                        <div className="flex flex-wrap gap-3">
+                            {interestOptions.map((interest) => (
+                                <button
+                                    key={interest}
+                                    onClick={() => toggleInterest(interest)}
+                                    className={`px-6 py-3 rounded-full font-semibold transition-all duration-200 ${
+                                        selectedInterests.includes(interest)
+                                            ? "bg-[#5E57AC] text-white shadow-md scale-105"
+                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                    }`}
+                                >
+                                    {interest}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Budget Section */}
+                    <div className="mb-8">
+                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                            Budget
+                        </h3>
+                        <RangeSlider
+                            min={10}
+                            max={500}
+                            minValue={minBudget}
+                            maxValue={maxBudget}
+                            onChange={(min, max) => {
+                                setMinBudget(min);
+                                setMaxBudget(max);
+                            }}
+                        />
+                    </div>
+
+                    {/* Apply Button */}
+                    <div className="mt-6 mb-4">
+                        <button
+                            type="button"
+                            className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOptionsOpen(false);
+                            }}
+                            onTouchEnd={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                setIsOptionsOpen(false);
+                            }}
+                        >
+                            Apply Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Bottom fixed navbar */}
             <div
-                className="fixed inset-x-0 z-40"
+                className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
+                    isOptionsOpen
+                        ? "opacity-0 pointer-events-none"
+                        : "opacity-100"
+                }`}
                 style={{ bottom: `calc(env(safe-area-inset-bottom) + 16px)` }}
             >
                 <div className="w-full flex justify-center">
