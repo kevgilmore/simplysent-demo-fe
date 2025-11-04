@@ -9,6 +9,7 @@ interface ProductCardProps {
     badge?: React.ReactNode;
     isFavorite?: boolean;
     onFavoriteToggle?: () => void;
+    hideActions?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -19,6 +20,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     badge,
     isFavorite,
     onFavoriteToggle,
+    hideActions = false,
 }) => {
     const [isGood, setIsGood] = useState(false);
     const [isBad, setIsBad] = useState(false);
@@ -34,7 +36,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         if (isGood) setIsGood(false);
     };
 
-    const favoriteActive = typeof isFavorite === 'boolean' ? isFavorite : isFavoriteInternal;
+    const favoriteActive =
+        typeof isFavorite === "boolean" ? isFavorite : isFavoriteInternal;
 
     const handleFavoriteClick = () => {
         if (onFavoriteToggle) {
@@ -53,11 +56,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div
             className={`bg-white rounded-3xl shadow-lg overflow-hidden relative ${className}`}
         >
-            {badge && (
-                <div className="absolute top-3 left-3 z-10">
-                    {badge}
-                </div>
-            )}
+            {badge && <div className="absolute top-3 left-3 z-10">{badge}</div>}
             {/* Favorite Button - Top Right */}
             <button
                 onClick={handleFavoriteClick}
@@ -91,46 +90,47 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 >
                     {truncateName(name)}
                 </h3>
-                <p className="text-2xl font-bold text-[#5E57AC] mb-4">
+                <p className="text-2xl font-bold text-[#5E57AC]">
                     £{price.toFixed(2)}
                 </p>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
-                    <button
-                        onClick={handleGoodClick}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
-                            isGood
-                                ? "bg-[#5E57AC] text-white"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
-                        aria-label="Mark as good"
-                    >
-                        <ThumbsUp
-                            size={18}
-                            className={isGood ? "fill-white" : ""}
-                        />
-                        <span className="text-sm">Good</span>
-                    </button>
+                {!hideActions && (
+                    <div className="flex gap-3 mt-4">
+                        <button
+                            onClick={handleGoodClick}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
+                                isGood
+                                    ? "bg-[#5E57AC] text-white"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                            aria-label="Mark as good"
+                        >
+                            <ThumbsUp
+                                size={18}
+                                className={isGood ? "fill-white" : ""}
+                            />
+                            <span className="text-sm">Good</span>
+                        </button>
 
-                    <button
-                        onClick={handleBadClick}
-                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
-                            isBad
-                                ? "bg-red-500 text-white"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
-                        aria-label="Mark as bad"
-                    >
-                        <ThumbsDown
-                            size={18}
-                            className={isBad ? "fill-white" : ""}
-                        />
-                        <span className="text-sm">Bad</span>
-                    </button>
-                </div>
+                        <button
+                            onClick={handleBadClick}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
+                                isBad
+                                    ? "bg-red-500 text-white"
+                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                            aria-label="Mark as bad"
+                        >
+                            <ThumbsDown
+                                size={18}
+                                className={isBad ? "fill-white" : ""}
+                            />
+                            <span className="text-sm">Bad</span>
+                        </button>
+                    </div>
+                )}
             </div>
-
         </div>
     );
 };
