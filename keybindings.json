@@ -1,0 +1,227 @@
+[
+  // ========================================
+  // WINDOWS
+  // ========================================
+  {
+    "key": "ctrl+shift+p",
+    "command": "workbench.action.showCommands"
+  },
+  {
+    "key": "ctrl+shift+q",
+    "command": "workbench.action.closeWindow"
+  },
+
+  // ========================================
+  // FILES/FOLDERS
+  // ========================================
+  {
+    "key": "ctrl+o",
+    "command": "workbench.action.quickOpen"
+  },
+  {
+    "key": "ctrl+shift+o",
+    "command": "workbench.action.files.openFolder"
+  },
+
+  // ========================================
+  // TABS
+  // ========================================
+  {
+    "key": "ctrl+t",
+    "command": "workbench.action.files.newUntitledFile"
+  },
+  {
+    "key": "ctrl+w",
+    "command": "workbench.action.closeActiveEditor"
+  },
+  {
+    "key": "ctrl+shift+oem_4",
+    "command": "workbench.action.previousEditor"
+  },
+  {
+    "key": "ctrl+shift+oem_6",
+    "command": "workbench.action.nextEditor"
+  },
+
+  // ========================================
+  // SPLITS
+  // ========================================
+  {
+    "key": "ctrl+oem_5",
+    "command": "workbench.action.splitEditor"
+  },
+  {
+    "key": "ctrl+oem_4",
+    "command": "workbench.action.focusPreviousGroup"
+  },
+  {
+    "key": "ctrl+oem_6",
+    "command": "workbench.action.focusNextGroup"
+  },
+  {
+    "key": "ctrl+shift+oem_5",
+    "command": "workbench.action.joinAllGroups"
+  },
+
+  // ========================================
+  // TOOLS
+  // ========================================
+  {
+    "key": "ctrl+2",
+    "command": "workbench.action.terminal.toggleTerminal"
+  },
+  {
+    "key": "ctrl+shift+oem_7",
+    "command": "workbench.action.terminal.new"
+  },
+  {
+    "key": "ctrl+shift+up",
+    "command": "workbench.action.terminal.focusPrevious"
+  },
+  {
+    "key": "ctrl+shift+down",
+    "command": "workbench.action.terminal.focusNext"
+  },
+  {
+    "key": "ctrl+right",
+    "command": "aichat.newchataction"
+  },
+  {
+    "key": "ctrl+9",
+    "command": "workbench.view.scm"
+  },
+  {
+    "key": "ctrl+oem_comma",
+    "command": "workbench.action.openSettings"
+  },
+  {
+    "key": "ctrl+oem_1",
+    "command": "workbench.action.openGlobalKeybindings"
+  },
+
+  // ========================================
+  // GENERAL
+  // ========================================
+  {
+    "key": "ctrl+enter",
+    "command": "editor.action.quickFix",
+    "when": "editorHasCodeActionsProvider && editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+enter",
+    "command": "editor.action.triggerSuggest",
+    "when": "editorHasCompletionItemProvider && textInputFocus"
+  },
+  {
+    "key": "ctrl+oem_2",
+    "command": "editor.action.commentLine",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+n",
+    "command": "aichat.newchataction"
+  },
+  {
+    "key": "ctrl+alt+l",
+    "command": "editor.action.formatDocument",
+    "when": "editorHasDocumentFormattingProvider && editorTextFocus"
+  },
+  {
+    "key": "ctrl+t",
+    "command": "editor.action.rename",
+    "when": "editorHasRenameProvider && editorTextFocus"
+  },
+
+  // ========================================
+  // RUN
+  // ========================================
+  {
+    "key": "f10",
+    "command": "workbench.action.debug.start",
+    "when": "debuggersAvailable"
+  },
+  {
+    "key": "f12",
+    "command": "workbench.action.debug.stop",
+    "when": "inDebugMode"
+  },
+  {
+    "key": "ctrl+r",
+    "command": "workbench.action.showCommands"
+  },
+
+  // ========================================
+  // EDITING
+  // ========================================
+  {
+    "key": "shift+enter",
+    "command": "editor.action.insertLineAfter",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+backspace",
+    "command": "deleteWordLeft",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+y",
+    "command": "editor.action.deleteLines",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+up",
+    "command": "editor.action.moveLinesUpAction",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+shift+down",
+    "command": "editor.action.moveLinesDownAction",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "alt+w",
+    "command": "editor.action.smartSelect.expand",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "alt+shift+w",
+    "command": "editor.action.smartSelect.shrink",
+    "when": "editorTextFocus"
+  },
+
+  // ========================================
+  // NAVIGATION
+  // ========================================
+  {
+    "key": "ctrl+alt+left",
+    "command": "workbench.action.navigateBack"
+  },
+  {
+    "key": "ctrl+alt+right",
+    "command": "workbench.action.navigateForward"
+  },
+  {
+    "key": "ctrl+j",
+    "command": "editor.action.addSelectionToNextFindMatch",
+    "when": "editorFocus"
+  },
+  {
+    "key": "ctrl+k",
+    "command": "editor.action.marker.next",
+    "when": "editorFocus"
+  },
+  {
+    "key": "ctrl+l",
+    "command": "workbench.action.gotoLine"
+  },
+  {
+    "key": "ctrl+b",
+    "command": "editor.action.goToImplementation",
+    "when": "editorHasImplementationProvider && editorTextFocus"
+  },
+  {
+    "key": "ctrl+alt+b",
+    "command": "editor.action.revealDefinition",
+    "when": "editorHasDefinitionProvider && editorTextFocus"
+  }
+]
