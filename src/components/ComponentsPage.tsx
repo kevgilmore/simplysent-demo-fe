@@ -15,7 +15,7 @@ export const ComponentsPage: React.FC = () => {
     const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
     const [minBudget, setMinBudget] = useState(50);
     const [maxBudget, setMaxBudget] = useState(300);
-    const [activeTab, setActiveTab] = useState("tech");
+    const [activeTab, setActiveTab] = useState("ai-picks");
 
     const dropdownOptions = [
         { value: "option1", label: "Electronics" },
@@ -26,26 +26,71 @@ export const ComponentsPage: React.FC = () => {
     ];
 
     const tabs = [
+        { id: "ai-picks", label: "AI Picks" },
         { id: "tech", label: "Tech" },
         { id: "golf", label: "Golf" },
-        { id: "favourites", label: "Favourites" },
     ];
 
     const productsByTab: Record<string, Array<{ image: string; name: string; price: number }>> = {
+        "ai-picks": [
+            {
+                image:
+                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                name: "Top-Rated Wireless Headphones",
+                price: 189.99,
+            },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                name: "Smart Home Starter Kit",
+                price: 139.99,
+            },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop",
+                name: "Cosy Deluxe Candle",
+                price: 18.99,
+            },
+        ],
         tech: [
-            { image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop", name: "Wireless Headphones Pro Max", price: 199.99 },
-            { image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop", name: "Smart Home Hub", price: 129.99 },
-            { image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop", name: "Portable Bluetooth Speaker", price: 59.99 },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                name: "Wireless Headphones Pro Max",
+                price: 199.99,
+            },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                name: "Smart Home Hub",
+                price: 129.99,
+            },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop",
+                name: "Portable Bluetooth Speaker",
+                price: 59.99,
+            },
         ],
         golf: [
-            { image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800&auto=format&fit=crop", name: "Premium Golf Balls (12 pack)", price: 34.99 },
-            { image: "https://images.unsplash.com/photo-1535139262971-d2d102b0fb12?q=80&w=800&auto=format&fit=crop", name: "Golf Swing Trainer Aid", price: 44.99 },
-            { image: "https://images.unsplash.com/photo-1521417531060-7c277f2cc6a3?q=80&w=800&auto=format&fit=crop", name: "Golf Glove Leather", price: 19.99 },
-        ],
-        favourites: [
-            { image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop", name: "Cozy Scented Candle", price: 14.99 },
-            { image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop", name: "Hardcover Notebook", price: 12.99 },
-            { image: "https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?q=80&w=800&auto=format&fit=crop", name: "Ceramic Mug", price: 9.99 },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800&auto=format&fit=crop",
+                name: "Premium Golf Balls (12 pack)",
+                price: 34.99,
+            },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1535139262971-d2d102b0fb12?q=80&w=800&auto=format&fit=crop",
+                name: "Golf Swing Trainer Aid",
+                price: 44.99,
+            },
+            {
+                image:
+                    "https://images.unsplash.com/photo-1521417531060-7c277f2cc6a3?q=80&w=800&auto=format&fit=crop",
+                name: "Golf Glove Leather",
+                price: 19.99,
+            },
         ],
     };
 
@@ -82,11 +127,38 @@ export const ComponentsPage: React.FC = () => {
                         onTabChange={setActiveTab}
                     />
                     <div className="mt-8">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {productsByTab[activeTab]?.map((p, idx) => (
-                                <ProductCard key={`${activeTab}-${idx}`} image={p.image} name={p.name} price={p.price} />
-                            ))}
-                        </div>
+                        {activeTab === "ai-picks" ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {productsByTab[activeTab]?.map((p, idx) => (
+                                    <ProductCard
+                                        key={`${activeTab}-${idx}`}
+                                        image={p.image}
+                                        name={p.name}
+                                        price={p.price}
+                                        className="border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
+                                        badge={
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-sm">
+                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M12 2l2.39 5.26L20 8.27l-4 3.89L17.18 18 12 15.45 6.82 18 8 12.16 4 8.27l5.61-1.01L12 2z" />
+                                                </svg>
+                                                AI pick
+                                            </span>
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {productsByTab[activeTab]?.map((p, idx) => (
+                                    <ProductCard
+                                        key={`${activeTab}-${idx}`}
+                                        image={p.image}
+                                        name={p.name}
+                                        price={p.price}
+                                    />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -204,14 +276,25 @@ export const ComponentsPage: React.FC = () => {
 
                 {/* Multi Select Buttons (below dropdowns) */}
                 <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
-                    <Heading level={2} className="mb-6">
-                        Multi Select Buttons
-                    </Heading>
+                    <div className="flex items-center justify-between mb-6">
+                        <Heading level={2}>
+                            Multi Select Buttons
+                        </Heading>
+                        <Button
+                            variant="ghost"
+                            size="small"
+                            onClick={() => setSelectedLabels([])}
+                            disabled={selectedLabels.length === 0}
+                            className="text-[#5E57AC]"
+                        >
+                            Deselect all
+                        </Button>
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {["Tech", "Golf", "Outdoors", "Home", "Books", "Fashion", "Beauty", "Toys"].map((label) => (
                             <label
                                 key={label}
-                                className={`group flex items-center justify-center px-5 py-2 rounded-full cursor-pointer transition-all duration-200 transform hover:scale-105 ${
+                                className={`group flex items-center justify-center px-7 py-3 rounded-full cursor-pointer transition-all duration-200 transform hover:scale-105 ${
                                     selectedLabels.includes(label)
                                         ? "bg-[#5E57AC] text-white border-2 border-[#5E57AC] shadow-md"
                                         : "bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-100"

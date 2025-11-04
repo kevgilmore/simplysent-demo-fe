@@ -6,6 +6,7 @@ interface ProductCardProps {
     name: string;
     price: number;
     className?: string;
+    badge?: React.ReactNode;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -13,6 +14,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     name,
     price,
     className = "",
+    badge,
 }) => {
     const [isGood, setIsGood] = useState(false);
     const [isBad, setIsBad] = useState(false);
@@ -41,6 +43,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div
             className={`bg-white rounded-3xl shadow-lg overflow-hidden relative ${className}`}
         >
+            {badge && (
+                <div className="absolute top-3 left-3 z-10">
+                    {badge}
+                </div>
+            )}
             {/* Favorite Button - Top Right */}
             <button
                 onClick={handleFavoriteClick}
@@ -113,6 +120,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </button>
                 </div>
             </div>
+
         </div>
     );
 };
