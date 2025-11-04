@@ -10,6 +10,7 @@ interface ProductCardProps {
     isFavorite?: boolean;
     onFavoriteToggle?: () => void;
     hideActions?: boolean;
+    compact?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -21,6 +22,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     isFavorite,
     onFavoriteToggle,
     hideActions = false,
+    compact = false,
 }) => {
     const [isGood, setIsGood] = useState(false);
     const [isBad, setIsBad] = useState(false);
@@ -54,17 +56,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
     return (
         <div
-            className={`bg-white rounded-3xl shadow-lg overflow-hidden relative ${className}`}
+            className={`bg-white rounded-3xl overflow-hidden relative flex flex-col ${className} ${
+                compact ? "shadow-md" : "shadow-lg"
+            }`}
+            style={compact ? { aspectRatio: "10 / 16" } : undefined}
         >
             {badge && <div className="absolute top-3 left-3 z-10">{badge}</div>}
             {/* Favorite Button - Top Right */}
             <button
                 onClick={handleFavoriteClick}
-                className="absolute top-4 right-4 z-10 bg-white rounded-full p-3 shadow-md transition-all duration-200 hover:scale-110"
+                className={`absolute z-10 bg-white rounded-full shadow-md transition-all duration-200 hover:scale-110 ${
+                    compact ? "top-2 right-2 p-2.5" : "top-4 right-4 p-3"
+                }`}
                 aria-label="Add to favorites"
             >
                 <Heart
-                    size={20}
+                    size={compact ? 22 : 20}
                     className={`transition-colors duration-200 ${
                         favoriteActive
                             ? "fill-red-500 text-red-500"
@@ -74,7 +81,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </button>
 
             {/* Product Image */}
-            <div className="w-full aspect-square bg-gray-100 overflow-hidden">
+            <div
+                className="w-full bg-gray-100 overflow-hidden flex-shrink-0"
+                style={
+                    compact
+                        ? { aspectRatio: "10 / 10" }
+                        : { aspectRatio: "1 / 1" }
+                }
+            >
                 <img
                     src={image}
                     alt={name}
@@ -83,23 +97,38 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             </div>
 
             {/* Product Info */}
-            <div className="p-5">
+            <div
+                className={`flex flex-col flex-grow ${compact ? "p-3" : "p-5"}`}
+            >
                 <h3
-                    className="text-lg font-semibold text-gray-800 mb-2"
+                    className={`font-semibold text-gray-800 mb-1 ${
+                        compact
+                            ? "text-base leading-tight line-clamp-2"
+                            : "text-lg mb-2"
+                    }`}
                     title={name}
+                    style={compact ? { minHeight: "40px" } : undefined}
                 >
-                    {truncateName(name)}
+                    {compact ? name : truncateName(name, 20)}
                 </h3>
-                <p className="text-2xl font-bold text-[#5E57AC]">
+                <p
+                    className={`font-bold text-[#5E57AC] ${
+                        compact ? "text-xl mb-auto" : "text-2xl"
+                    }`}
+                >
                     £{price.toFixed(2)}
                 </p>
 
                 {/* Action Buttons */}
                 {!hideActions && (
-                    <div className="flex gap-3 mt-4">
+                    <div
+                        className={`flex gap-2 ${compact ? "mt-3" : "gap-3 mt-4"}`}
+                    >
                         <button
                             onClick={handleGoodClick}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
+                            className={`flex-1 flex items-center justify-center rounded-full font-medium transition-all duration-200 hover:scale-105 ${
+                                compact ? "gap-1 py-3 px-2" : "gap-2 py-3 px-5"
+                            } ${
                                 isGood
                                     ? "bg-green-200 text-green-800"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -107,15 +136,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             aria-label="Mark as good"
                         >
                             <ThumbsUp
-                                size={18}
+                                size={compact ? 22 : 18}
                                 className={isGood ? "fill-green-800" : ""}
                             />
-                            <span className="text-sm">Good</span>
+                            {!compact && <span className="text-sm">Good</span>}
                         </button>
 
                         <button
                             onClick={handleBadClick}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
+                            className={`flex-1 flex items-center justify-center rounded-full font-medium transition-all duration-200 hover:scale-105 ${
+                                compact ? "gap-1 py-3 px-2" : "gap-2 py-3 px-5"
+                            } ${
                                 isBad
                                     ? "bg-red-200 text-red-800"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -123,10 +154,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             aria-label="Mark as bad"
                         >
                             <ThumbsDown
-                                size={18}
+                                size={compact ? 22 : 18}
                                 className={isBad ? "fill-red-800" : ""}
                             />
-                            <span className="text-sm">Bad</span>
+                            {!compact && <span className="text-sm">Bad</span>}
                         </button>
                     </div>
                 )}
