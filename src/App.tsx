@@ -18,6 +18,7 @@ import { BlogPost1 } from "./components/BlogPost1";
 import { BlogPost2 } from "./components/BlogPost2";
 import { BlogPost3 } from "./components/BlogPost3";
 import { ComponentsPage } from "./components/ComponentsPage";
+import { ImprovedGiftResultsPage } from "./components/ImprovedGiftResultsPage";
 import { AnimatePresence } from "framer-motion";
 import { ErrorPage } from "./components/ErrorPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -41,7 +42,12 @@ function addGoogleFonts() {
     html {
       font-family: 'Comfortaa', cursive;
       font-weight: 500;
+      /* Prevent layout shift when content height changes */
+      scrollbar-gutter: stable both-edges;
+      overflow-y: scroll;
+      overflow-x: hidden;
     }
+    body { overflow-x: hidden; }
     h1, h2, h3, h4, h5, h6, .font-heading {
       font-family: 'Baloo 2', cursive;
       font-weight: 600;
@@ -138,6 +144,7 @@ const router = createBrowserRouter([
             { path: "fathers-day-guide", element: <BlogPost2 /> },
             { path: "budget-gifts-guide", element: <BlogPost3 /> },
             { path: "components", element: <ComponentsPage /> },
+            { path: "new", element: <ImprovedGiftResultsPage /> },
             { path: "error", element: <ErrorPage /> },
             { path: ":recId", element: <SharedRecommendationPage /> }, // Add at end to avoid conflicts
         ],

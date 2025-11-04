@@ -7,6 +7,8 @@ interface ProductCardProps {
     price: number;
     className?: string;
     badge?: React.ReactNode;
+    isFavorite?: boolean;
+    onFavoriteToggle?: () => void;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -15,10 +17,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     price,
     className = "",
     badge,
+    isFavorite,
+    onFavoriteToggle,
 }) => {
     const [isGood, setIsGood] = useState(false);
     const [isBad, setIsBad] = useState(false);
-    const [isFavorite, setIsFavorite] = useState(false);
+    const [isFavoriteInternal, setIsFavoriteInternal] = useState(false);
 
     const handleGoodClick = () => {
         setIsGood(!isGood);
@@ -30,8 +34,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         if (isGood) setIsGood(false);
     };
 
+    const favoriteActive = typeof isFavorite === 'boolean' ? isFavorite : isFavoriteInternal;
+
     const handleFavoriteClick = () => {
-        setIsFavorite(!isFavorite);
+        if (onFavoriteToggle) {
+            onFavoriteToggle();
+        } else {
+            setIsFavoriteInternal(!favoriteActive);
+        }
     };
 
     const truncateName = (text: string, maxLength = 20) => {
@@ -57,7 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <Heart
                     size={20}
                     className={`transition-colors duration-200 ${
-                        isFavorite
+                        favoriteActive
                             ? "fill-red-500 text-red-500"
                             : "text-gray-400"
                     }`}
