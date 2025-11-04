@@ -101,14 +101,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             onClick={handleGoodClick}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
                                 isGood
-                                    ? "bg-[#5E57AC] text-white"
+                                    ? "bg-green-200 text-green-800"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                             }`}
                             aria-label="Mark as good"
                         >
                             <ThumbsUp
                                 size={18}
-                                className={isGood ? "fill-white" : ""}
+                                className={isGood ? "fill-green-800" : ""}
                             />
                             <span className="text-sm">Good</span>
                         </button>
@@ -117,14 +117,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             onClick={handleBadClick}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-full font-medium transition-all duration-200 hover:scale-105 ${
                                 isBad
-                                    ? "bg-red-500 text-white"
+                                    ? "bg-red-200 text-red-800"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                             }`}
                             aria-label="Mark as bad"
                         >
                             <ThumbsDown
                                 size={18}
-                                className={isBad ? "fill-white" : ""}
+                                className={isBad ? "fill-red-800" : ""}
                             />
                             <span className="text-sm">Bad</span>
                         </button>

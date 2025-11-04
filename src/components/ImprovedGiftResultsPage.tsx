@@ -13,7 +13,9 @@ import { RangeSlider } from "./ui/RangeSlider";
 export const ImprovedGiftResultsPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState("ai-picks");
     const [pageTab, setPageTab] = useState("gifts");
-    const [favourites, setFavourites] = useState<Set<string>>(new Set());
+    const [favourites, setFavourites] = useState<Set<string>>(
+        new Set(["ai-1", "tech-2"]),
+    );
     const [recipient, setRecipient] = useState("Dad");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -216,7 +218,7 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="inline-flex items-center gap-2 bg-white rounded-full border-2 border-gray-200 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="inline-flex items-center gap-2 bg-white rounded-full border-2 border-gray-200 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                             {recipient}
                             <svg
@@ -235,14 +237,14 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                         </button>
 
                         {isDropdownOpen && (
-                            <div className="absolute right-0 mt-2 bg-white rounded-2xl border-2 border-gray-200 shadow-lg overflow-hidden z-50 min-w-[120px]">
+                            <div className="absolute right-0 mt-2 bg-white rounded-3xl z-50 p-1">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setRecipient("Dad");
                                         setIsDropdownOpen(false);
                                     }}
-                                    className={`w-full px-5 py-3 text-left font-semibold transition-colors ${
+                                    className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
                                         recipient === "Dad"
                                             ? "bg-gray-600 text-white"
                                             : "text-gray-700 hover:bg-gray-100"
@@ -256,7 +258,7 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                                         setRecipient("Add +");
                                         setIsDropdownOpen(false);
                                     }}
-                                    className={`w-full px-5 py-3 text-left font-semibold transition-colors ${
+                                    className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
                                         recipient === "Add +"
                                             ? "bg-gray-600 text-white"
                                             : "text-gray-700 hover:bg-gray-100"
@@ -323,7 +325,7 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                             size="large"
                             onClick={() => setIsOptionsOpen(true)}
                         >
-                            Change options
+                            Refine
                         </Button>
                     </div>
                 )}
@@ -387,33 +389,46 @@ export const ImprovedGiftResultsPage: React.FC = () => {
             {/* Backdrop blur */}
             {isOptionsOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                    className="fixed top-0 left-0 right-0 bg-black/50 backdrop-blur-sm z-40"
+                    style={{ bottom: 0, height: "100dvh" }}
                     onClick={() => setIsOptionsOpen(false)}
                 ></div>
             )}
 
             {/* Slide-in Options Panel */}
             <div
-                className={`fixed inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl z-50 ${
+                className={`fixed inset-x-0 bg-white rounded-t-3xl shadow-2xl z-50 ${
                     isDragging
                         ? ""
                         : "transition-transform duration-300 ease-out"
                 } ${isOptionsOpen ? "translate-y-0" : "translate-y-full"}`}
                 style={{
                     height: "75vh",
+                    bottom: "0",
+                    paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
                     transform: isDragging
                         ? `translateY(${Math.max(0, dragCurrentY - dragStartY)}px)`
                         : undefined,
                 }}
             >
-                <div className="h-full overflow-y-auto p-6 pb-8">
+                <div
+                    className="h-full overflow-y-auto p-6"
+                    style={{
+                        paddingBottom:
+                            "calc(env(safe-area-inset-bottom) + 80px)",
+                    }}
+                >
                     {/* Handle bar */}
                     <div
-                        className="flex justify-center mb-6 cursor-grab active:cursor-grabbing"
-                        onMouseDown={(e) => handleDragStart(e.clientY)}
-                        onTouchStart={(e) =>
-                            handleDragStart(e.touches[0].clientY)
-                        }
+                        className="flex justify-center mb-6 cursor-grab active:cursor-grabbing py-2"
+                        onMouseDown={(e) => {
+                            e.stopPropagation();
+                            handleDragStart(e.clientY);
+                        }}
+                        onTouchStart={(e) => {
+                            e.stopPropagation();
+                            handleDragStart(e.touches[0].clientY);
+                        }}
                     >
                         <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
                     </div>
@@ -458,12 +473,16 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                     </div>
 
                     {/* Apply Button */}
-                    <div className="mt-6">
+                    <div className="mt-6 mb-4">
                         <button
                             type="button"
-                            className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
-                            onClick={() => setIsOptionsOpen(false)}
+                            className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOptionsOpen(false);
+                            }}
                             onTouchEnd={(e) => {
+                                e.stopPropagation();
                                 e.preventDefault();
                                 setIsOptionsOpen(false);
                             }}
