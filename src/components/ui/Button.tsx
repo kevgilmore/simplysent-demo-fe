@@ -21,13 +21,13 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   type = 'button'
 }) => {
-  const baseStyles = 'font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation';
 
   const variantStyles = {
-    primary: 'bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg disabled:hover:bg-[#5E57AC]',
-    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-300/50 disabled:hover:bg-gray-200',
-    outline: 'bg-transparent border-2 border-[#5E57AC] text-[#5E57AC] hover:bg-[#5E57AC] hover:text-white focus:ring-[#5E57AC]/30 disabled:hover:bg-transparent disabled:hover:text-[#5E57AC]',
-    ghost: 'bg-transparent text-[#5E57AC] hover:bg-[#5E57AC]/10 focus:ring-[#5E57AC]/20 disabled:hover:bg-transparent'
+    primary: 'bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:shadow disabled:hover:bg-[#5E57AC]',
+    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 active:bg-gray-300 active:opacity-95 focus:ring-gray-300/50 disabled:hover:bg-gray-200',
+    outline: 'bg-transparent border-2 border-[#5E57AC] text-[#5E57AC] hover:bg-[#5E57AC] hover:text-white active:bg-[#5E57AC] active:text-white active:opacity-95 focus:ring-[#5E57AC]/30 disabled:hover:bg-transparent disabled:hover:text-[#5E57AC]',
+    ghost: 'bg-transparent text-[#5E57AC] hover:bg-[#5E57AC]/10 active:bg-[#5E57AC]/20 active:opacity-95 focus:ring-[#5E57AC]/20 disabled:hover:bg-transparent'
   };
 
   const sizeStyles = {

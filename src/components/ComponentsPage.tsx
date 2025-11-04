@@ -12,9 +12,10 @@ export const ComponentsPage: React.FC = () => {
     const [textValue, setTextValue] = useState("");
     const [emailValue, setEmailValue] = useState("");
     const [dropdownValue, setDropdownValue] = useState("");
+    const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
     const [minBudget, setMinBudget] = useState(50);
     const [maxBudget, setMaxBudget] = useState(300);
-    const [activeTab, setActiveTab] = useState("components");
+    const [activeTab, setActiveTab] = useState("tech");
 
     const dropdownOptions = [
         { value: "option1", label: "Electronics" },
@@ -25,10 +26,36 @@ export const ComponentsPage: React.FC = () => {
     ];
 
     const tabs = [
-        { id: "components", label: "Components" },
-        { id: "design", label: "Design System" },
-        { id: "documentation", label: "Documentation" },
+        { id: "tech", label: "Tech" },
+        { id: "golf", label: "Golf" },
+        { id: "favourites", label: "Favourites" },
     ];
+
+    const productsByTab: Record<string, Array<{ image: string; name: string; price: number }>> = {
+        tech: [
+            { image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop", name: "Wireless Headphones Pro Max", price: 199.99 },
+            { image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop", name: "Smart Home Hub", price: 129.99 },
+            { image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop", name: "Portable Bluetooth Speaker", price: 59.99 },
+        ],
+        golf: [
+            { image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800&auto=format&fit=crop", name: "Premium Golf Balls (12 pack)", price: 34.99 },
+            { image: "https://images.unsplash.com/photo-1535139262971-d2d102b0fb12?q=80&w=800&auto=format&fit=crop", name: "Golf Swing Trainer Aid", price: 44.99 },
+            { image: "https://images.unsplash.com/photo-1521417531060-7c277f2cc6a3?q=80&w=800&auto=format&fit=crop", name: "Golf Glove Leather", price: 19.99 },
+        ],
+        favourites: [
+            { image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop", name: "Cozy Scented Candle", price: 14.99 },
+            { image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop", name: "Hardcover Notebook", price: 12.99 },
+            { image: "https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?q=80&w=800&auto=format&fit=crop", name: "Ceramic Mug", price: 9.99 },
+        ],
+    };
+
+    const toggleLabel = (label: string) => {
+        setSelectedLabels(prev => (
+            prev.includes(label)
+                ? prev.filter(l => l !== label)
+                : [...prev, label]
+        ));
+    };
 
     return (
         <div className="min-h-screen py-8 px-4">
@@ -54,13 +81,12 @@ export const ComponentsPage: React.FC = () => {
                         activeTab={activeTab}
                         onTabChange={setActiveTab}
                     />
-                    <div className="mt-8 p-6 bg-gray-50 rounded-2xl">
-                        <p className="text-gray-700 font-medium">
-                            Active Tab:{" "}
-                            <span className="text-[#5E57AC] font-semibold">
-                                {tabs.find((t) => t.id === activeTab)?.label}
-                            </span>
-                        </p>
+                    <div className="mt-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {productsByTab[activeTab]?.map((p, idx) => (
+                                <ProductCard key={`${activeTab}-${idx}`} image={p.image} name={p.name} price={p.price} />
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -76,30 +102,6 @@ export const ComponentsPage: React.FC = () => {
                         <Heading level={4}>Heading Level 4</Heading>
                         <Heading level={5}>Heading Level 5</Heading>
                         <Heading level={6}>Heading Level 6</Heading>
-                    </div>
-                </div>
-
-                {/* Product Cards Section */}
-                <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
-                    <Heading level={2} className="mb-6">
-                        Product Cards
-                    </Heading>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <ProductCard
-                            image="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop"
-                            name="Wireless Headphones"
-                            price={129.99}
-                        />
-                        <ProductCard
-                            image="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&h=500&fit=crop"
-                            name="Elegant Watch Collection"
-                            price={249.99}
-                        />
-                        <ProductCard
-                            image="https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&h=500&fit=crop"
-                            name="Premium Sunglasses"
-                            price={89.99}
-                        />
                     </div>
                 </div>
 
@@ -200,6 +202,35 @@ export const ComponentsPage: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Multi Select Buttons (below dropdowns) */}
+                <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
+                    <Heading level={2} className="mb-6">
+                        Multi Select Buttons
+                    </Heading>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {["Tech", "Golf", "Outdoors", "Home", "Books", "Fashion", "Beauty", "Toys"].map((label) => (
+                            <label
+                                key={label}
+                                className={`group flex items-center justify-center px-5 py-2 rounded-full cursor-pointer transition-all duration-200 transform hover:scale-105 ${
+                                    selectedLabels.includes(label)
+                                        ? "bg-[#5E57AC] text-white border-2 border-[#5E57AC] shadow-md"
+                                        : "bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-100"
+                                }`}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedLabels.includes(label)}
+                                    onChange={() => toggleLabel(label)}
+                                    className="sr-only"
+                                />
+                                <span className="text-sm font-semibold text-center leading-tight">
+                                    {label}
+                                </span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
+
                 {/* Range Slider Section */}
                 <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
                     <Heading level={2} className="mb-6">
@@ -214,7 +245,7 @@ export const ComponentsPage: React.FC = () => {
                             setMinBudget(min);
                             setMaxBudget(max);
                         }}
-                        label="Select your budget range"
+                        label="Select your budget range (£5 steps)"
                     />
                 </div>
 

@@ -483,8 +483,8 @@ export function GiftRecommenderForm() {
   const updateSliderPosition = (clientX: number, rect: DOMRect) => {
     const newPosition = Math.max(0, Math.min(100, (clientX - rect.left) / rect.width * 100));
     const rawValue = Math.round(newPosition / 100 * 490) + 10; // Scale to 10-500 range
-    // Round to nearest £10 increment
-    const newValue = Math.round(rawValue / 10) * 10;
+    // Round to nearest £5 increment
+    const newValue = Math.round(rawValue / 5) * 5;
     // Ensure minimum value is 10 and max is 500
     const adjustedValue = Math.max(10, Math.min(500, newValue));
     if (isDragging === 'min') {

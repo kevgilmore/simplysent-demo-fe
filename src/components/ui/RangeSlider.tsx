@@ -36,8 +36,10 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
                 0,
                 Math.min(1, (clientX - rect.left) / rect.width),
             );
-            const value = Math.round(min + percentage * (max - min));
-            return value;
+            const raw = Math.round(min + percentage * (max - min));
+            // snap to nearest 5 units
+            const snapped = Math.round(raw / 5) * 5;
+            return Math.max(min, Math.min(max, snapped));
         },
         [min, max],
     );
@@ -128,11 +130,11 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
                 {/* Value Display */}
                 <div className="flex justify-between items-center mb-6">
                     <div className="bg-[#5E57AC] text-white px-5 py-2 rounded-full font-semibold">
-                        ${minValue}
+                        £{minValue}
                     </div>
                     <span className="text-gray-500 font-medium">to</span>
                     <div className="bg-[#5E57AC] text-white px-5 py-2 rounded-full font-semibold">
-                        ${maxValue}
+                        £{maxValue}
                     </div>
                 </div>
 
@@ -159,9 +161,9 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
                         }}
                         onMouseDown={() => handleMouseDown("min")}
                         onTouchStart={() => handleMouseDown("min")}
-                        aria-label={`Minimum value: $${minValue}`}
+                        aria-label={`Minimum value: £${minValue}`}
                     >
-                        <span className="sr-only">Min: ${minValue}</span>
+                        <span className="sr-only">Min: £{minValue}</span>
                     </button>
 
                     {/* Max Handle */}
@@ -173,19 +175,19 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
                         }}
                         onMouseDown={() => handleMouseDown("max")}
                         onTouchStart={() => handleMouseDown("max")}
-                        aria-label={`Maximum value: $${maxValue}`}
+                        aria-label={`Maximum value: £${maxValue}`}
                     >
-                        <span className="sr-only">Max: ${maxValue}</span>
+                        <span className="sr-only">Max: £{maxValue}</span>
                     </button>
                 </div>
 
                 {/* Min/Max Labels */}
                 <div className="flex justify-between items-center mt-3 px-1">
                     <span className="text-sm text-gray-500 font-medium">
-                        ${min}
+                        £{min}
                     </span>
                     <span className="text-sm text-gray-500 font-medium">
-                        ${max}
+                        £{max}
                     </span>
                 </div>
             </div>

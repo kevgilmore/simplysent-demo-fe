@@ -32,7 +32,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         setIsFavorite(!isFavorite);
     };
 
-    const truncateName = (text: string, maxLength = 15) => {
+    const truncateName = (text: string, maxLength = 20) => {
         if (text.length <= maxLength) return text;
         return text.slice(0, maxLength) + "...";
     };
@@ -75,7 +75,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     {truncateName(name)}
                 </h3>
                 <p className="text-2xl font-bold text-[#5E57AC] mb-4">
-                    ${price.toFixed(2)}
+                    £{price.toFixed(2)}
                 </p>
 
                 {/* Action Buttons */}
