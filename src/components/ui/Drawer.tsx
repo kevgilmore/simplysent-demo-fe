@@ -62,11 +62,8 @@ export const Drawer: React.FC<DrawerProps> = ({
             const delta = clientY - startY;
 
             if (delta >= 0) {
-                // Apply rubber band effect for smoother feel
-                const rubberBandFactor = Math.max(0.3, 1 - delta / 1000);
-                const adjustedDelta = delta * rubberBandFactor;
-
-                setDragOffset(adjustedDelta);
+                // Move 1:1 with finger when dragging down (like iOS)
+                setDragOffset(delta);
 
                 // Calculate velocity for momentum
                 if (timeDelta > 0) {
@@ -190,7 +187,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                     willChange: "transform",
                 }}
             >
-                {/* Drag Handle Area */}
+                {/* Drag Handle Area - Large touch target (entire top section) */}
                 <div
                     ref={dragHandleRef}
                     className="flex-shrink-0 cursor-grab active:cursor-grabbing select-none"
@@ -198,6 +195,8 @@ export const Drawer: React.FC<DrawerProps> = ({
                         touchAction: "none",
                         WebkitUserSelect: "none",
                         userSelect: "none",
+                        paddingTop: "16px",
+                        paddingBottom: "16px",
                     }}
                     onMouseDown={(e) => {
                         e.preventDefault();
@@ -208,41 +207,45 @@ export const Drawer: React.FC<DrawerProps> = ({
                         handleDragStart(e.touches[0].clientY);
                     }}
                 >
+                    {/* Grey line centered */}
                     {showHandle && (
-                        <div className="flex justify-center pt-4 pb-2">
+                        <div className="flex justify-center py-3">
                             <div className="w-12 h-1.5 rounded-full bg-gray-300" />
                         </div>
                     )}
-                </div>
 
-                {/* Header with Close Button */}
-                <div className="flex-shrink-0 flex items-start justify-between px-6 pb-4">
-                    {title && (
-                        <h2 className="text-2xl font-bold text-gray-800 pt-2">
-                            {title}
-                        </h2>
-                    )}
-                    <button
-                        onClick={() => {
-                            setIsClosing(true);
-                            setTimeout(() => {
-                                onOpenChange(false);
-                                setIsClosing(false);
-                            }, 200);
-                        }}
-                        className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
-                        aria-label="Close"
-                        style={{
-                            marginLeft: title ? "auto" : "0",
-                        }}
-                    >
-                        <X className="w-6 h-6 text-gray-600" />
-                    </button>
+                    {/* Title and Close button row */}
+                    <div className="flex items-center justify-between px-6 py-2">
+                        {title && (
+                            <h2 className="text-2xl font-bold text-gray-800">
+                                {title}
+                            </h2>
+                        )}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsClosing(true);
+                                setTimeout(() => {
+                                    onOpenChange(false);
+                                    setIsClosing(false);
+                                }, 200);
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                            className="p-2 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0 z-10"
+                            aria-label="Close"
+                            style={{
+                                marginLeft: title ? "auto" : "0",
+                            }}
+                        >
+                            <X className="w-6 h-6 text-gray-600" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content Area - Non-scrollable */}
                 <div
-                    className="flex-1 px-6 pb-6 overflow-hidden"
+                    className="flex-1 overflow-hidden px-6 pb-6"
                     style={{
                         paddingBottom:
                             "calc(env(safe-area-inset-bottom) + 24px)",
