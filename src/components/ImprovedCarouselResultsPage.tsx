@@ -1,10 +1,4 @@
-import React, {
-    useMemo,
-    useState,
-    useRef,
-    useEffect,
-    useCallback,
-} from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,6 +12,8 @@ import { TabMenu } from "./ui/TabMenu";
 import { ProductCard } from "./ui/ProductCard";
 import { Button } from "./ui/Button";
 import { RangeSlider } from "./ui/RangeSlider";
+import { Drawer } from "./ui/Drawer";
+import { AddPersonPage } from "./AddPersonPage";
 
 export const ImprovedCarouselResultsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -30,9 +26,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [minBudget, setMinBudget] = useState(50);
     const [maxBudget, setMaxBudget] = useState(300);
-    const [dragStartY, setDragStartY] = useState(0);
-    const [dragCurrentY, setDragCurrentY] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
+    const [isAddPersonOpen, setIsAddPersonOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const interestOptions = [
@@ -187,65 +181,6 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    const handleDragStart = useCallback((clientY: number) => {
-        setDragStartY(clientY);
-        setDragCurrentY(clientY);
-        setIsDragging(true);
-    }, []);
-
-    const handleDragMove = useCallback(
-        (clientY: number) => {
-            if (isDragging) {
-                const delta = clientY - dragStartY;
-                if (delta > 0) {
-                    setDragCurrentY(clientY);
-                }
-            }
-        },
-        [isDragging, dragStartY],
-    );
-
-    const handleDragEnd = useCallback(() => {
-        if (isDragging) {
-            const delta = dragCurrentY - dragStartY;
-            if (delta > 100) {
-                setIsOptionsOpen(false);
-            }
-            setIsDragging(false);
-            setDragStartY(0);
-            setDragCurrentY(0);
-        }
-    }, [isDragging, dragCurrentY, dragStartY]);
-
-    useEffect(() => {
-        if (isDragging) {
-            const handleMouseMove = (e: MouseEvent) => {
-                e.preventDefault();
-                handleDragMove(e.clientY);
-            };
-            const handleTouchMove = (e: TouchEvent) => {
-                e.preventDefault();
-                handleDragMove(e.touches[0].clientY);
-            };
-            const handleMouseUp = () => handleDragEnd();
-            const handleTouchEnd = () => handleDragEnd();
-
-            document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("touchmove", handleTouchMove, {
-                passive: false,
-            });
-            document.addEventListener("mouseup", handleMouseUp);
-            document.addEventListener("touchend", handleTouchEnd);
-
-            return () => {
-                document.removeEventListener("mousemove", handleMouseMove);
-                document.removeEventListener("touchmove", handleTouchMove);
-                document.removeEventListener("mouseup", handleMouseUp);
-                document.removeEventListener("touchend", handleTouchEnd);
-            };
-        }
-    }, [isDragging, handleDragMove, handleDragEnd]);
-
     return (
         <div className="min-h-[100dvh] py-8 px-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)] overscroll-contain">
             <div className="max-w-7xl mx-auto">
@@ -262,7 +197,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                         <div className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5">
                             <button
                                 type="button"
-                                onClick={() => navigate("/add-person")}
+                                onClick={() => setIsAddPersonOpen(true)}
                                 className="px-3 rounded-full hover:bg-gray-100 transition-colors"
                                 aria-label="Add person"
                             >
@@ -500,55 +435,13 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 )}
             </div>
 
-            {/* Backdrop blur */}
-            {isOptionsOpen && (
-                <div
-                    className="fixed top-0 left-0 right-0 bg-black/50 backdrop-blur-sm z-40"
-                    style={{ bottom: 0, height: "100dvh" }}
-                    onClick={() => setIsOptionsOpen(false)}
-                ></div>
-            )}
-
-            {/* Slide-in Options Panel */}
-            <div
-                className={`fixed inset-x-0 bg-white rounded-t-3xl shadow-2xl z-50 ${
-                    isDragging
-                        ? ""
-                        : "transition-transform duration-300 ease-out"
-                } ${isOptionsOpen ? "translate-y-0" : "translate-y-full"}`}
-                style={{
-                    height: "85vh",
-                    bottom: "0",
-                    paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
-                    transform: isDragging
-                        ? `translateY(${Math.max(0, dragCurrentY - dragStartY)}px)`
-                        : undefined,
-                }}
+            {/* Refine Drawer */}
+            <Drawer
+                open={isOptionsOpen}
+                onOpenChange={setIsOptionsOpen}
+                height="85vh"
             >
-                <div
-                    className="h-full flex flex-col p-6 overflow-hidden"
-                    style={{
-                        paddingBottom:
-                            "calc(env(safe-area-inset-bottom) + 80px)",
-                    }}
-                >
-                    {/* Handle bar */}
-                    <div
-                        className="flex justify-center mb-6 cursor-grab active:cursor-grabbing py-2"
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDragStart(e.clientY);
-                        }}
-                        onTouchStart={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDragStart(e.touches[0].clientY);
-                        }}
-                    >
-                        <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
-                    </div>
-
+                <div className="flex flex-col h-full pb-20">
                     {/* Interests Section */}
                     <div className="mb-8">
                         <h3 className="text-2xl font-bold text-gray-800 mb-4">
@@ -593,21 +486,13 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                         <button
                             type="button"
                             className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsOptionsOpen(false);
-                            }}
-                            onTouchEnd={(e) => {
-                                e.stopPropagation();
-                                e.preventDefault();
-                                setIsOptionsOpen(false);
-                            }}
+                            onClick={() => setIsOptionsOpen(false)}
                         >
                             Apply Changes
                         </button>
                     </div>
                 </div>
-            </div>
+            </Drawer>
 
             {/* Bottom fixed navbar */}
             <div
@@ -650,6 +535,11 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+            {/* Add Person Drawer */}
+            <AddPersonPage
+                open={isAddPersonOpen}
+                onOpenChange={setIsAddPersonOpen}
+            />
         </div>
     );
 };

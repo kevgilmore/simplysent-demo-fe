@@ -20,7 +20,6 @@ import { BlogPost3 } from "./components/BlogPost3";
 import { ComponentsPage } from "./components/ComponentsPage";
 import { ImprovedGiftResultsPage } from "./components/ImprovedGiftResultsPage";
 import { ImprovedCarouselResultsPage } from "./components/ImprovedCarouselResultsPage";
-import { AddPersonPage } from "./components/AddPersonPage";
 import { AnimatePresence } from "framer-motion";
 import { ErrorPage } from "./components/ErrorPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -145,7 +144,6 @@ const router = createBrowserRouter([
             { path: "error", element: <ErrorPage /> },
             { path: "new", element: <ImprovedCarouselResultsPage /> },
             { path: "new-mum", element: <ImprovedCarouselResultsPage /> },
-            { path: "add-person", element: <AddPersonPage /> },
             { path: ":recId", element: <SharedRecommendationPage /> }, // Add at end to avoid conflicts
         ],
     },
