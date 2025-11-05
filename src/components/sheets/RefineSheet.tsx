@@ -11,7 +11,7 @@ import ReactDOM from "react-dom";
  * Usage (already in codebase):
  *   <RefinePage open={isRefineOpen} onOpenChange={setIsRefineOpen} height="70vh" />
  */
-export interface RefinePageProps {
+export interface RefineSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     height?: string; // Optional custom height (e.g. "60vh"). Defaults adapt to viewport.
@@ -32,7 +32,7 @@ function ensurePortalRoot(): HTMLElement {
     return el;
 }
 
-export const RefinePage: React.FC<RefinePageProps> = ({
+export const RefineSheet: React.FC<RefineSheetProps> = ({
     open,
     onOpenChange,
     height,
@@ -174,6 +174,8 @@ const modalCSS = `
 
 .refine-modal-title {
   margin: 0;
+  width: 100%;
+  text-align: center;
   font-size: 1.25rem;
   line-height: 1.2;
   font-weight: 700;
@@ -244,4 +246,4 @@ body.modal-sheet-open {
 }
 `;
 
-export default RefinePage;
+export default RefineSheet;

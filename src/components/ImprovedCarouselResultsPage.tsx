@@ -12,8 +12,8 @@ import { ProductCard } from "./ui_kit/ProductCard";
 import { Button } from "./ui_kit/Button";
 import { RangeSlider } from "./ui_kit/RangeSlider";
 
-import { AddPersonPage } from "./AddPersonPage";
-import { RefinePage } from "./RefinePage";
+import { AddPersonSheet } from "./sheets/AddPersonSheet";
+import { RefineSheet } from "./sheets/RefineSheet";
 
 export const ImprovedCarouselResultsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -186,7 +186,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             {/* Fixed translucent header with notch support */}
             {/* Primary App Navbar (logo + top menu) */}
             <header
-                id="topNavbar"
+                id="topnav"
                 className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50"
                 style={{
                     paddingTop: "env(safe-area-inset-top)",
@@ -204,7 +204,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                     {/* Menu Icons */}
                     <div className="relative" ref={dropdownRef}>
                         <div
-                            id="topNavbarMenu"
+                            id="topnav-menu"
                             className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5 shadow-sm"
                         >
                             <button
@@ -459,7 +459,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 </div>
             </div>
 
-            <RefinePage
+            <RefineSheet
                 open={isRefineOpen}
                 onOpenChange={setIsRefineOpen}
                 height="70vh"
@@ -468,7 +468,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             {/* Floating Section Navigation (Gifts / Favourites / Share) */}
 
             <div
-                id="bottomNav"
+                id="floating-nav"
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
                     isRefineOpen
                         ? "opacity-0 pointer-events-none"
@@ -481,39 +481,45 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 }}
             >
                 <div className="w-full flex justify-center">
-                    <div className="inline-flex items-center bg-white/95 backdrop-blur-lg rounded-full border-2 border-gray-200 p-1 shadow-lg will-change-transform">
+                    <div className="relative inline-flex items-center bg-white/95 backdrop-blur-lg rounded-full border-2 border-gray-200 p-1 shadow-lg overflow-hidden will-change-transform">
+                        <div
+                            className="absolute inset-y-1 left-1 rounded-full transition-transform duration-300 ease-[cubic-bezier(.32,.72,.33,.99)] pointer-events-none"
+                            style={{
+                                width: "calc((100% - 0.5rem) / 3)",
+                                transform: `translateX(${pageTab === "gifts" ? 0 : pageTab === "favourites" ? 100 : 200}%)`,
+                            }}
+                        >
+                            <div className="w-full h-full bg-[#5E57AC] rounded-full shadow-md" />
+                        </div>
                         <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onTouchStart={(e) => e.preventDefault()}
                             onClick={() => setPageTab("gifts")}
-                            className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "gifts" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                            className={`px-5 py-2 w-28 rounded-full font-semibold focus:outline-none focus:ring-0 transition-colors relative z-10 ${pageTab === "gifts" ? "text-white" : "text-gray-700 hover:text-gray-900"}`}
                         >
                             Gifts
                         </button>
                         <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onTouchStart={(e) => e.preventDefault()}
                             onClick={() => setPageTab("favourites")}
-                            className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "favourites" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                            className={`px-5 py-2 w-28 rounded-full font-semibold focus:outline-none focus:ring-0 transition-colors relative z-10 ${pageTab === "favourites" ? "text-white" : "text-gray-700 hover:text-gray-900"}`}
                         >
                             Favourites
                         </button>
                         <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
-                            onTouchStart={(e) => e.preventDefault()}
                             onClick={() => setPageTab("share")}
-                            className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "share" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                            className={`px-5 py-2 w-28 rounded-full font-semibold focus:outline-none focus:ring-0 transition-colors relative z-10 ${pageTab === "share" ? "text-white" : "text-gray-700 hover:text-gray-900"}`}
                         >
                             Share
                         </button>
                     </div>
                 </div>
             </div>
-            {/* Add Person Drawer */}
-            <AddPersonPage
+            {/* Add Person Sheet */}
+            <AddPersonSheet
                 open={isAddPersonOpen}
                 onOpenChange={setIsAddPersonOpen}
             />

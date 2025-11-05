@@ -2,12 +2,12 @@ import React from "react";
 import { Sheet } from "react-modal-sheet";
 import { X } from "lucide-react";
 
-interface AddPersonPageProps {
+interface AddPersonSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-export const AddPersonPage: React.FC<AddPersonPageProps> = ({
+export const AddPersonSheet: React.FC<AddPersonSheetProps> = ({
     open,
     onOpenChange,
 }) => {
@@ -44,13 +44,13 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
             <Sheet isOpen={open} onClose={() => onOpenChange(false)}>
                 <Sheet.Container>
                     <Sheet.Header>
-                        <div className="flex items-center justify-between px-5 py-4">
+                        <div className="px-5 py-4 text-center relative">
                             <h2 className="text-2xl font-bold text-gray-800">
                                 Add Person
                             </h2>
                             <button
                                 onClick={() => onOpenChange(false)}
-                                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                                className="absolute right-5 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-100 transition-colors"
                                 aria-label="Close"
                             >
                                 <X className="w-6 h-6 text-gray-700" />
