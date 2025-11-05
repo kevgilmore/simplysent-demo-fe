@@ -3,3 +3,13 @@
 @import "tailwindcss/utilities";
 
 /* (intentionally left minimal) */
+/* Stabilize layout width to prevent floating nav horizontal shifting when vertical scrollbar appears on desktop */
+html {
+    /* Reserve scrollbar space so content width doesn't change when pages differ in height */
+    scrollbar-gutter: stable both-edges;
+}
+
+body {
+    /* Always show vertical scrollbar space in browsers that ignore scrollbar-gutter */
+    overflow-y: scroll;
+}
