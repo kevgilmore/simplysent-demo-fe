@@ -6,7 +6,7 @@ import {
     faMicrochip,
     faGolfBallTee,
     faUserPlus,
-    faEllipsisVertical,
+    faBars,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "./ui_kit/ProductCard";
 import { Button } from "./ui_kit/Button";
@@ -184,7 +184,9 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
     return (
         <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-gray-50 to-white">
             {/* Fixed translucent header with notch support */}
+            {/* Primary App Navbar (logo + top menu) */}
             <header
+                id="topNavbar"
                 className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50"
                 style={{
                     paddingTop: "env(safe-area-inset-top)",
@@ -201,7 +203,10 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
 
                     {/* Menu Icons */}
                     <div className="relative" ref={dropdownRef}>
-                        <div className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5 shadow-sm">
+                        <div
+                            id="topNavbarMenu"
+                            className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5 shadow-sm"
+                        >
                             <button
                                 type="button"
                                 onClick={() => setIsAddPersonOpen(true)}
@@ -220,7 +225,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                 aria-label="Menu"
                             >
                                 <FontAwesomeIcon
-                                    icon={faEllipsisVertical}
+                                    icon={faBars}
                                     className="w-5 h-5 text-gray-700"
                                 />
                             </button>
@@ -266,9 +271,9 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto">
                     {/* Carousels Section */}
                     {pageTab === "gifts" && (
-                        <div className="space-y-12">
+                        <div className="space-y-6">
                             {/* AI Picks Carousel */}
-                            <div>
+                            <div className="mt-6">
                                 <div className="flex items-center gap-2 mb-4">
                                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
                                         <FontAwesomeIcon
@@ -460,9 +465,10 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 height="70vh"
             />
 
-            {/* Bottom fixed navbar with safe area support */}
+            {/* Floating Section Navigation (Gifts / Favourites / Share) */}
 
             <div
+                id="bottomNav"
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
                     isRefineOpen
                         ? "opacity-0 pointer-events-none"
