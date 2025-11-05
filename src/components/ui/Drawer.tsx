@@ -19,7 +19,12 @@ export const Drawer: React.FC<DrawerProps> = ({
     showHandle = true,
 }) => {
     return (
-        <DrawerPrimitive.Root open={open} onOpenChange={onOpenChange}>
+        <DrawerPrimitive.Root
+            open={open}
+            onOpenChange={onOpenChange}
+            modal={true}
+            shouldScaleBackground={false}
+        >
             <DrawerPrimitive.Portal>
                 <DrawerPrimitive.Overlay
                     className="fixed inset-0 bg-black/40 z-40"
@@ -44,7 +49,13 @@ export const Drawer: React.FC<DrawerProps> = ({
                             </DrawerPrimitive.Title>
                         </div>
                     )}
-                    <div className="overflow-y-auto px-6 pb-6 flex-1">
+                    <div
+                        className="overflow-y-auto px-6 pb-6 flex-1"
+                        style={{
+                            overscrollBehavior: "contain",
+                            WebkitOverflowScrolling: "touch",
+                        }}
+                    >
                         {children}
                     </div>
                 </DrawerPrimitive.Content>
