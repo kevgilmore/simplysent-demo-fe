@@ -11,7 +11,26 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
     onOpenChange,
 }) => {
     return (
-        <Sheet isOpen={open} onClose={() => onOpenChange(false)}>
+        <>
+            {open && (
+                <div
+                    style={{
+                        position: "fixed",
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: "max(140px, calc(env(safe-area-inset-bottom) + 120px))",
+                        // subtle, neutral overlay to mask underlapping content behind Safari toolbar
+                        background:
+                            "linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0.10))",
+                        backdropFilter: "blur(6px)",
+                        WebkitBackdropFilter: "blur(6px)",
+                        pointerEvents: "none",
+                        zIndex: 9980,
+                    }}
+                />
+            )}
+            <Sheet isOpen={open} onClose={() => onOpenChange(false)}>
             <Sheet.Container>
                 <Sheet.Header />
                 <Sheet.Content>
@@ -21,6 +40,7 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                 </Sheet.Content>
             </Sheet.Container>
             <Sheet.Backdrop />
-        </Sheet>
+            </Sheet>
+        </>
     );
 };
