@@ -48,26 +48,25 @@ export const Drawer: React.FC<DrawerProps> = ({
                     open && !isClosing ? "opacity-100" : "opacity-0"
                 }`}
                 style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.4)",
-                    backdropFilter: "blur(8px)",
-                    WebkitBackdropFilter: "blur(8px)",
+                    backgroundColor: "rgba(0, 0, 0, 0.75)",
+                    backdropFilter: "blur(16px)",
+                    WebkitBackdropFilter: "blur(16px)",
                 }}
                 onClick={handleClose}
             />
 
             {/* Drawer */}
             <div
-                className="fixed left-0 right-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl flex flex-col"
+                className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl flex flex-col overflow-hidden"
                 style={{
                     height,
-                    maxHeight: "96vh",
+                    minHeight: height,
+                    maxHeight: "100dvh",
                     transform: isClosing ? "translateY(100%)" : "translateY(0)",
                     transition: isClosing
                         ? "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)"
                         : "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                     paddingBottom: "env(safe-area-inset-bottom)",
-                    marginLeft: "env(safe-area-inset-left)",
-                    marginRight: "env(safe-area-inset-right)",
                 }}
             >
                 {/* Header with close button */}

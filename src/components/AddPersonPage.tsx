@@ -1,5 +1,8 @@
-import React from "react";
-import { Drawer } from "./ui/Drawer";
+import React, { useState } from "react";
+import { Drawer } from "./ui_kit/Drawer";
+import { Dropdown } from "./ui_kit/Dropdown";
+import { TextInput } from "./ui_kit/TextInput";
+import { Button } from "./ui_kit/Button";
 
 interface AddPersonPageProps {
     open: boolean;
@@ -10,11 +13,23 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
     open,
     onOpenChange,
 }) => {
+    const [name, setName] = useState("");
+    const [relationship, setRelationship] = useState("");
+    const [birthday, setBirthday] = useState("");
+
+    const relationshipOptions = [
+        { value: "family", label: "Family" },
+        { value: "friend", label: "Friend" },
+        { value: "colleague", label: "Colleague" },
+        { value: "partner", label: "Partner" },
+        { value: "other", label: "Other" },
+    ];
+
     return (
         <Drawer
             open={open}
             onOpenChange={onOpenChange}
-            height="85vh"
+            height="90vh"
             title="Add Person"
         >
             <div className="flex flex-col h-full overflow-y-auto">
@@ -22,31 +37,22 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                     Add a new person to your gift list
                 </p>
 
-                {/* Example form fields */}
+                {/* Form fields */}
                 <div className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Name
-                        </label>
-                        <input
-                            type="text"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E57AC]"
-                            placeholder="Enter name"
-                        />
-                    </div>
+                    <TextInput
+                        label="Name"
+                        placeholder="Enter name"
+                        value={name}
+                        onChange={setName}
+                    />
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Relationship
-                        </label>
-                        <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E57AC]">
-                            <option>Select relationship</option>
-                            <option>Family</option>
-                            <option>Friend</option>
-                            <option>Colleague</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
+                    <Dropdown
+                        label="Relationship"
+                        placeholder="Select relationship"
+                        value={relationship}
+                        options={relationshipOptions}
+                        onChange={setRelationship}
+                    />
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -54,17 +60,29 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                         </label>
                         <input
                             type="date"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5E57AC]"
+                            value={birthday}
+                            onChange={(e) => setBirthday(e.target.value)}
+                            className="w-full px-6 py-4 border-2 border-gray-200 rounded-full focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/20 focus:border-[#5E57AC] transition-all duration-200"
                         />
                     </div>
 
                     <div className="pt-4">
-                        <button
-                            type="button"
-                            className="w-full px-6 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg"
+                        <Button
+                            fullWidth
+                            variant="primary"
+                            size="large"
+                            onClick={() => {
+                                // Handle add person logic here
+                                console.log({
+                                    name,
+                                    relationship,
+                                    birthday,
+                                });
+                                onOpenChange(false);
+                            }}
                         >
                             Add Person
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Heading } from "./ui/Heading";
-import { ProductCard } from "./ui/ProductCard";
-import { TextInput } from "./ui/TextInput";
-import { Dropdown } from "./ui/Dropdown";
-import { RangeSlider } from "./ui/RangeSlider";
-import { Button } from "./ui/Button";
-import { TabMenu } from "./ui/TabMenu";
+import { Heading } from "./ui_kit/Heading";
+import { ProductCard } from "./ui_kit/ProductCard";
+import { TextInput } from "./ui_kit/TextInput";
+import { Dropdown } from "./ui_kit/Dropdown";
+import { RangeSlider } from "./ui_kit/RangeSlider";
+import { Button } from "./ui_kit/Button";
+import { TabMenu } from "./ui_kit/TabMenu";
 
 export const ComponentsPage: React.FC = () => {
     // State for interactive components
@@ -31,63 +31,57 @@ export const ComponentsPage: React.FC = () => {
         { id: "golf", label: "Golf" },
     ];
 
-    const productsByTab: Record<string, Array<{ image: string; name: string; price: number }>> = {
+    const productsByTab: Record<
+        string,
+        Array<{ image: string; name: string; price: number }>
+    > = {
         "ai-picks": [
             {
-                image:
-                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
                 name: "Top-Rated Wireless Headphones",
                 price: 189.99,
             },
             {
-                image:
-                    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
                 name: "Smart Home Starter Kit",
                 price: 139.99,
             },
             {
-                image:
-                    "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop",
                 name: "Cosy Deluxe Candle",
                 price: 18.99,
             },
         ],
         tech: [
             {
-                image:
-                    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
                 name: "Wireless Headphones Pro Max",
                 price: 199.99,
             },
             {
-                image:
-                    "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
                 name: "Smart Home Hub",
                 price: 129.99,
             },
             {
-                image:
-                    "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop",
                 name: "Portable Bluetooth Speaker",
                 price: 59.99,
             },
         ],
         golf: [
             {
-                image:
-                    "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800&auto=format&fit=crop",
                 name: "Premium Golf Balls (12 pack)",
                 price: 34.99,
             },
             {
-                image:
-                    "https://images.unsplash.com/photo-1535139262971-d2d102b0fb12?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1535139262971-d2d102b0fb12?q=80&w=800&auto=format&fit=crop",
                 name: "Golf Swing Trainer Aid",
                 price: 44.99,
             },
             {
-                image:
-                    "https://images.unsplash.com/photo-1521417531060-7c277f2cc6a3?q=80&w=800&auto=format&fit=crop",
+                image: "https://images.unsplash.com/photo-1521417531060-7c277f2cc6a3?q=80&w=800&auto=format&fit=crop",
                 name: "Golf Glove Leather",
                 price: 19.99,
             },
@@ -95,11 +89,11 @@ export const ComponentsPage: React.FC = () => {
     };
 
     const toggleLabel = (label: string) => {
-        setSelectedLabels(prev => (
+        setSelectedLabels((prev) =>
             prev.includes(label)
-                ? prev.filter(l => l !== label)
-                : [...prev, label]
-        ));
+                ? prev.filter((l) => l !== label)
+                : [...prev, label],
+        );
     };
 
     return (
@@ -138,7 +132,12 @@ export const ComponentsPage: React.FC = () => {
                                         className="border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
                                         badge={
                                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-sm">
-                                                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                                                <svg
+                                                    width="10"
+                                                    height="10"
+                                                    viewBox="0 0 24 24"
+                                                    fill="currentColor"
+                                                >
                                                     <path d="M12 2l2.39 5.26L20 8.27l-4 3.89L17.18 18 12 15.45 6.82 18 8 12.16 4 8.27l5.61-1.01L12 2z" />
                                                 </svg>
                                                 AI pick
@@ -277,9 +276,7 @@ export const ComponentsPage: React.FC = () => {
                 {/* Multi Select Buttons (below dropdowns) */}
                 <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
                     <div className="flex items-center justify-between mb-6">
-                        <Heading level={2}>
-                            Multi Select Buttons
-                        </Heading>
+                        <Heading level={2}>Multi Select Buttons</Heading>
                         <Button
                             variant="ghost"
                             size="small"
@@ -291,7 +288,16 @@ export const ComponentsPage: React.FC = () => {
                         </Button>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {["Tech", "Golf", "Outdoors", "Home", "Books", "Fashion", "Beauty", "Toys"].map((label) => (
+                        {[
+                            "Tech",
+                            "Golf",
+                            "Outdoors",
+                            "Home",
+                            "Books",
+                            "Fashion",
+                            "Beauty",
+                            "Toys",
+                        ].map((label) => (
                             <label
                                 key={label}
                                 className={`group flex items-center justify-center px-7 py-3 rounded-full cursor-pointer transition-all duration-200 transform hover:scale-105 ${

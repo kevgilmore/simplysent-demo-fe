@@ -6,12 +6,12 @@ import {
     faMicrochip,
     faGolfBallTee,
     faUserPlus,
-    faList,
+    faEllipsisVertical,
 } from "@fortawesome/free-solid-svg-icons";
-import { ProductCard } from "./ui/ProductCard";
-import { Button } from "./ui/Button";
-import { RangeSlider } from "./ui/RangeSlider";
-import { Drawer } from "./ui/Drawer";
+import { ProductCard } from "./ui_kit/ProductCard";
+import { Button } from "./ui_kit/Button";
+import { RangeSlider } from "./ui_kit/RangeSlider";
+import { Drawer } from "./ui_kit/Drawer";
 import { AddPersonPage } from "./AddPersonPage";
 
 export const ImprovedCarouselResultsPage: React.FC = () => {
@@ -204,23 +204,23 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsAddPersonOpen(true)}
-                                className="px-3 rounded-full hover:bg-gray-100 transition-colors"
+                                className="px-3 py-2 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center"
                                 aria-label="Add person"
                             >
                                 <FontAwesomeIcon
                                     icon={faUserPlus}
-                                    className="w-5 h-5 text-gray-700 my-1"
+                                    className="w-5 h-5 text-gray-700"
                                 />
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="px-3 rounded-full hover:bg-gray-100 transition-colors"
+                                className="px-3 py-2 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center"
                                 aria-label="Menu"
                             >
                                 <FontAwesomeIcon
-                                    icon={faList}
-                                    className="w-5 h-5 text-gray-700 my-1"
+                                    icon={faEllipsisVertical}
+                                    className="w-5 h-5 text-gray-700"
                                 />
                             </button>
                         </div>
