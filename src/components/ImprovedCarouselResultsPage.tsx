@@ -8,7 +8,6 @@ import {
     faUserPlus,
     faList,
 } from "@fortawesome/free-solid-svg-icons";
-import { TabMenu } from "./ui/TabMenu";
 import { ProductCard } from "./ui/ProductCard";
 import { Button } from "./ui/Button";
 import { RangeSlider } from "./ui/RangeSlider";
@@ -182,19 +181,26 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
     }, []);
 
     return (
-        <div className="min-h-[100dvh] px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)] overscroll-contain">
-            <div className="max-w-7xl mx-auto">
-                {/* Logo and Recipient Selector */}
-                <div className="flex justify-between items-center mb-6">
+        <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-gray-50 to-white">
+            {/* Fixed translucent header with notch support */}
+            <header
+                className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50"
+                style={{
+                    paddingTop: "env(safe-area-inset-top)",
+                    paddingLeft: "env(safe-area-inset-left)",
+                    paddingRight: "env(safe-area-inset-right)",
+                }}
+            >
+                <div className="px-4 py-3 flex justify-between items-center">
                     <img
                         src="/logo.png"
                         alt="SimplySent"
-                        className="h-12 w-auto"
+                        className="h-10 w-auto"
                     />
 
                     {/* Menu Icons */}
                     <div className="relative" ref={dropdownRef}>
-                        <div className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5">
+                        <div className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5 shadow-sm">
                             <button
                                 type="button"
                                 onClick={() => setIsAddPersonOpen(true)}
@@ -245,194 +251,206 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                         )}
                     </div>
                 </div>
+            </header>
 
-                {/* Carousels Section */}
-                {pageTab === "gifts" && (
-                    <div className="space-y-12">
-                        {/* AI Picks Carousel */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                                    <FontAwesomeIcon
-                                        icon={faStar}
-                                        className="text-white text-sm"
-                                    />
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    AI Picks
-                                </h2>
-                            </div>
-                            <div className="overflow-x-auto no-scrollbar">
-                                <div className="flex gap-3 pb-4">
-                                    {productsByTab["ai-picks"]?.map((p) => (
-                                        <div
-                                            key={p.id}
-                                            className="flex-shrink-0 w-[280px]"
-                                        >
-                                            <ProductCard
-                                                image={p.image}
-                                                name={p.name}
-                                                price={p.price}
-                                                compact
-                                                className="border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
-                                                isFavorite={favourites.has(
-                                                    p.id,
-                                                )}
-                                                onFavoriteToggle={() =>
-                                                    toggleFavourite(p.id)
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Tech Carousel */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
-                                    <FontAwesomeIcon
-                                        icon={faMicrochip}
-                                        className="text-white text-sm"
-                                    />
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    Tech
-                                </h2>
-                            </div>
-                            <div className="overflow-x-auto no-scrollbar">
-                                <div className="flex gap-3 pb-4">
-                                    {productsByTab["tech"]?.map((p) => (
-                                        <div
-                                            key={p.id}
-                                            className="flex-shrink-0 w-[280px]"
-                                        >
-                                            <ProductCard
-                                                image={p.image}
-                                                name={p.name}
-                                                price={p.price}
-                                                compact
-                                                isFavorite={favourites.has(
-                                                    p.id,
-                                                )}
-                                                onFavoriteToggle={() =>
-                                                    toggleFavourite(p.id)
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Golf Carousel */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-md">
-                                    <FontAwesomeIcon
-                                        icon={faGolfBallTee}
-                                        className="text-white text-sm"
-                                    />
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    Golf
-                                </h2>
-                            </div>
-                            <div className="overflow-x-auto no-scrollbar">
-                                <div className="flex gap-3 pb-4">
-                                    {productsByTab["golf"]?.map((p) => (
-                                        <div
-                                            key={p.id}
-                                            className="flex-shrink-0 w-[280px]"
-                                        >
-                                            <ProductCard
-                                                image={p.image}
-                                                name={p.name}
-                                                price={p.price}
-                                                compact
-                                                isFavorite={favourites.has(
-                                                    p.id,
-                                                )}
-                                                onFavoriteToggle={() =>
-                                                    toggleFavourite(p.id)
-                                                }
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {pageTab === "gifts" && (
-                    <div className="mt-8">
-                        <Button
-                            fullWidth
-                            variant="primary"
-                            size="large"
-                            onClick={() => setIsOptionsOpen(true)}
-                        >
-                            Refine
-                        </Button>
-                    </div>
-                )}
-
-                {pageTab === "favourites" && (
-                    <div>
-                        {Array.from(favourites).length === 0 ? (
-                            <p className="text-center text-gray-600">
-                                No favourites yet. Tap the heart on any product
-                                to add it here.
-                            </p>
-                        ) : (
-                            <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                                {allProducts
-                                    .filter((p) => favourites.has(p.id))
-                                    .map((p) => (
-                                        <ProductCard
-                                            key={p.id}
-                                            image={p.image}
-                                            name={p.name}
-                                            price={p.price}
-                                            isFavorite={true}
-                                            onFavoriteToggle={() =>
-                                                toggleFavourite(p.id)
-                                            }
-                                            hideActions={true}
+            {/* Main content with safe top padding for header */}
+            <div
+                className="px-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)]"
+                style={{
+                    paddingTop: "calc(env(safe-area-inset-top) + 70px)",
+                    paddingLeft: "max(1rem, env(safe-area-inset-left))",
+                    paddingRight: "max(1rem, env(safe-area-inset-right))",
+                }}
+            >
+                <div className="max-w-7xl mx-auto">
+                    {/* Carousels Section */}
+                    {pageTab === "gifts" && (
+                        <div className="space-y-12">
+                            {/* AI Picks Carousel */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
+                                        <FontAwesomeIcon
+                                            icon={faStar}
+                                            className="text-white text-sm"
                                         />
-                                    ))}
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-800">
+                                        AI Picks
+                                    </h2>
+                                </div>
+                                <div className="overflow-x-auto no-scrollbar">
+                                    <div className="flex gap-3 pb-4">
+                                        {productsByTab["ai-picks"]?.map((p) => (
+                                            <div
+                                                key={p.id}
+                                                className="flex-shrink-0 w-[280px]"
+                                            >
+                                                <ProductCard
+                                                    image={p.image}
+                                                    name={p.name}
+                                                    price={p.price}
+                                                    compact
+                                                    className="border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
+                                                    isFavorite={favourites.has(
+                                                        p.id,
+                                                    )}
+                                                    onFavoriteToggle={() =>
+                                                        toggleFavourite(p.id)
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                        )}
-                    </div>
-                )}
 
-                {pageTab === "share" && (
-                    <div className="mt-6 flex flex-col items-center">
-                        <div className="w-full max-w-xl flex items-center gap-3 bg-white rounded-xl border-2 border-gray-200 p-3">
-                            <input
-                                value="https://simplysent.co/1234"
-                                readOnly
-                                className="flex-1 bg-transparent outline-none text-gray-800"
-                            />
+                            {/* Tech Carousel */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
+                                        <FontAwesomeIcon
+                                            icon={faMicrochip}
+                                            className="text-white text-sm"
+                                        />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-800">
+                                        Tech
+                                    </h2>
+                                </div>
+                                <div className="overflow-x-auto no-scrollbar">
+                                    <div className="flex gap-3 pb-4">
+                                        {productsByTab["tech"]?.map((p) => (
+                                            <div
+                                                key={p.id}
+                                                className="flex-shrink-0 w-[280px]"
+                                            >
+                                                <ProductCard
+                                                    image={p.image}
+                                                    name={p.name}
+                                                    price={p.price}
+                                                    compact
+                                                    isFavorite={favourites.has(
+                                                        p.id,
+                                                    )}
+                                                    onFavoriteToggle={() =>
+                                                        toggleFavourite(p.id)
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Golf Carousel */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-md">
+                                        <FontAwesomeIcon
+                                            icon={faGolfBallTee}
+                                            className="text-white text-sm"
+                                        />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-800">
+                                        Golf
+                                    </h2>
+                                </div>
+                                <div className="overflow-x-auto no-scrollbar">
+                                    <div className="flex gap-3 pb-4">
+                                        {productsByTab["golf"]?.map((p) => (
+                                            <div
+                                                key={p.id}
+                                                className="flex-shrink-0 w-[280px]"
+                                            >
+                                                <ProductCard
+                                                    image={p.image}
+                                                    name={p.name}
+                                                    price={p.price}
+                                                    compact
+                                                    isFavorite={favourites.has(
+                                                        p.id,
+                                                    )}
+                                                    onFavoriteToggle={() =>
+                                                        toggleFavourite(p.id)
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {pageTab === "gifts" && (
+                        <div className="mt-8">
                             <Button
-                                size="small"
-                                onClick={() =>
-                                    navigator.clipboard.writeText(
-                                        "https://simplysent.co/1234",
-                                    )
-                                }
-                                variant="secondary"
+                                fullWidth
+                                variant="primary"
+                                size="large"
+                                onClick={() => setIsOptionsOpen(true)}
                             >
-                                Copy
+                                Refine
                             </Button>
                         </div>
-                        <p className="text-gray-500 text-sm mt-2">
-                            Share this link with friends and family
-                        </p>
-                    </div>
-                )}
+                    )}
+
+                    {pageTab === "favourites" && (
+                        <div>
+                            {Array.from(favourites).length === 0 ? (
+                                <p className="text-center text-gray-600">
+                                    No favourites yet. Tap the heart on any
+                                    product to add it here.
+                                </p>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                                    {allProducts
+                                        .filter((p) => favourites.has(p.id))
+                                        .map((p) => (
+                                            <ProductCard
+                                                key={p.id}
+                                                image={p.image}
+                                                name={p.name}
+                                                price={p.price}
+                                                isFavorite={true}
+                                                onFavoriteToggle={() =>
+                                                    toggleFavourite(p.id)
+                                                }
+                                                hideActions={true}
+                                            />
+                                        ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {pageTab === "share" && (
+                        <div className="mt-6 flex flex-col items-center">
+                            <div className="w-full max-w-xl flex items-center gap-3 bg-white rounded-xl border-2 border-gray-200 p-3">
+                                <input
+                                    value="https://simplysent.co/1234"
+                                    readOnly
+                                    className="flex-1 bg-transparent outline-none text-gray-800"
+                                />
+                                <Button
+                                    size="small"
+                                    onClick={() =>
+                                        navigator.clipboard.writeText(
+                                            "https://simplysent.co/1234",
+                                        )
+                                    }
+                                    variant="secondary"
+                                >
+                                    Copy
+                                </Button>
+                            </div>
+                            <p className="text-gray-500 text-sm mt-2">
+                                Share this link with friends and family
+                            </p>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Refine Drawer */}
@@ -494,17 +512,21 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 </div>
             </Drawer>
 
-            {/* Bottom fixed navbar */}
+            {/* Bottom fixed navbar with safe area support */}
             <div
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
                     isOptionsOpen
                         ? "opacity-0 pointer-events-none"
                         : "opacity-100"
                 }`}
-                style={{ bottom: `calc(env(safe-area-inset-bottom) + 16px)` }}
+                style={{
+                    bottom: `calc(env(safe-area-inset-bottom) + 16px)`,
+                    paddingLeft: "env(safe-area-inset-left)",
+                    paddingRight: "env(safe-area-inset-right)",
+                }}
             >
                 <div className="w-full flex justify-center">
-                    <div className="inline-flex items-center bg-white rounded-full border-2 border-gray-200 p-1 shadow-lg will-change-transform">
+                    <div className="inline-flex items-center bg-white/95 backdrop-blur-lg rounded-full border-2 border-gray-200 p-1 shadow-lg will-change-transform">
                         <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
