@@ -48,29 +48,27 @@ export const Drawer: React.FC<DrawerProps> = ({
                     open && !isClosing ? "opacity-100" : "opacity-0"
                 }`}
                 style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.75)",
-                    backdropFilter: "blur(16px)",
-                    WebkitBackdropFilter: "blur(16px)",
+                    backgroundColor: "rgba(0, 0, 0, 0.25)",
+                    backdropFilter: "blur(20px)",
+                    WebkitBackdropFilter: "blur(20px)",
                 }}
                 onClick={handleClose}
             />
 
             {/* Drawer */}
             <div
-                className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl flex flex-col overflow-hidden"
+                className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl flex flex-col"
                 style={{
                     height,
-                    minHeight: height,
                     maxHeight: "100dvh",
                     transform: isClosing ? "translateY(100%)" : "translateY(0)",
                     transition: isClosing
                         ? "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)"
                         : "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                    paddingBottom: "env(safe-area-inset-bottom)",
                 }}
             >
                 {/* Header with close button */}
-                <div className="flex-shrink-0 px-6 pt-6 pb-4">
+                <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-100">
                     <div className="flex items-center justify-between">
                         {title && (
                             <h2 className="text-2xl font-bold text-gray-800">
@@ -89,7 +87,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
                 {/* Content Area */}
                 <div
-                    className="flex-1 overflow-hidden px-6 pb-6"
+                    className="flex-1 overflow-y-auto overflow-x-hidden px-6"
                     style={{
                         paddingBottom:
                             "calc(env(safe-area-inset-bottom) + 24px)",
