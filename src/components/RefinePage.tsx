@@ -36,7 +36,7 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                     <Sheet.Header>
                         <div className="flex items-center justify-between px-5 py-4">
                             <h2 className="text-2xl font-bold text-gray-800">
-                                Add Person
+                                Refine
                             </h2>
                             <button
                                 onClick={() => onOpenChange(false)}
