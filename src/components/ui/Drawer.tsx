@@ -19,49 +19,32 @@ export const Drawer: React.FC<DrawerProps> = ({
     showHandle = true,
 }) => {
     return (
-        <DrawerPrimitive.Root
-            open={open}
-            onOpenChange={onOpenChange}
-            dismissible={true}
-            shouldScaleBackground={false}
-        >
+        <DrawerPrimitive.Root open={open} onOpenChange={onOpenChange}>
             <DrawerPrimitive.Portal>
                 <DrawerPrimitive.Overlay
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0 bg-black/40 z-40"
                     style={{
-                        backgroundColor: "rgba(0, 0, 0, 0.4)",
                         backdropFilter: "blur(8px)",
                         WebkitBackdropFilter: "blur(8px)",
                     }}
                 />
                 <DrawerPrimitive.Content
-                    className="fixed inset-x-0 bottom-0 z-50 flex flex-col bg-white rounded-t-3xl shadow-2xl outline-none"
+                    className="bg-white flex flex-col rounded-t-3xl h-full max-h-[96vh] mt-24 fixed bottom-0 left-0 right-0 z-50 outline-none"
                     style={{
-                        height,
-                        maxHeight: "95vh",
+                        height: height,
                     }}
                 >
                     {showHandle && (
-                        <div className="flex justify-center py-4 flex-shrink-0">
-                            <div className="w-12 h-1.5 bg-gray-300 rounded-full" />
-                        </div>
+                        <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 mb-8 mt-4" />
                     )}
                     {title && (
-                        <div className="px-6 pb-4 flex-shrink-0">
+                        <div className="px-6 pb-4">
                             <DrawerPrimitive.Title className="text-2xl font-bold text-gray-800">
                                 {title}
                             </DrawerPrimitive.Title>
                         </div>
                     )}
-                    <div
-                        className="flex-1 overflow-y-auto px-6 pb-6"
-                        style={{
-                            paddingBottom:
-                                "calc(env(safe-area-inset-bottom) + 24px)",
-                            overscrollBehavior: "contain",
-                        }}
-                        vaul-no-drag=""
-                    >
+                    <div className="overflow-y-auto px-6 pb-6 flex-1">
                         {children}
                     </div>
                 </DrawerPrimitive.Content>
