@@ -21,7 +21,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
         new Set(["ai-1", "tech-2"]),
     );
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+    const [isRefineOpen, setIsRefineOpen] = useState(false);
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [minBudget, setMinBudget] = useState(50);
     const [maxBudget, setMaxBudget] = useState(300);
@@ -389,7 +389,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                 fullWidth
                                 variant="primary"
                                 size="large"
-                                onClick={() => setIsOptionsOpen(true)}
+                                onClick={() => setIsRefineOpen(true)}
                             >
                                 Refine
                             </Button>
@@ -454,8 +454,8 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             </div>
 
             {/* Refine Drawer */}
-            <Drawer
-                open={isOptionsOpen}
+            <RefinePage
+                open={isRefineOpen}
                 onOpenChange={setIsOptionsOpen}
                 height="70vh"
             >
@@ -506,7 +506,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             {/* Bottom fixed navbar with safe area support */}
             <div
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
-                    isOptionsOpen
+                    isRefineOpen
                         ? "opacity-0 pointer-events-none"
                         : "opacity-100"
                 }`}

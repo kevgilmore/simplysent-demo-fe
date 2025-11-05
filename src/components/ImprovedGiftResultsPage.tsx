@@ -14,7 +14,7 @@ export const ImprovedGiftResultsPage: React.FC = () => {
     const [favourites, setFavourites] = useState<Set<string>>(new Set());
     const [recipient, setRecipient] = useState("Dad");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+    const [isRefineOpen, setIsRefineOpen] = useState(false);
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [minBudget, setMinBudget] = useState(50);
     const [maxBudget, setMaxBudget] = useState(300);
@@ -259,7 +259,7 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                                 fullWidth
                                 variant="primary"
                                 size="large"
-                                onClick={() => setIsOptionsOpen(true)}
+                                onClick={() => setIsRefineOpen(true)}
                             >
                                 Refine
                             </Button>
@@ -323,8 +323,8 @@ export const ImprovedGiftResultsPage: React.FC = () => {
             </div>
 
             {/* Refine Drawer */}
-            <Drawer
-                open={isOptionsOpen}
+            <RefinePage
+                open={isRefineOpen}
                 onOpenChange={setIsOptionsOpen}
                 height="85vh"
             >
@@ -373,7 +373,7 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                         <button
                                 type="button"
                                 className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
-                                onClick={() => setIsOptionsOpen(false)}
+                                onClick={() => setIsRefineOpen(false)}
                             >
                             Apply Changes
                         </button>
@@ -384,7 +384,7 @@ export const ImprovedGiftResultsPage: React.FC = () => {
             {/* Bottom fixed navbar */}
             <div
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
-                    isOptionsOpen
+                    isRefineOpen
                         ? "opacity-0 pointer-events-none"
                         : "opacity-100"
                 }`}

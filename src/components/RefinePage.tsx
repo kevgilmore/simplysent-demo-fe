@@ -7,10 +7,20 @@ interface AddPersonPageProps {
     onOpenChange: (open: boolean) => void;
 }
 
-export const AddPersonPage: React.FC<AddPersonPageProps> = ({
+export const RefinePage: React.FC<AddPersonPageProps> = ({
     open,
     onOpenChange,
 }) => {
+    React.useEffect(() => {
+        if (open) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "";
+        }
+        return () => {
+            document.body.style.overflow = "";
+        };
+    }, [open]);
     return (
         <>
             {open && (
@@ -36,7 +46,7 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                     <Sheet.Header>
                         <div className="flex items-center justify-between px-5 py-4">
                             <h2 className="text-2xl font-bold text-gray-800">
-                                Refine
+                                Refine Options
                             </h2>
                             <button
                                 onClick={() => onOpenChange(false)}
