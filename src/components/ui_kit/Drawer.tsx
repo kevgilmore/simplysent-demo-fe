@@ -21,32 +21,20 @@ export const Drawer: React.FC<DrawerProps> = ({
         onOpenChange(false);
     };
 
-    // Convert vh to number for Sheet's snapPoints
-    const heightValue = parseFloat(height) / 100;
-
     return (
         <Sheet
             isOpen={open}
             onClose={handleClose}
-            snapPoints={[0, heightValue]}
-            initialSnap={1}
-            disableDrag={false}
+            disableDrag={true}
+            detent="content"
         >
-            {/* Custom backdrop with blur */}
-            <Sheet.Backdrop
-                style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.3)",
-                    backdropFilter: "saturate(180%) blur(4px)",
-                    WebkitBackdropFilter: "saturate(180%) blur(4px)",
-                }}
-                onTap={handleClose}
-            />
-
             <Sheet.Container
                 style={{
                     borderTopLeftRadius: "24px",
                     borderTopRightRadius: "24px",
                     boxShadow: "0 -4px 24px rgba(0, 0, 0, 0.15)",
+                    height: height,
+                    maxHeight: height,
                 }}
             >
                 <Sheet.Header>
@@ -73,12 +61,22 @@ export const Drawer: React.FC<DrawerProps> = ({
                         paddingLeft: "max(20px, env(safe-area-inset-left))",
                         paddingRight: "max(20px, env(safe-area-inset-right))",
                         paddingTop: "16px",
-                        paddingBottom: "24px",
+                        paddingBottom:
+                            "calc(env(safe-area-inset-bottom) + 24px)",
                     }}
                 >
                     <div className="max-w-full box-border">{children}</div>
                 </Sheet.Content>
             </Sheet.Container>
+
+            <Sheet.Backdrop
+                style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                    backdropFilter: "saturate(180%) blur(4px)",
+                    WebkitBackdropFilter: "saturate(180%) blur(4px)",
+                }}
+                onTap={handleClose}
+            />
         </Sheet>
     );
 };
