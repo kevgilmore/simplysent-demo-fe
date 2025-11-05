@@ -69,6 +69,7 @@ export const RefinePage: React.FC<RefinePageProps> = ({
                             className="w-full"
                             style={{
                                 height,
+                                height,
                                 overflow: "hidden", // lock scroll inside
                                 display: "flex",
                                 flexDirection: "column",

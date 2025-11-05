@@ -454,55 +454,11 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Refine Drawer */}
             <RefinePage
                 open={isRefineOpen}
                 onOpenChange={setIsRefineOpen}
                 height="70vh"
-            >
-                <div className="w-full max-w-full">
-                    <div className="space-y-8">
-                        {/* Interests Section */}
-                        <div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                                Interests
-                            </h3>
-                            <div className="flex flex-wrap gap-3">
-                                {interestOptions.map((interest) => (
-                                    <button
-                                        key={interest}
-                                        onClick={() => toggleInterest(interest)}
-                                        className={`px-6 py-3 rounded-full font-semibold transition-all duration-200 ${
-                                            selectedInterests.includes(interest)
-                                                ? "bg-[#5E57AC] text-white shadow-md scale-105"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        }`}
-                                    >
-                                        {interest}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Budget Section */}
-                        <div>
-                            <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                                Budget
-                            </h3>
-                            <RangeSlider
-                                min={10}
-                                max={500}
-                                minValue={minBudget}
-                                maxValue={maxBudget}
-                                onChange={(min, max) => {
-                                    setMinBudget(min);
-                                    setMaxBudget(max);
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </RefinePage>
+            />
 
             {/* Bottom fixed navbar with safe area support */}
 

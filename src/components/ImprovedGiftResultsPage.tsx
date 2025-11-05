@@ -1,11 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { TabMenu } from "./ui/TabMenu";
-import { Heading } from "./ui/Heading";
 import { ProductCard } from "./ui/ProductCard";
 import { Button } from "./ui/Button";
-import { RangeSlider } from "./ui/RangeSlider";
-import { Drawer } from "./ui/Drawer";
+import { RefinePage } from "./RefinePage";
 
 export const ImprovedGiftResultsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -159,64 +156,64 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                     {/* Recipient Dropdown */}
                     <div className="relative" ref={dropdownRef}>
                         <button
-                                type="button"
-                                onClick={() => {
-                                    setRecipient("Dad");
-                                    setIsDropdownOpen(false);
-                                    navigate("/new");
-                                }}
-                                className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
-                                    recipient === "Dad"
-                                        ? "bg-gray-600 text-white"
-                                        : "text-gray-700 hover:bg-gray-100"
-                                }`}
+                            type="button"
+                            onClick={() => {
+                                setRecipient("Dad");
+                                setIsDropdownOpen(false);
+                                navigate("/new");
+                            }}
+                            className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
+                                recipient === "Dad"
+                                    ? "bg-gray-600 text-white"
+                                    : "text-gray-700 hover:bg-gray-100"
+                            }`}
+                        >
+                            {recipient}
+                            <svg
+                                className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
                             >
-                                {recipient}
-                                <svg
-                                    className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M19 9l-7 7-7-7"
-                                    />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                />
                             </svg>
                         </button>
 
-                            {isDropdownOpen && (
-                                <div className="absolute right-0 mt-2 bg-white rounded-3xl z-50 p-1">
+                        {isDropdownOpen && (
+                            <div className="absolute right-0 mt-2 bg-white rounded-3xl z-50 p-1">
                                 <button
-                                        type="button"
-                                        onClick={() => {
-                                            setRecipient("Dad");
-                                            setIsDropdownOpen(false);
-                                            navigate("/new");
-                                        }}
-                                        className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
-                                            recipient === "Dad"
-                                                ? "bg-gray-600 text-white"
-                                                : "text-gray-700 hover:bg-gray-100"
-                                        }`}
-                                    >
+                                    type="button"
+                                    onClick={() => {
+                                        setRecipient("Dad");
+                                        setIsDropdownOpen(false);
+                                        navigate("/new");
+                                    }}
+                                    className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
+                                        recipient === "Dad"
+                                            ? "bg-gray-600 text-white"
+                                            : "text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                >
                                     Dad
                                 </button>
                                 <button
-                                        type="button"
-                                        onClick={() => {
-                                            setRecipient("Mum");
-                                            setIsDropdownOpen(false);
-                                            navigate("/new-mum");
-                                        }}
-                                        className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
-                                            recipient === "Mum"
-                                                ? "bg-gray-600 text-white"
-                                                : "text-gray-700 hover:bg-gray-100"
-                                        }`}
-                                    >
+                                    type="button"
+                                    onClick={() => {
+                                        setRecipient("Mum");
+                                        setIsDropdownOpen(false);
+                                        navigate("/new-mum");
+                                    }}
+                                    className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
+                                        recipient === "Mum"
+                                            ? "bg-gray-600 text-white"
+                                            : "text-gray-700 hover:bg-gray-100"
+                                    }`}
+                                >
                                     Mum
                                 </button>
                             </div>
@@ -242,14 +239,14 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {productsByTab[activeTab]?.map((p) => (
                                 <ProductCard
-                                        key={p.id}
-                                        image={p.image}
-                                        name={p.name}
-                                        price={p.price}
-                                        isFavorite={true}
-                                        onFavoriteToggle={() =>
-                                            toggleFavourite(p.id)
-                                        }
+                                    key={p.id}
+                                    image={p.image}
+                                    name={p.name}
+                                    price={p.price}
+                                    isFavorite={true}
+                                    onFavoriteToggle={() =>
+                                        toggleFavourite(p.id)
+                                    }
                                 />
                             ))}
                         </div>
@@ -280,14 +277,14 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                                     .filter((p) => favourites.has(p.id))
                                     .map((p) => (
                                         <ProductCard
-                                                key={p.id}
-                                                image={p.image}
-                                                name={p.name}
-                                                price={p.price}
-                                                isFavorite={true}
-                                                onFavoriteToggle={() =>
-                                                    toggleFavourite(p.id)
-                                                }
+                                            key={p.id}
+                                            image={p.image}
+                                            name={p.name}
+                                            price={p.price}
+                                            isFavorite={true}
+                                            onFavoriteToggle={() =>
+                                                toggleFavourite(p.id)
+                                            }
                                         />
                                     ))}
                             </div>
@@ -304,12 +301,12 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                                 className="flex-1 bg-transparent outline-none text-gray-800"
                             />
                             <Button
-                                    size="small"
-                                    onClick={() =>
-                                        navigator.clipboard.writeText(
-                                            "https://simplysent.co/1234",
-                                        )
-                                    }
+                                size="small"
+                                onClick={() =>
+                                    navigator.clipboard.writeText(
+                                        "https://simplysent.co/1234",
+                                    )
+                                }
                                 variant="secondary"
                             >
                                 Copy
@@ -322,64 +319,11 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                 )}
             </div>
 
-            {/* Refine Drawer */}
             <RefinePage
                 open={isRefineOpen}
-                onOpenChange={setIsOptionsOpen}
+                onOpenChange={setIsRefineOpen}
                 height="85vh"
-            >
-                <div className="flex flex-col h-full pb-20">
-                    {/* Interests Section */}
-                    <div className="mb-8">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                            Interests
-                        </h3>
-                        <div className="flex flex-wrap gap-3">
-                            {interestOptions.map((interest) => (
-                                <button
-                                        key={interest}
-                                        onClick={() => toggleInterest(interest)}
-                                        className={`px-6 py-3 rounded-full font-semibold transition-all duration-200 ${
-                                            selectedInterests.includes(interest)
-                                                ? "bg-[#5E57AC] text-white shadow-md scale-105"
-                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                        }`}
-                                    >
-                                    {interest}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Budget Section */}
-                    <div className="mb-8">
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                            Budget
-                        </h3>
-                        <RangeSlider
-                                min={10}
-                                max={500}
-                                minValue={minBudget}
-                                maxValue={maxBudget}
-                                onChange={(min, max) => {
-                                    setMinBudget(min);
-                                    setMaxBudget(max);
-                                }}
-                        />
-                    </div>
-
-                    {/* Apply Button */}
-                    <div className="mt-6 mb-4">
-                        <button
-                                type="button"
-                                className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
-                                onClick={() => setIsRefineOpen(false)}
-                            >
-                            Apply Changes
-                        </button>
-                    </div>
-                </div>
-            </Drawer>
+            />
 
             {/* Bottom fixed navbar */}
             <div
@@ -393,30 +337,30 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                 <div className="w-full flex justify-center">
                     <div className="inline-flex items-center bg-white rounded-full border-2 border-gray-200 p-1 shadow-lg will-change-transform">
                         <button
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onTouchStart={(e) => e.preventDefault()}
-                                onClick={() => setPageTab("gifts")}
-                                className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "gifts" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
-                            >
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onTouchStart={(e) => e.preventDefault()}
+                            onClick={() => setPageTab("gifts")}
+                            className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "gifts" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                        >
                             Gifts
                         </button>
                         <button
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onTouchStart={(e) => e.preventDefault()}
-                                onClick={() => setPageTab("favourites")}
-                                className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "favourites" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
-                            >
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onTouchStart={(e) => e.preventDefault()}
+                            onClick={() => setPageTab("favourites")}
+                            className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "favourites" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                        >
                             Favourites
                         </button>
                         <button
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onTouchStart={(e) => e.preventDefault()}
-                                onClick={() => setPageTab("share")}
-                                className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "share" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
-                            >
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onTouchStart={(e) => e.preventDefault()}
+                            onClick={() => setPageTab("share")}
+                            className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none focus:ring-0 ${pageTab === "share" ? "bg-[#5E57AC] text-white" : "text-gray-700 hover:bg-gray-100"}`}
+                        >
                             Share
                         </button>
                     </div>
