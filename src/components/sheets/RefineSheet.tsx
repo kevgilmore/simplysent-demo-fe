@@ -76,7 +76,29 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
     }
 
     // Compute final height (prevent gigantic sheet on small devices).
-    const computedHeight = height || computeResponsiveHeight();
+    // If caller passes an explicit vh height (e.g. "95vh") for addPerson variant,
+    // convert it to pixel height using visualViewport (or window.innerHeight) to
+    // avoid iOS Safari dynamic 100vh inconsistencies that cause vertical misalignment.
+    const computedHeight = (() => {
+        if (height) {
+            const trimmed = height.trim();
+            if (variant === "addPerson" && /vh$/i.test(trimmed)) {
+                const vhNumber = parseFloat(trimmed);
+                if (!isNaN(vhNumber)) {
+                    const vpH =
+                        typeof window !== "undefined"
+                            ? window.visualViewport?.height ||
+                              window.innerHeight
+                            : undefined;
+                    if (vpH) {
+                        return Math.round((vpH * vhNumber) / 100) + "px";
+                    }
+                }
+            }
+            return height;
+        }
+        return computeResponsiveHeight(variant);
+    })();
 
     return ReactDOM.createPortal(
         <>
@@ -163,6 +185,9 @@ const modalCSS = `
   /* Prevent any native scrolling/bounce inside */
   overscroll-behavior: none;
   touch-action: none;
+  /* Stabilize transform pipeline to mitigate iOS visualViewport jump */
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 @keyframes refine-sheet-in {
