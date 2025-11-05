@@ -66,7 +66,14 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                             type="date"
                             value={birthday}
                             onChange={(e) => setBirthday(e.target.value)}
-                            className="w-full px-6 py-4 border-2 border-gray-200 rounded-full focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/20 focus:border-[#5E57AC] transition-all duration-200"
+                            className="w-full max-w-full min-w-0 block px-6 py-4 border-2 border-gray-200 rounded-full focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/20 focus:border-[#5E57AC] transition-all duration-200"
+                            style={{
+                                inlineSize: "100%",
+                                maxInlineSize: "100%",
+                                WebkitAppearance: "none",
+                                appearance: "none",
+                                overflow: "hidden",
+                            }}
                         />
                     </div>
 

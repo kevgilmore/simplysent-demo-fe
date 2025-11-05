@@ -64,6 +64,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                         paddingBottom:
                             "calc(env(safe-area-inset-bottom) + 16px)",
                         overflowY: "auto",
+                        overflowX: "hidden",
                         WebkitOverflowScrolling: "touch",
                     }}
                 >
@@ -73,9 +74,9 @@ export const Drawer: React.FC<DrawerProps> = ({
 
             <Sheet.Backdrop
                 style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.95)",
-                    backdropFilter: "saturate(180%) blur(4px)",
-                    WebkitBackdropFilter: "saturate(180%) blur(4px)",
+                    backgroundColor: "rgba(10, 10, 20, 0.22)",
+                    backdropFilter: "blur(12px) saturate(140%)",
+                    WebkitBackdropFilter: "blur(12px) saturate(140%)",
                 }}
                 onTap={handleClose}
             />
