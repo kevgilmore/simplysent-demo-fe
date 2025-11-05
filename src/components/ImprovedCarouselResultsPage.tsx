@@ -499,17 +499,6 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                 }}
                             />
                         </div>
-
-                        {/* Apply Button */}
-                        <div className="pt-2 pb-8 w-full">
-                            <button
-                                type="button"
-                                className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
-                                onClick={() => setIsOptionsOpen(false)}
-                            >
-                                Apply Changes
-                            </button>
-                        </div>
                     </div>
                 </div>
             </Drawer>

@@ -69,6 +69,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                     transition: isClosing
                         ? "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)"
                         : "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                    paddingBottom: "env(safe-area-inset-bottom)",
                 }}
             >
                 {/* Header with close button */}
@@ -96,8 +97,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                         paddingLeft: "max(20px, env(safe-area-inset-left))",
                         paddingRight: "max(20px, env(safe-area-inset-right))",
                         paddingTop: "16px",
-                        paddingBottom:
-                            "calc(env(safe-area-inset-bottom) + 24px)",
+                        paddingBottom: "24px",
                     }}
                 >
                     <div className="max-w-full box-border">{children}</div>
