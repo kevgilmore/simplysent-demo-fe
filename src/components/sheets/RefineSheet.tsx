@@ -17,9 +17,14 @@ export interface RefineSheetProps {
     onOpenChange: (open: boolean) => void;
     height?: string; // Optional custom height (e.g. "60vh"). Defaults adapt to viewport.
     title?: string; // Optional heading (defaults to "Refine").
+    illustrationSrc?: string; // Optional custom illustration src
+    illustrationAlt?: string; // Optional custom alt text
+    illustrationClassName?: string; // Optional extra className for the img
 }
 
 const DEFAULT_TITLE = "Refine";
+const DEFAULT_ILLUSTRATION_SRC = "/undraw_halloween-2025_o47f.svg";
+const DEFAULT_ILLUSTRATION_ALT = "Illustration";
 
 const portalRootId = "__refine_portal_root";
 
@@ -38,6 +43,9 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
     onOpenChange,
     height,
     title = DEFAULT_TITLE,
+    illustrationSrc = DEFAULT_ILLUSTRATION_SRC,
+    illustrationAlt = DEFAULT_ILLUSTRATION_ALT,
+    illustrationClassName,
 }) => {
     const portalElRef = useRef<HTMLElement | null>(null);
     const lastBodyOverflowRef = useRef<string>("");
@@ -95,9 +103,9 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
                 </div>
                 <div className="refine-modal-body">
                     <img
-                        src="/undraw_mindfulness_d853.svg"
-                        alt="Refine Illustration"
-                        className="refine-illustration"
+                        src={illustrationSrc}
+                        alt={illustrationAlt || title}
+                        className={`refine-illustration ${illustrationClassName || ""}`.trim()}
                         draggable={false}
                     />
                 </div>
@@ -117,7 +125,7 @@ function computeResponsiveHeight(): string {
     const h = window.innerHeight;
     if (h < 560) return "55vh";
     if (h < 680) return "60vh";
-    return "65vh";
+    return "95vh";
 }
 
 /**
