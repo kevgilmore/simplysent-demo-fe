@@ -11,6 +11,8 @@ import {
     faStar,
     faMicrochip,
     faGolfBallTee,
+    faUserPlus,
+    faList,
 } from "@fortawesome/free-solid-svg-icons";
 import { TabMenu } from "./ui/TabMenu";
 import { ProductCard } from "./ui/ProductCard";
@@ -23,8 +25,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
     const [favourites, setFavourites] = useState<Set<string>>(
         new Set(["ai-1", "tech-2"]),
     );
-    const [recipient, setRecipient] = useState("Mum");
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isOptionsOpen, setIsOptionsOpen] = useState(false);
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
     const [minBudget, setMinBudget] = useState(50);
@@ -177,7 +178,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 dropdownRef.current &&
                 !dropdownRef.current.contains(event.target as Node)
             ) {
-                setIsDropdownOpen(false);
+                setIsMenuOpen(false);
             }
         };
 
@@ -218,15 +219,21 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
 
     useEffect(() => {
         if (isDragging) {
-            const handleMouseMove = (e: MouseEvent) =>
+            const handleMouseMove = (e: MouseEvent) => {
+                e.preventDefault();
                 handleDragMove(e.clientY);
-            const handleTouchMove = (e: TouchEvent) =>
+            };
+            const handleTouchMove = (e: TouchEvent) => {
+                e.preventDefault();
                 handleDragMove(e.touches[0].clientY);
+            };
             const handleMouseUp = () => handleDragEnd();
             const handleTouchEnd = () => handleDragEnd();
 
             document.addEventListener("mousemove", handleMouseMove);
-            document.addEventListener("touchmove", handleTouchMove);
+            document.addEventListener("touchmove", handleTouchMove, {
+                passive: false,
+            });
             document.addEventListener("mouseup", handleMouseUp);
             document.addEventListener("touchend", handleTouchEnd);
 
@@ -250,58 +257,52 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                         className="h-12 w-auto"
                     />
 
-                    {/* Recipient Dropdown */}
+                    {/* Menu Icons */}
                     <div className="relative" ref={dropdownRef}>
-                        <button
-                            type="button"
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="inline-flex items-center gap-2 bg-white rounded-full border-2 border-gray-200 px-6 py-3 font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                            {recipient}
-                            <svg
-                                className={`w-4 h-4 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                        <div className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5">
+                            <button
+                                type="button"
+                                onClick={() => navigate("/add-person")}
+                                className="px-3 rounded-full hover:bg-gray-100 transition-colors"
+                                aria-label="Add person"
                             >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 9l-7 7-7-7"
+                                <FontAwesomeIcon
+                                    icon={faUserPlus}
+                                    className="w-5 h-5 text-gray-700 my-1"
                                 />
-                            </svg>
-                        </button>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="px-3 rounded-full hover:bg-gray-100 transition-colors"
+                                aria-label="Menu"
+                            >
+                                <FontAwesomeIcon
+                                    icon={faList}
+                                    className="w-5 h-5 text-gray-700 my-1"
+                                />
+                            </button>
+                        </div>
 
-                        {isDropdownOpen && (
-                            <div className="absolute right-0 mt-2 bg-white rounded-3xl z-50 p-1">
+                        {isMenuOpen && (
+                            <div className="absolute right-0 mt-2 bg-white rounded-2xl shadow-lg border-2 border-gray-200 z-50 p-2 min-w-[150px]">
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setRecipient("Dad");
-                                        setIsDropdownOpen(false);
+                                        setIsMenuOpen(false);
                                         navigate("/new");
                                     }}
-                                    className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
-                                        recipient === "Dad"
-                                            ? "bg-gray-600 text-white"
-                                            : "text-gray-700 hover:bg-gray-100"
-                                    }`}
+                                    className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
                                 >
                                     Dad
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        setRecipient("Mum");
-                                        setIsDropdownOpen(false);
+                                        setIsMenuOpen(false);
                                         navigate("/new-mum");
                                     }}
-                                    className={`block w-full px-6 py-3 rounded-full font-semibold transition-colors text-left ${
-                                        recipient === "Mum"
-                                            ? "bg-gray-600 text-white"
-                                            : "text-gray-700 hover:bg-gray-100"
-                                    }`}
+                                    className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
                                 >
                                     Mum
                                 </button>
@@ -535,10 +536,12 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                     <div
                         className="flex justify-center mb-6 cursor-grab active:cursor-grabbing py-2"
                         onMouseDown={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             handleDragStart(e.clientY);
                         }}
                         onTouchStart={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             handleDragStart(e.touches[0].clientY);
                         }}
