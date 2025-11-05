@@ -13,6 +13,7 @@ import { Button } from "./ui_kit/Button";
 import { RangeSlider } from "./ui_kit/RangeSlider";
 
 import { RefineSheet } from "./sheets/RefineSheet";
+import { ActionPersonSheet } from "./sheets/ActionPersonSheet";
 
 export const ImprovedCarouselResultsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -518,15 +519,11 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Add Person (RefineSheet reuse) */}
-
-            <RefineSheet
+            {/* Add Person Sheet */}
+            <ActionPersonSheet
                 open={isAddPersonOpen}
                 onOpenChange={setIsAddPersonOpen}
                 title="Add Person"
-                height="95vh"
-                illustrationSrc="/undraw_halloween-2025_o47f.svg"
-                illustrationAlt="Add Person Illustration"
             />
         </div>
     );
