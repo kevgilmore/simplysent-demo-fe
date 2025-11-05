@@ -29,7 +29,7 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
         <Drawer
             open={open}
             onOpenChange={onOpenChange}
-            height="90vh"
+            height="85vh"
             title="Add Person"
         >
             <div className="w-full">

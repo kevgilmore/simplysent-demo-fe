@@ -457,7 +457,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             <Drawer
                 open={isOptionsOpen}
                 onOpenChange={setIsOptionsOpen}
-                height="85vh"
+                height="70vh"
             >
                 <div className="w-full max-w-full">
                     <div className="space-y-8">

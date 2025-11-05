@@ -60,7 +60,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                 className="fixed left-0 right-0 z-50 bg-white flex flex-col"
                 style={{
                     bottom: 0,
-                    height: height,
+                    height: height.replace("vh", "dvh"),
                     maxHeight: "100dvh",
                     borderTopLeftRadius: "24px",
                     borderTopRightRadius: "24px",
