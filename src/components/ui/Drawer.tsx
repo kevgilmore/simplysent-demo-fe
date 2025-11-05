@@ -22,8 +22,10 @@ export const Drawer: React.FC<DrawerProps> = ({
         <DrawerPrimitive.Root
             open={open}
             onOpenChange={onOpenChange}
-            modal={true}
             dismissible={true}
+            shouldScaleBackground={false}
+            preventScrollRestoration={true}
+            modal={true}
         >
             <DrawerPrimitive.Portal>
                 <DrawerPrimitive.Overlay
@@ -41,33 +43,36 @@ export const Drawer: React.FC<DrawerProps> = ({
                         maxHeight: "95vh",
                     }}
                 >
-                    {showHandle && (
-                        <div
-                            className="flex justify-center py-6 -mt-2 cursor-grab active:cursor-grabbing touch-none"
-                            style={{
-                                touchAction: "none",
-                                userSelect: "none",
-                                WebkitUserSelect: "none",
-                            }}
-                        >
-                            <div className="w-12 h-1.5 bg-gray-300 rounded-full pointer-events-none" />
-                        </div>
-                    )}
-                    {title && (
-                        <div className="px-6 pb-4">
-                            <DrawerPrimitive.Title className="text-2xl font-bold text-gray-800">
-                                {title}
-                            </DrawerPrimitive.Title>
-                        </div>
-                    )}
                     <div
-                        className="flex-1 overflow-y-auto px-6 pb-6"
-                        style={{
-                            paddingBottom:
-                                "calc(env(safe-area-inset-bottom) + 24px)",
-                        }}
+                        className="flex flex-col h-full"
+                        vaul-drawer-wrapper=""
                     >
-                        {children}
+                        {showHandle && (
+                            <div
+                                className="flex justify-center py-4 flex-shrink-0 touch-none"
+                                data-vaul-drag-handle=""
+                            >
+                                <div className="w-12 h-1.5 bg-gray-300 rounded-full cursor-grab active:cursor-grabbing" />
+                            </div>
+                        )}
+                        {title && (
+                            <div className="px-6 pb-4 flex-shrink-0">
+                                <DrawerPrimitive.Title className="text-2xl font-bold text-gray-800">
+                                    {title}
+                                </DrawerPrimitive.Title>
+                            </div>
+                        )}
+                        <div
+                            className="flex-1 overflow-y-auto px-6 pb-6"
+                            style={{
+                                paddingBottom:
+                                    "calc(env(safe-area-inset-bottom) + 24px)",
+                                overscrollBehavior: "contain",
+                            }}
+                            data-vaul-no-drag
+                        >
+                            {children}
+                        </div>
                     </div>
                 </DrawerPrimitive.Content>
             </DrawerPrimitive.Portal>
