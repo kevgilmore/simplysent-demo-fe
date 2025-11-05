@@ -70,7 +70,13 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                         />
                     </div>
 
-                    <div className="pt-4 w-full">
+                    <div
+                        className="pt-4 w-full"
+                        style={{
+                            paddingBottom:
+                                "max(16px, env(safe-area-inset-bottom))",
+                        }}
+                    >
                         <Button
                             fullWidth
                             variant="primary"
@@ -82,6 +88,7 @@ export const AddPersonPage: React.FC<AddPersonPageProps> = ({
                                     relationship,
                                     birthday,
                                 });
+                                // Close the sheet
                                 onOpenChange(false);
                             }}
                         >
