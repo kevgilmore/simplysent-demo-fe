@@ -11,8 +11,9 @@ import {
 import { ProductCard } from "./ui_kit/ProductCard";
 import { Button } from "./ui_kit/Button";
 import { RangeSlider } from "./ui_kit/RangeSlider";
-import { Drawer } from "./ui_kit/Drawer";
+
 import { AddPersonPage } from "./AddPersonPage";
+import { RefinePage } from "./RefinePage";
 
 export const ImprovedCarouselResultsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -456,7 +457,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             {/* Refine Drawer */}
             <RefinePage
                 open={isRefineOpen}
-                onOpenChange={setIsOptionsOpen}
+                onOpenChange={setIsRefineOpen}
                 height="70vh"
             >
                 <div className="w-full max-w-full">
@@ -501,9 +502,10 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </Drawer>
+            </RefinePage>
 
             {/* Bottom fixed navbar with safe area support */}
+
             <div
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
                     isRefineOpen

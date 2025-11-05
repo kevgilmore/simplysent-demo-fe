@@ -2,25 +2,31 @@ import React from "react";
 import { Sheet } from "react-modal-sheet";
 import { X } from "lucide-react";
 
-interface AddPersonPageProps {
+interface RefinePageProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    children?: React.ReactNode;
+    height?: string; // optional custom height constraint
+    title?: string;
 }
 
-export const RefinePage: React.FC<AddPersonPageProps> = ({
+export const RefinePage: React.FC<RefinePageProps> = ({
     open,
     onOpenChange,
+    children,
+    height = "70vh",
+    title = "Refine Options",
 }) => {
     React.useEffect(() => {
         if (open) {
+            const prev = document.body.style.overflow;
             document.body.style.overflow = "hidden";
-        } else {
-            document.body.style.overflow = "";
+            return () => {
+                document.body.style.overflow = prev;
+            };
         }
-        return () => {
-            document.body.style.overflow = "";
-        };
     }, [open]);
+
     return (
         <>
             {open && (
@@ -31,7 +37,6 @@ export const RefinePage: React.FC<AddPersonPageProps> = ({
                         right: 0,
                         bottom: 0,
                         height: "max(140px, calc(env(safe-area-inset-bottom) + 120px))",
-                        // subtle, neutral overlay to mask underlapping content behind Safari toolbar
                         background:
                             "linear-gradient(to bottom, rgba(0,0,0,0.06), rgba(0,0,0,0.10))",
                         backdropFilter: "blur(6px)",
@@ -42,11 +47,13 @@ export const RefinePage: React.FC<AddPersonPageProps> = ({
                 />
             )}
             <Sheet isOpen={open} onClose={() => onOpenChange(false)}>
-                <Sheet.Container>
+                <Sheet.Container
+                    style={{ maxHeight: height, overflow: "hidden" }}
+                >
                     <Sheet.Header>
                         <div className="flex items-center justify-between px-5 py-4">
                             <h2 className="text-2xl font-bold text-gray-800">
-                                Refine Options
+                                {title}
                             </h2>
                             <button
                                 onClick={() => onOpenChange(false)}
@@ -58,12 +65,27 @@ export const RefinePage: React.FC<AddPersonPageProps> = ({
                         </div>
                     </Sheet.Header>
                     <Sheet.Content>
-                        <div className="w-full h-[60dvh] flex items-center justify-center">
-                            <img
-                                src="/undraw_mindfulness_d853.svg"
-                                alt="Add Person Illustration"
-                                className="h-64 w-64 opacity-90"
-                            />
+                        <div
+                            className="w-full"
+                            style={{
+                                height,
+                                overflow: "hidden", // lock scroll inside
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "flex-start",
+                            }}
+                        >
+                            {children ? (
+                                children
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <img
+                                        src="/undraw_mindfulness_d853.svg"
+                                        alt="Refine Illustration"
+                                        className="h-64 w-64 opacity-90"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </Sheet.Content>
                 </Sheet.Container>
