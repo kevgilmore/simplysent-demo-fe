@@ -4,9 +4,9 @@
 
 /* Custom styles for react-modal-sheet */
 .react-modal-sheet-backdrop {
-    background-color: rgba(255, 255, 255, 0.98) !important;
-    backdrop-filter: saturate(180%) blur(4px) !important;
-    -webkit-backdrop-filter: saturate(180%) blur(4px) !important;
+    background-color: transparent !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
 }
 
 .react-modal-sheet-container {
@@ -30,7 +30,7 @@
 [data-rsbs-overlay] {
     position: fixed !important;
     inset: 0 !important;
-    background-color: white !important;
+    background-color: transparent !important;
 }
 
 [data-rsbs-root] {
@@ -42,7 +42,9 @@
 [data-rsbs-backdrop] {
     position: fixed !important;
     inset: 0 !important;
-    background-color: rgba(255, 255, 255, 0.98) !important;
+    background-color: transparent !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
 }
 
 /* Ensure no gap at bottom */
@@ -53,6 +55,6 @@
     left: 0;
     right: 0;
     height: 100px;
-    background-color: white;
+    background-color: transparent;
     z-index: -1;
 }
