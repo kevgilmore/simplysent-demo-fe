@@ -28,6 +28,22 @@ export const Drawer: React.FC<DrawerProps> = ({
             disableDrag={true}
             detent="default"
         >
+            {/* Bottom guard overlay: ensures Safari's translucent toolbar shows blur, not page content */}
+            <div
+                style={{
+                    position: "fixed",
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    // Large enough band to always sit behind the floating toolbar
+                    height: "max(160px, calc(env(safe-area-inset-bottom) + 120px))",
+                    backgroundColor: "rgba(10, 10, 20, 0.28)",
+                    backdropFilter: "blur(14px) saturate(140%)",
+                    WebkitBackdropFilter: "blur(14px) saturate(140%)",
+                    pointerEvents: "none",
+                    zIndex: 2147483638,
+                }}
+            />
             <Sheet.Container
                 style={{
                     borderTopLeftRadius: "24px",
