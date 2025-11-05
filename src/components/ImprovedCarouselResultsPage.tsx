@@ -182,7 +182,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
     }, []);
 
     return (
-        <div className="min-h-[100dvh] py-8 px-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)] overscroll-contain">
+        <div className="min-h-[100dvh] px-4 pt-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)] overscroll-contain">
             <div className="max-w-7xl mx-auto">
                 {/* Logo and Recipient Selector */}
                 <div className="flex justify-between items-center mb-6">

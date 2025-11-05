@@ -22,8 +22,12 @@ export const Drawer: React.FC<DrawerProps> = ({
     const [dragOffset, setDragOffset] = useState(0);
     const [startY, setStartY] = useState(0);
     const [isClosing, setIsClosing] = useState(false);
+    const [velocity, setVelocity] = useState(0);
     const drawerRef = useRef<HTMLDivElement>(null);
     const dragHandleRef = useRef<HTMLDivElement>(null);
+    const lastMoveTime = useRef<number>(Date.now());
+    const lastMoveY = useRef<number>(0);
+    const animationFrame = useRef<number | null>(null);
 
     useEffect(() => {
         if (open) {
@@ -39,17 +43,40 @@ export const Drawer: React.FC<DrawerProps> = ({
     }, [open]);
 
     const handleDragStart = useCallback((clientY: number) => {
+        if (animationFrame.current) {
+            cancelAnimationFrame(animationFrame.current);
+        }
         setIsDragging(true);
         setStartY(clientY);
         setDragOffset(0);
+        setVelocity(0);
+        lastMoveTime.current = Date.now();
+        lastMoveY.current = clientY;
     }, []);
 
     const handleDragMove = useCallback(
         (clientY: number) => {
             if (!isDragging) return;
+            const now = Date.now();
+            const timeDelta = now - lastMoveTime.current;
             const delta = clientY - startY;
-            if (delta > 0) {
-                setDragOffset(delta);
+
+            if (delta >= 0) {
+                // Apply rubber band effect for smoother feel
+                const rubberBandFactor = Math.max(0.3, 1 - delta / 1000);
+                const adjustedDelta = delta * rubberBandFactor;
+
+                setDragOffset(adjustedDelta);
+
+                // Calculate velocity for momentum
+                if (timeDelta > 0) {
+                    const velocityValue =
+                        (clientY - lastMoveY.current) / timeDelta;
+                    setVelocity(velocityValue);
+                }
+
+                lastMoveTime.current = now;
+                lastMoveY.current = clientY;
             }
         },
         [isDragging, startY],
@@ -59,17 +86,32 @@ export const Drawer: React.FC<DrawerProps> = ({
         if (!isDragging) return;
         setIsDragging(false);
 
-        if (dragOffset > 100) {
+        // Check velocity and position for momentum-based close
+        const shouldClose =
+            dragOffset > 100 || (velocity > 0.5 && dragOffset > 50);
+
+        if (shouldClose) {
             setIsClosing(true);
             setTimeout(() => {
                 onOpenChange(false);
                 setDragOffset(0);
                 setIsClosing(false);
-            }, 200);
+            }, 250);
         } else {
-            setDragOffset(0);
+            // Spring back animation
+            const springBack = () => {
+                setDragOffset((prev) => {
+                    const newOffset = prev * 0.7; // Exponential decay
+                    if (Math.abs(newOffset) < 0.5) {
+                        return 0;
+                    }
+                    animationFrame.current = requestAnimationFrame(springBack);
+                    return newOffset;
+                });
+            };
+            animationFrame.current = requestAnimationFrame(springBack);
         }
-    }, [isDragging, dragOffset, onOpenChange]);
+    }, [isDragging, dragOffset, velocity, onOpenChange]);
 
     useEffect(() => {
         if (!isDragging) return;
@@ -107,9 +149,7 @@ export const Drawer: React.FC<DrawerProps> = ({
 
     const transform = isClosing
         ? "translateY(100%)"
-        : isDragging
-          ? `translateY(${dragOffset}px)`
-          : "translateY(0)";
+        : `translateY(${dragOffset}px)`;
 
     return (
         <>
@@ -140,9 +180,14 @@ export const Drawer: React.FC<DrawerProps> = ({
                     height,
                     maxHeight: "96vh",
                     transform,
-                    transition: isDragging ? "none" : "transform 0.3s ease-out",
+                    transition: isDragging
+                        ? "none"
+                        : isClosing
+                          ? "transform 0.25s cubic-bezier(0.4, 0.0, 0.2, 1)"
+                          : "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
                     touchAction: "none",
                     paddingBottom: "env(safe-area-inset-bottom)",
+                    willChange: "transform",
                 }}
             >
                 {/* Drag Handle Area */}
