@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import ReactDOM from "react-dom";
+import { SheetCloseButton } from "./SheetCloseButton";
 
 /**
  * Minimal, custom, NON-scrollable bottom sheet style modal specifically for the Refine view.
@@ -86,14 +87,11 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
             >
                 <div className="refine-modal-header">
                     <h2 className="refine-modal-title">{title}</h2>
-                    <button
-                        type="button"
-                        className="refine-modal-close-btn"
-                        aria-label="Close"
+                    <SheetCloseButton
                         onClick={() => onOpenChange(false)}
-                    >
-                        ×
-                    </button>
+                        ariaLabel="Close"
+                        size={40}
+                    />
                 </div>
                 <div className="refine-modal-body">
                     <img
@@ -168,8 +166,10 @@ const modalCSS = `
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px 8px 20px;
+  /* Unified spacing with AddPersonSheet (py-4 equivalent) */
+  padding: 16px 28px;
   flex: 0 0 auto;
+  min-height: 64px;
 }
 
 .refine-modal-title {
@@ -183,29 +183,7 @@ const modalCSS = `
   font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;
 }
 
-.refine-modal-close-btn {
-  appearance: none;
-  border: none;
-  background: #f3f4f6;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #374151;
-  transition: background 120ms;
-}
-.refine-modal-close-btn:hover {
-  background: #e5e7eb;
-}
-.refine-modal-close-btn:active {
-  background: #d1d5db;
-}
+/* Close button now uses shared SheetCloseButton component; old styles removed */
 
 .refine-modal-body {
   flex: 1 1 auto;
