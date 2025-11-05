@@ -61,7 +61,10 @@ export const Drawer: React.FC<DrawerProps> = ({
                         paddingLeft: "20px",
                         paddingRight: "20px",
                         paddingTop: "16px",
-                        paddingBottom: "24px",
+                        paddingBottom:
+                            "calc(env(safe-area-inset-bottom) + 16px)",
+                        overflowY: "auto",
+                        WebkitOverflowScrolling: "touch",
                     }}
                 >
                     {children}
