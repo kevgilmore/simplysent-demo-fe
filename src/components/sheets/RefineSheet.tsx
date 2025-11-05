@@ -82,7 +82,7 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
     const computedHeight = (() => {
         if (height) {
             const trimmed = height.trim();
-            if (variant === "addPerson" && /vh$/i.test(trimmed)) {
+            if (/vh$/i.test(trimmed)) {
                 const vhNumber = parseFloat(trimmed);
                 if (!isNaN(vhNumber)) {
                     const vpH =
@@ -97,7 +97,7 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
             }
             return height;
         }
-        return computeResponsiveHeight(variant);
+        return computeResponsiveHeight();
     })();
 
     return ReactDOM.createPortal(
