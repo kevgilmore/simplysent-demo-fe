@@ -257,7 +257,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             <div
                 className="px-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)]"
                 style={{
-                    paddingTop: "calc(env(safe-area-inset-top) + 70px)",
+                    paddingTop: "calc(env(safe-area-inset-top) + 90px)",
                     paddingLeft: "max(1rem, env(safe-area-inset-left))",
                     paddingRight: "max(1rem, env(safe-area-inset-right))",
                 }}

@@ -87,12 +87,19 @@ function AppShell() {
     }, [showError]);
 
     console.log("Current route:", location.pathname);
+
+    // Check if current route is a carousel page that needs full width
+    const isCarouselPage =
+        location.pathname === "/new" || location.pathname === "/new-mum";
+
     return (
         <>
             <Analytics measurementId={GA_MEASUREMENT_ID} />
             <MetaPixel pixelId={META_PIXEL_ID} />
             <ToastContainer toasts={toasts} onRemove={removeToast} />
-            <div className="w-full min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 pt-8 overflow-x-hidden">
+            <div
+                className={`w-full min-h-screen overflow-x-hidden ${isCarouselPage ? "" : "bg-gradient-to-br from-purple-50 to-pink-100 pt-8"}`}
+            >
                 <style>{`
           .no-scrollbar {
             -ms-overflow-style: none; /* IE and Edge */
@@ -112,7 +119,11 @@ function AppShell() {
             transform: none !important;
           }
         `}</style>
-                <div className="max-w-7xl mx-auto px-2 sm:px-4">
+                <div
+                    className={
+                        isCarouselPage ? "" : "max-w-7xl mx-auto px-2 sm:px-4"
+                    }
+                >
                     <AnimatePresence mode="wait">
                         <div key={location.pathname}>
                             <Outlet />
