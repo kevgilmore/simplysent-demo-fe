@@ -2,87 +2,9 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-/* Vaul Drawer Styles */
-[vaul-drawer] {
-    touch-action: none;
-    will-change: transform;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-}
-
-[vaul-drawer][vaul-drawer-direction="bottom"] {
-    transform: translate3d(0, 100%, 0);
-    transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-}
-
-[vaul-drawer][vaul-drawer-visible="true"][vaul-drawer-direction="bottom"] {
-    transform: translate3d(0, var(--snap-point-height, 0), 0);
-}
-
-[vaul-overlay] {
-    opacity: 0;
-    transition: opacity 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    background-color: rgba(0, 0, 0, 0.4) !important;
-    will-change: opacity, backdrop-filter;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-}
-
-[vaul-overlay][data-state="open"] {
-    opacity: 1 !important;
-}
-
-[vaul-overlay][data-state="closed"] {
-    opacity: 0;
-}
-
-[vaul-drawer]::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    background: inherit;
-    background-color: inherit;
-    left: 0;
-    right: 0;
-    height: 200%;
-}
-
-[vaul-handle] {
-    display: block;
-    position: relative;
-    opacity: 0.8;
-    margin-left: auto;
-    margin-right: auto;
-    height: 5px;
-    width: 56px;
-    border-radius: 1rem;
-    background-color: #d1d5db;
-    cursor: grab;
-}
-
-[vaul-handle]:active {
-    cursor: grabbing;
-}
-
 /* Prevent body scroll when drawer is open */
-body:has([vaul-drawer][vaul-drawer-visible="true"]) {
+body.drawer-open {
     overflow: hidden;
-}
-
-/* Fix for iOS Safari backdrop blur */
-@supports (-webkit-touch-callout: none) {
-    [vaul-overlay] {
-        -webkit-backdrop-filter: blur(8px) !important;
-    }
-}
-
-/* Force hardware acceleration for blur */
-[vaul-overlay]::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    backdrop-filter: inherit;
-    -webkit-backdrop-filter: inherit;
+    position: fixed;
+    width: 100%;
 }
