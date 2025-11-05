@@ -459,55 +459,57 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                 onOpenChange={setIsOptionsOpen}
                 height="85vh"
             >
-                <div className="space-y-8">
-                    {/* Interests Section */}
-                    <div>
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                            Interests
-                        </h3>
-                        <div className="flex flex-wrap gap-3">
-                            {interestOptions.map((interest) => (
-                                <button
-                                    key={interest}
-                                    onClick={() => toggleInterest(interest)}
-                                    className={`px-6 py-3 rounded-full font-semibold transition-all duration-200 ${
-                                        selectedInterests.includes(interest)
-                                            ? "bg-[#5E57AC] text-white shadow-md scale-105"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
-                                >
-                                    {interest}
-                                </button>
-                            ))}
+                <div className="w-full max-w-full">
+                    <div className="space-y-8">
+                        {/* Interests Section */}
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                                Interests
+                            </h3>
+                            <div className="flex flex-wrap gap-3">
+                                {interestOptions.map((interest) => (
+                                    <button
+                                        key={interest}
+                                        onClick={() => toggleInterest(interest)}
+                                        className={`px-6 py-3 rounded-full font-semibold transition-all duration-200 ${
+                                            selectedInterests.includes(interest)
+                                                ? "bg-[#5E57AC] text-white shadow-md scale-105"
+                                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        }`}
+                                    >
+                                        {interest}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Budget Section */}
-                    <div>
-                        <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                            Budget
-                        </h3>
-                        <RangeSlider
-                            min={10}
-                            max={500}
-                            minValue={minBudget}
-                            maxValue={maxBudget}
-                            onChange={(min, max) => {
-                                setMinBudget(min);
-                                setMaxBudget(max);
-                            }}
-                        />
-                    </div>
+                        {/* Budget Section */}
+                        <div>
+                            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+                                Budget
+                            </h3>
+                            <RangeSlider
+                                min={10}
+                                max={500}
+                                minValue={minBudget}
+                                maxValue={maxBudget}
+                                onChange={(min, max) => {
+                                    setMinBudget(min);
+                                    setMaxBudget(max);
+                                }}
+                            />
+                        </div>
 
-                    {/* Apply Button */}
-                    <div className="pt-2 pb-4">
-                        <button
-                            type="button"
-                            className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
-                            onClick={() => setIsOptionsOpen(false)}
-                        >
-                            Apply Changes
-                        </button>
+                        {/* Apply Button */}
+                        <div className="pt-2 pb-8 w-full">
+                            <button
+                                type="button"
+                                className="w-full px-9 py-4 text-lg font-semibold rounded-full transition-all duration-200 bg-[#5E57AC] text-white hover:bg-[#4e47a0] focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:bg-[#4e47a0]"
+                                onClick={() => setIsOptionsOpen(false)}
+                            >
+                                Apply Changes
+                            </button>
+                        </div>
                     </div>
                 </div>
             </Drawer>

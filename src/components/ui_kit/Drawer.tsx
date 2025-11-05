@@ -42,25 +42,29 @@ export const Drawer: React.FC<DrawerProps> = ({
 
     return (
         <>
-            {/* Backdrop */}
+            {/* Backdrop with blur */}
             <div
-                className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+                className={`fixed inset-0 z-40 transition-all duration-300 ${
                     open && !isClosing ? "opacity-100" : "opacity-0"
                 }`}
                 style={{
-                    backgroundColor: "rgba(0, 0, 0, 0.25)",
-                    backdropFilter: "blur(20px)",
-                    WebkitBackdropFilter: "blur(20px)",
+                    backgroundColor: "rgba(255, 255, 255, 0.3)",
+                    backdropFilter: "saturate(180%) blur(40px)",
+                    WebkitBackdropFilter: "saturate(180%) blur(40px)",
                 }}
                 onClick={handleClose}
             />
 
             {/* Drawer */}
             <div
-                className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl flex flex-col"
+                className="fixed left-0 right-0 z-50 bg-white flex flex-col"
                 style={{
-                    height,
+                    bottom: 0,
+                    height: height,
                     maxHeight: "100dvh",
+                    borderTopLeftRadius: "24px",
+                    borderTopRightRadius: "24px",
+                    boxShadow: "0 -4px 24px rgba(0, 0, 0, 0.15)",
                     transform: isClosing ? "translateY(100%)" : "translateY(0)",
                     transition: isClosing
                         ? "transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1)"
@@ -68,7 +72,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                 }}
             >
                 {/* Header with close button */}
-                <div className="flex-shrink-0 px-6 pt-6 pb-4 border-b border-gray-100">
+                <div className="flex-shrink-0 px-5 pt-5 pb-3 border-b border-gray-100">
                     <div className="flex items-center justify-between">
                         {title && (
                             <h2 className="text-2xl font-bold text-gray-800">
@@ -85,15 +89,18 @@ export const Drawer: React.FC<DrawerProps> = ({
                     </div>
                 </div>
 
-                {/* Content Area */}
+                {/* Content Area - scrollable */}
                 <div
-                    className="flex-1 overflow-y-auto overflow-x-hidden px-6"
+                    className="flex-1 overflow-y-auto overflow-x-hidden"
                     style={{
+                        paddingLeft: "max(20px, env(safe-area-inset-left))",
+                        paddingRight: "max(20px, env(safe-area-inset-right))",
+                        paddingTop: "16px",
                         paddingBottom:
                             "calc(env(safe-area-inset-bottom) + 24px)",
                     }}
                 >
-                    {children}
+                    <div className="max-w-full box-border">{children}</div>
                 </div>
             </div>
         </>
