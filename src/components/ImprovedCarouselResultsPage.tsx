@@ -184,9 +184,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
         <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-gray-50 to-white">
             {/* Fixed translucent header with notch support */}
             <header
-                className={`fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50 ${
-                    isAddPersonOpen ? "opacity-0 pointer-events-none" : ""
-                }`}
+                className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50"
                 style={{
                     paddingTop: "env(safe-area-inset-top)",
                     paddingLeft: "env(safe-area-inset-left)",
@@ -508,7 +506,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             {/* Bottom fixed navbar with safe area support */}
             <div
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
-                    isOptionsOpen || isAddPersonOpen
+                    isOptionsOpen
                         ? "opacity-0 pointer-events-none"
                         : "opacity-100"
                 }`}
