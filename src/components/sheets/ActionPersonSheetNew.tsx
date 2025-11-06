@@ -8,16 +8,15 @@ import { Button } from "../ui_kit/Button";
 /**
  * ActionPersonSheet
  *
- * Minimal bottom sheet using react-modal-sheet compound components (Container/Header/Content/Backdrop)
- * with correct imports (only Sheet + SheetRef). Uses fixed snap points [0, 1] and a container height of 90vh for stability.
+ * Multi-step bottom sheet for adding a person with iOS Safari safe-area support
  */
 export interface ActionPersonSheetProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     title?: string;
     children?: React.ReactNode;
-    snapPoints?: number[]; // Defaults [0, 1] (0 closed, 1 open; height enforced via container style 90vh)
-    initialSnap?: number; // Defaults 1 (the 0.9 point)
+    snapPoints?: number[];
+    initialSnap?: number;
 }
 
 const DEFAULT_SNAP_POINTS = [0, 1];
@@ -33,45 +32,48 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
     const sheetRef = useRef<SheetRef>(null);
     const scrollLockRef = useRef<number>(0);
 
-    // Stable pixel height derived from visualViewport (falls back to window.innerHeight)
-    // Converts 90vh to a concrete px value to avoid iOS Safari floating toolbar cutoff.
+    // Stable pixel height derived from visualViewport
     const dynamicHeight = React.useMemo(() => {
         if (typeof window === "undefined") return "90vh";
         const vpH =
             window.visualViewport?.height && window.visualViewport.height > 0
                 ? window.visualViewport.height
                 : window.innerHeight;
-        // 90% of current viewport plus small buffer so sheet visually extends under toolbar
         const target = Math.round(vpH * 0.9 + 12);
         return `${target}px`;
     }, [open]);
 
-    // Fixed snap points [0,1] for stability; no dynamic normalization.
-    // Using initial snap index 1 to open at 90vh (enforced via Sheet.Container height).
-    // Removed dynamic snapPoints logic to avoid upward jump issues.
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-
-    // Body scroll lock (simple; library backdrop prevents interactions but this stops background bounce).
+    // Robust iOS Safari scroll lock using position fixed method
     useEffect(() => {
         if (open) {
-            const prev = document.body.style.overflow;
+            scrollLockRef.current = window.scrollY;
+
+            const prevOverflow = document.body.style.overflow;
+            const prevPosition = document.body.style.position;
+            const prevTop = document.body.style.top;
+            const prevLeft = document.body.style.left;
+            const prevRight = document.body.style.right;
+            const prevWidth = document.body.style.width;
+
             document.body.style.overflow = "hidden";
+            document.body.style.position = "fixed";
+            document.body.style.top = `-${scrollLockRef.current}px`;
+            document.body.style.left = "0";
+            document.body.style.right = "0";
+            document.body.style.width = "100%";
+
             return () => {
-                document.body.style.overflow = prev;
+                document.body.style.overflow = prevOverflow;
+                document.body.style.position = prevPosition;
+                document.body.style.top = prevTop;
+                document.body.style.left = prevLeft;
+                document.body.style.right = prevRight;
+                document.body.style.width = prevWidth;
+                window.scrollTo(0, scrollLockRef.current);
             };
         }
     }, [open]);
 
-    // (Removed duplicate dynamicHeight declaration)
     return (
         <>
             {open && (
@@ -89,7 +91,6 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                 />
             )}
 
-            {/* (Removed duplicate overlay block) */}
             <Sheet
                 ref={sheetRef}
                 isOpen={open}
@@ -111,12 +112,10 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                             className="flex items-center justify-center px-6"
                             style={{
                                 minHeight: "64px",
-                                paddingTop:
-                                    "calc(env(safe-area-inset-top) + 16px)",
+                                paddingTop: "calc(env(safe-area-inset-top) + 16px)",
                                 position: "relative",
                             }}
                         >
-                            {/* Drag indicator */}
                             <div
                                 style={{
                                     position: "absolute",
@@ -145,15 +144,10 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                     <Sheet.Content
                         style={{
                             padding: "0 24px 24px 24px",
-                            paddingBottom:
-                                "calc(24px + env(safe-area-inset-bottom))",
+                            paddingBottom: "calc(24px + env(safe-area-inset-bottom))",
                         }}
                     >
-                        {children ?? (
-                            <AddPersonForm
-                                onClose={() => onOpenChange(false)}
-                            />
-                        )}
+                        {children ?? <AddPersonForm onClose={() => onOpenChange(false)} />}
                     </Sheet.Content>
                 </Sheet.Container>
                 <Sheet.Backdrop onTap={() => onOpenChange(false)} />
@@ -164,9 +158,14 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
 
 // Default form component for Add Person
 const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const [step, setStep] = useState(1);
     const [relationship, setRelationship] = useState("");
     const [name, setName] = useState("");
     const [occasion, setOccasion] = useState("");
+    const [day, setDay] = useState("");
+    const [month, setMonth] = useState("");
+    const [age, setAge] = useState("");
+    const [yearOfBirth, setYearOfBirth] = useState("");
 
     const relationshipOptions = [
         { value: "father", label: "Father" },
@@ -189,53 +188,19 @@ const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         { value: "other", label: "Other" },
     ];
 
-    const handleNext = () => {
-        // Handle form submission here
-        console.log({ relationship, name, occasion });
-        onClose();
-    };
+    const dayOptions = Array.from({ length: 31 }, (_, i) => ({
+        value: String(i + 1),
+        label: String(i + 1),
+    }));
 
-    return (
-        <div className="flex flex-col gap-6 py-4">
-            <div className="text-left mb-2">
-                <p className="text-gray-700 text-base font-semibold">
-                    Who are we shopping for?
-                </p>
-            </div>
-
-            <Dropdown
-                label="Relationship"
-                placeholder="Select relationship"
-                value={relationship}
-                options={relationshipOptions}
-                onChange={setRelationship}
-            />
-
-            <TextInput
-                label="Name"
-                placeholder="Enter their name"
-                value={name}
-                onChange={setName}
-            />
-
-            <Dropdown
-                label="Occasion"
-                placeholder="Select occasion"
-                value={occasion}
-                options={occasionOptions}
-                onChange={setOccasion}
-            />
-
-            <Button
-                fullWidth
-                size="large"
-                onClick={handleNext}
-                disabled={!relationship || !name || !occasion}
-            >
-                Next
-            </Button>
-        </div>
-    );
-};
-
-export default ActionPersonSheet;
+    const monthOptions = [
+        { value: "1", label: "January" },
+        { value: "2", label: "February" },
+        { value: "3", label: "March" },
+        { value: "4", label: "April" },
+        { value: "5", label: "May" },
+        { value: "6", label: "June" },
+        { value: "7", label: "July" },
+        { value: "8", label: "August" },
+        { value: "9", label: "September" },
+        { value: "10

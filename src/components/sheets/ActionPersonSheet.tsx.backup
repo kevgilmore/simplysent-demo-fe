@@ -46,32 +46,43 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
         return `${target}px`;
     }, [open]);
 
-    // Fixed snap points [0,1] for stability; no dynamic normalization.
-    // Using initial snap index 1 to open at 90vh (enforced via Sheet.Container height).
-    // Removed dynamic snapPoints logic to avoid upward jump issues.
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-    // (Lines intentionally preserved count for edit stability.)
-
-    // Body scroll lock (simple; library backdrop prevents interactions but this stops background bounce).
+    // Robust iOS Safari scroll lock using position fixed method
     useEffect(() => {
         if (open) {
-            const prev = document.body.style.overflow;
+            // Capture current scroll position
+            scrollLockRef.current = window.scrollY;
+
+            // Store previous styles
+            const prevOverflow = document.body.style.overflow;
+            const prevPosition = document.body.style.position;
+            const prevTop = document.body.style.top;
+            const prevLeft = document.body.style.left;
+            const prevRight = document.body.style.right;
+            const prevWidth = document.body.style.width;
+
+            // Apply scroll lock
             document.body.style.overflow = "hidden";
+            document.body.style.position = "fixed";
+            document.body.style.top = `-${scrollLockRef.current}px`;
+            document.body.style.left = "0";
+            document.body.style.right = "0";
+            document.body.style.width = "100%";
+
             return () => {
-                document.body.style.overflow = prev;
+                // Restore previous styles
+                document.body.style.overflow = prevOverflow;
+                document.body.style.position = prevPosition;
+                document.body.style.top = prevTop;
+                document.body.style.left = prevLeft;
+                document.body.style.right = prevRight;
+                document.body.style.width = prevWidth;
+
+                // Restore scroll position
+                window.scrollTo(0, scrollLockRef.current);
             };
         }
     }, [open]);
 
-    // (Removed duplicate dynamicHeight declaration)
     return (
         <>
             {open && (
@@ -89,7 +100,6 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                 />
             )}
 
-            {/* (Removed duplicate overlay block) */}
             <Sheet
                 ref={sheetRef}
                 isOpen={open}
@@ -164,9 +174,14 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
 
 // Default form component for Add Person
 const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const [step, setStep] = useState(1);
     const [relationship, setRelationship] = useState("");
     const [name, setName] = useState("");
     const [occasion, setOccasion] = useState("");
+    const [day, setDay] = useState("");
+    const [month, setMonth] = useState("");
+    const [age, setAge] = useState("");
+    const [yearOfBirth, setYearOfBirth] = useState("");
 
     const relationshipOptions = [
         { value: "father", label: "Father" },
@@ -189,53 +204,21 @@ const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         { value: "other", label: "Other" },
     ];
 
-    const handleNext = () => {
-        // Handle form submission here
-        console.log({ relationship, name, occasion });
-        onClose();
-    };
+    const dayOptions = Array.from({ length: 31 }, (_, i) => ({
+        value: String(i + 1),
+        label: String(i + 1),
+    }));
 
-    return (
-        <div className="flex flex-col gap-6 py-4">
-            <div className="text-left mb-2">
-                <p className="text-gray-700 text-base font-semibold">
-                    Who are we shopping for?
-                </p>
-            </div>
-
-            <Dropdown
-                label="Relationship"
-                placeholder="Select relationship"
-                value={relationship}
-                options={relationshipOptions}
-                onChange={setRelationship}
-            />
-
-            <TextInput
-                label="Name"
-                placeholder="Enter their name"
-                value={name}
-                onChange={setName}
-            />
-
-            <Dropdown
-                label="Occasion"
-                placeholder="Select occasion"
-                value={occasion}
-                options={occasionOptions}
-                onChange={setOccasion}
-            />
-
-            <Button
-                fullWidth
-                size="large"
-                onClick={handleNext}
-                disabled={!relationship || !name || !occasion}
-            >
-                Next
-            </Button>
-        </div>
-    );
+    const monthOptions = [
+        { value: "1", label: "January" },
+        { value: "2", label: "February" },
+        { value: "3", label: "March" },
+        { value: "4", label: "April" },
+        { value: "5", label: "May" },
+        { value: "6", label: "June" },
+        { value: "7", label: "July" },
+        { value: "8", label: "August" },
+        { value: "9
 };
 
 export default ActionPersonSheet;
