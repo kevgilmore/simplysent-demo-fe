@@ -1,5 +1,9 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Sheet, SheetRef } from "react-modal-sheet";
+import { X } from "lucide-react";
+import { TextInput } from "../ui_kit/TextInput";
+import { Dropdown } from "../ui_kit/Dropdown";
+import { Button } from "../ui_kit/Button";
 
 /**
  * ActionPersonSheet
@@ -76,7 +80,7 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        height: "env(safe-area-inset-bottom)",
+                        height: "max(env(safe-area-inset-bottom), 60px)",
                         background: "rgba(255, 0, 0, 0.7)",
                         pointerEvents: "none",
                         zIndex: 9998,
@@ -105,7 +109,8 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                             className="flex items-center justify-center px-6"
                             style={{
                                 minHeight: "64px",
-                                paddingTop: "env(safe-area-inset-top)",
+                                paddingTop:
+                                    "calc(env(safe-area-inset-top) + 16px)",
                                 position: "relative",
                             }}
                         >
@@ -125,6 +130,14 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                             <h2 className="m-0 text-xl font-bold text-gray-800 select-none">
                                 {title}
                             </h2>
+                            <button
+                                type="button"
+                                onClick={() => onOpenChange(false)}
+                                className="p-2 rounded-full hover:bg-gray-100 transition-colors absolute right-6"
+                                aria-label="Close"
+                            >
+                                <X size={24} className="text-gray-600" />
+                            </button>
                         </div>
                     </Sheet.Header>
                     <Sheet.Content
@@ -135,29 +148,92 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                                 "calc(24px + env(safe-area-inset-bottom))",
                         }}
                     >
-                        <div
-                            style={{
-                                minHeight: "200px",
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: "16px",
-                                textAlign: "center",
-                            }}
-                        >
-                            {children ?? (
-                                <p className="text-gray-600 text-base">
-                                    This is your 90% height sheet. Add content
-                                    here.
-                                </p>
-                            )}
-                        </div>
+                        {children ?? (
+                            <AddPersonForm
+                                onClose={() => onOpenChange(false)}
+                            />
+                        )}
                     </Sheet.Content>
                 </Sheet.Container>
                 <Sheet.Backdrop onTap={() => onOpenChange(false)} />
             </Sheet>
         </>
+    );
+};
+
+// Default form component for Add Person
+const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const [relationship, setRelationship] = useState("");
+    const [name, setName] = useState("");
+    const [occasion, setOccasion] = useState("");
+
+    const relationshipOptions = [
+        { value: "father", label: "Father" },
+        { value: "mother", label: "Mother" },
+        { value: "friend", label: "Friend" },
+        { value: "partner", label: "Partner" },
+        { value: "sibling", label: "Sibling" },
+        { value: "colleague", label: "Colleague" },
+        { value: "other", label: "Other" },
+    ];
+
+    const occasionOptions = [
+        { value: "birthday", label: "Birthday" },
+        { value: "christmas", label: "Christmas" },
+        { value: "anniversary", label: "Anniversary" },
+        { value: "graduation", label: "Graduation" },
+        { value: "wedding", label: "Wedding" },
+        { value: "thank-you", label: "Thank You" },
+        { value: "just-because", label: "Just Because" },
+        { value: "other", label: "Other" },
+    ];
+
+    const handleNext = () => {
+        // Handle form submission here
+        console.log({ relationship, name, occasion });
+        onClose();
+    };
+
+    return (
+        <div className="flex flex-col gap-6 py-4">
+            <div className="text-left mb-2">
+                <p className="text-gray-700 text-base font-semibold">
+                    Who are we shopping for?
+                </p>
+            </div>
+
+            <Dropdown
+                label="Relationship"
+                placeholder="Select relationship"
+                value={relationship}
+                options={relationshipOptions}
+                onChange={setRelationship}
+            />
+
+            <TextInput
+                label="Name"
+                placeholder="Enter their name"
+                value={name}
+                onChange={setName}
+            />
+
+            <Dropdown
+                label="Occasion"
+                placeholder="Select occasion"
+                value={occasion}
+                options={occasionOptions}
+                onChange={setOccasion}
+            />
+
+            <Button
+                fullWidth
+                size="large"
+                onClick={handleNext}
+                disabled={!relationship || !name || !occasion}
+            >
+                Next
+            </Button>
+        </div>
     );
 };
 
