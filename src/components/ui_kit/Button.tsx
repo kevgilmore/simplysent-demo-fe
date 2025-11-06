@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -12,16 +12,17 @@ interface ButtonProps {
 }
 
 export const Button: React.FC<ButtonProps> = ({
-  children,
-  onClick,
-  variant = 'primary',
-  size = 'medium',
-  disabled = false,
-  fullWidth = false,
-  className = '',
-  type = 'button'
+    children,
+    onClick,
+    variant = "primary",
+    size = "medium",
+    disabled = false,
+    fullWidth = false,
+    className = "",
+    type = "button",
 }) => {
-  const baseStyles = 'font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation';
+    const baseStyles =
+        "font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation";
 
   const variantStyles = {
     primary: 'bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-md hover:shadow-lg active:shadow disabled:hover:bg-[#5E57AC]',
@@ -30,13 +31,13 @@ export const Button: React.FC<ButtonProps> = ({
     ghost: 'bg-transparent text-[#5E57AC] hover:bg-[#5E57AC]/10 active:bg-[#5E57AC]/20 active:opacity-95 focus:ring-[#5E57AC]/20 disabled:hover:bg-transparent'
   };
 
-  const sizeStyles = {
-    small: 'px-5 py-2 text-sm',
-    medium: 'px-7 py-3.5 text-base',
-    large: 'px-9 py-4 text-lg'
-  };
+    const sizeStyles = {
+        small: "px-5 py-2 text-sm",
+        medium: "px-7 py-3.5 text-base",
+        large: "px-9 py-4 text-lg",
+    };
 
-  const widthStyle = fullWidth ? 'w-full' : '';
+    const widthStyle = fullWidth ? "w-full" : "";
 
   return (
     <button

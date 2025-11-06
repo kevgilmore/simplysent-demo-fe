@@ -1,25 +1,25 @@
-import React from 'react';
+import React from "react";
 
 interface TextInputProps {
-  label?: string;
-  placeholder?: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: 'text' | 'email' | 'password' | 'number';
-  error?: string;
-  disabled?: boolean;
-  className?: string;
+    label?: string;
+    placeholder?: string;
+    value: string;
+    onChange: (value: string) => void;
+    type?: "text" | "email" | "password" | "number";
+    error?: string;
+    disabled?: boolean;
+    className?: string;
 }
 
 export const TextInput: React.FC<TextInputProps> = ({
-  label,
-  placeholder = '',
-  value,
-  onChange,
-  type = 'text',
-  error,
-  disabled = false,
-  className = ''
+    label,
+    placeholder = "",
+    value,
+    onChange,
+    type = "text",
+    error,
+    disabled = false,
+    className = "",
 }) => {
   return (
     <div className={`w-full ${className}`}>
@@ -39,19 +39,16 @@ export const TextInput: React.FC<TextInputProps> = ({
             ? 'border-red-500 focus:border-red-600'
             : 'border-gray-200 focus:border-[#5E57AC]'
           }
-          ${disabled
-            ? 'bg-gray-100 cursor-not-allowed'
-            : 'bg-white hover:border-gray-300'
+          ${
+              disabled
+                  ? "bg-gray-100 cursor-not-allowed"
+                  : "bg-white hover:border-gray-300"
           }
           focus:outline-none focus:ring-4 focus:ring-[#5E57AC]/20
           placeholder:text-gray-400
         `}
-      />
-      {error && (
-        <p className="mt-2 text-sm text-red-600 px-2">
-          {error}
-        </p>
-      )}
-    </div>
-  );
+            />
+            {error && <p className="mt-2 text-sm text-red-600 px-2">{error}</p>}
+        </div>
+    );
 };

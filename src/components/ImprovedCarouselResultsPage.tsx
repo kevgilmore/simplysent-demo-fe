@@ -462,7 +462,14 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
             <RefineSheet
                 open={isRefineOpen}
                 onOpenChange={setIsRefineOpen}
-                height="70vh"
+                initialInterests={selectedInterests}
+                initialMinBudget={minBudget}
+                initialMaxBudget={maxBudget}
+                onUpdate={(data) => {
+                    setSelectedInterests(data.interests);
+                    setMinBudget(data.minBudget);
+                    setMaxBudget(data.maxBudget);
+                }}
             />
 
             {/* Floating Section Navigation (Gifts / Favourites / Share) */}

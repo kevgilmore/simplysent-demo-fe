@@ -4,6 +4,12 @@ import { X } from "lucide-react";
 import { TextInput } from "../ui_kit/TextInput";
 import { Dropdown } from "../ui_kit/Dropdown";
 import { Button } from "../ui_kit/Button";
+import { Step2AboutForm } from "./Step2AboutForm";
+import { Step3StyleForm } from "./Step3StyleForm";
+import { Step4InterestsForm } from "./Step4InterestsForm";
+import { Step5VibeForm } from "./Step5VibeForm";
+import { Step6BudgetForm } from "./Step6BudgetForm";
+import { relationshipOptions, occasionOptions } from "./formConstants";
 
 /**
  * ActionPersonSheet
@@ -82,7 +88,7 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                         right: 0,
                         bottom: 0,
                         height: "max(env(safe-area-inset-bottom), 60px)",
-                        background: "rgba(255, 0, 0, 0.7)",
+                        background: "rgba(255, 255, 255, 1)",
                         pointerEvents: "none",
                         zIndex: 9998,
                     }}
@@ -127,7 +133,9 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                                     justifyContent: "center",
                                 }}
                             >
-                                <Sheet.DragIndicator style={{ display: "none" }} />
+                                <Sheet.DragIndicator
+                                    style={{ display: "none" }}
+                                />
                             </div>
                             <h2 className="m-0 text-xl font-bold text-gray-800 select-none">
                                 {title}
@@ -164,36 +172,89 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
 
 // Default form component for Add Person
 const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const [relationship, setRelationship] = useState("");
-    const [name, setName] = useState("");
-    const [occasion, setOccasion] = useState("");
+    const [step, setStep] = useState(1);
+    const [relationship, setRelationship] = useState("friend");
+    const [name, setName] = useState("John");
+    const [occasion, setOccasion] = useState("birthday");
 
-    const relationshipOptions = [
-        { value: "father", label: "Father" },
-        { value: "mother", label: "Mother" },
-        { value: "friend", label: "Friend" },
-        { value: "partner", label: "Partner" },
-        { value: "sibling", label: "Sibling" },
-        { value: "colleague", label: "Colleague" },
-        { value: "other", label: "Other" },
-    ];
+    const handleStep1Next = () => {
+        if (relationship && name && occasion) {
+            setStep(2);
+        }
+    };
 
-    const occasionOptions = [
-        { value: "birthday", label: "Birthday" },
-        { value: "christmas", label: "Christmas" },
-        { value: "anniversary", label: "Anniversary" },
-        { value: "graduation", label: "Graduation" },
-        { value: "wedding", label: "Wedding" },
-        { value: "thank-you", label: "Thank You" },
-        { value: "just-because", label: "Just Because" },
-        { value: "other", label: "Other" },
-    ];
+    const handleStep2Back = () => setStep(1);
+    const handleStep2Next = (data: { age: string; gender: string }) => {
+        console.log("Step 2:", data);
+        setStep(3);
+    };
 
-    const handleNext = () => {
-        // Handle form submission here
-        console.log({ relationship, name, occasion });
+    const handleStep3Back = () => setStep(2);
+    const handleStep3Next = (data: {
+        clothingSize: string;
+        favouriteDrink: string;
+    }) => {
+        console.log("Step 3:", data);
+        setStep(4);
+    };
+
+    const handleStep4Back = () => setStep(3);
+    const handleStep4Next = (data: { interests: string[] }) => {
+        console.log("Step 4:", data);
+        setStep(5);
+    };
+
+    const handleStep5Back = () => setStep(4);
+    const handleStep5Next = (data: { sentiment: string }) => {
+        console.log("Step 5:", data);
+        setStep(6);
+    };
+
+    const handleStep6Back = () => setStep(5);
+    const handleStep6Next = (data: {
+        minBudget: number;
+        maxBudget: number;
+    }) => {
+        console.log("Step 6:", data);
+        console.log("All data collected!");
         onClose();
     };
+
+    if (step === 2) {
+        return (
+            <Step2AboutForm onBack={handleStep2Back} onNext={handleStep2Next} />
+        );
+    }
+
+    if (step === 3) {
+        return (
+            <Step3StyleForm onBack={handleStep3Back} onNext={handleStep3Next} />
+        );
+    }
+
+    if (step === 4) {
+        return (
+            <Step4InterestsForm
+                onBack={handleStep4Back}
+                onNext={handleStep4Next}
+            />
+        );
+    }
+
+    if (step === 5) {
+        return (
+            <Step5VibeForm onBack={handleStep5Back} onNext={handleStep5Next} />
+        );
+    }
+
+    if (step === 6) {
+        return (
+            <Step6BudgetForm
+                onBack={handleStep6Back}
+                onNext={handleStep6Next}
+            />
+        );
+    }
 
     return (
         <div className="flex flex-col gap-6 py-4">
@@ -229,7 +290,7 @@ const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <Button
                 fullWidth
                 size="large"
-                onClick={handleNext}
+                onClick={handleStep1Next}
                 disabled={!relationship || !name || !occasion}
             >
                 Next
