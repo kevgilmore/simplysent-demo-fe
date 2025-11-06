@@ -46,12 +46,7 @@ export const Step5VibeForm: React.FC<Step5VibeFormProps> = ({
                 >
                     Back
                 </Button>
-                <Button
-                    fullWidth
-                    size="large"
-                    onClick={handleNext}
-                    disabled={!sentiment}
-                >
+                <Button fullWidth size="large" onClick={handleNext}>
                     Next
                 </Button>
             </div>

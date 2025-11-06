@@ -55,12 +55,7 @@ export const Step3StyleForm: React.FC<Step3StyleFormProps> = ({
                 >
                     Back
                 </Button>
-                <Button
-                    fullWidth
-                    size="large"
-                    onClick={handleNext}
-                    disabled={!clothingSize || !favouriteDrink}
-                >
+                <Button fullWidth size="large" onClick={handleNext}>
                     Next
                 </Button>
             </div>

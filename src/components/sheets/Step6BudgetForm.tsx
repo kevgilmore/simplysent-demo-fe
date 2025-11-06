@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "../ui_kit/Button";
 import { RangeSlider } from "../ui_kit/RangeSlider";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 
 interface Step6BudgetFormProps {
     onBack: () => void;
@@ -15,6 +15,7 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
     const [minBudget, setMinBudget] = useState(20);
     const [maxBudget, setMaxBudget] = useState(100);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const handleBudgetChange = (min: number, max: number) => {
         setMinBudget(min);
@@ -23,10 +24,14 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
 
     const handleNext = () => {
         setIsLoading(true);
-        // Simulate API call with delay
+        // Simulate API call with delay, then show success animation
         setTimeout(() => {
-            onNext({ minBudget, maxBudget });
             setIsLoading(false);
+            setIsSuccess(true);
+            // Close sheet after success animation
+            setTimeout(() => {
+                onNext({ minBudget, maxBudget });
+            }, 1000);
         }, 2000);
     };
 
@@ -63,12 +68,22 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
                     size="large"
                     variant="cta"
                     onClick={handleNext}
-                    disabled={isLoading}
+                    disabled={isLoading || isSuccess}
+                    className={
+                        isSuccess
+                            ? "!bg-gradient-to-r !from-emerald-500 !via-green-500 !to-teal-500 !animate-none"
+                            : ""
+                    }
                 >
                     {isLoading ? (
                         <span className="flex items-center justify-center gap-2">
                             <Loader2 className="animate-spin" size={20} />
                             Finding perfect gifts...
+                        </span>
+                    ) : isSuccess ? (
+                        <span className="flex items-center justify-center gap-2 animate-[scale-up_0.6s_ease-out]">
+                            <Sparkles size={22} className="animate-pulse" />
+                            Perfect! Opening...
                         </span>
                     ) : (
                         "✨ Show Gift Ideas ✨"

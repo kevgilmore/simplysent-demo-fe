@@ -45,12 +45,7 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
                 >
                     Back
                 </Button>
-                <Button
-                    fullWidth
-                    size="large"
-                    onClick={handleNext}
-                    disabled={interests.length === 0}
-                >
+                <Button fullWidth size="large" onClick={handleNext}>
                     Next
                 </Button>
             </div>

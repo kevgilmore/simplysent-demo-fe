@@ -173,14 +173,12 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
 // Default form component for Add Person
 const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [step, setStep] = useState(1);
-    const [relationship, setRelationship] = useState("friend");
-    const [name, setName] = useState("John");
-    const [occasion, setOccasion] = useState("birthday");
+    const [relationship, setRelationship] = useState("");
+    const [name, setName] = useState("");
+    const [occasion, setOccasion] = useState("");
 
     const handleStep1Next = () => {
-        if (relationship && name && occasion) {
-            setStep(2);
-        }
+        setStep(2);
     };
 
     const handleStep2Back = () => setStep(1);
@@ -287,12 +285,7 @@ const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 onChange={setOccasion}
             />
 
-            <Button
-                fullWidth
-                size="large"
-                onClick={handleStep1Next}
-                disabled={!relationship || !name || !occasion}
-            >
+            <Button fullWidth size="large" onClick={handleStep1Next}>
                 Next
             </Button>
         </div>

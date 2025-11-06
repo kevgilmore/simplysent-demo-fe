@@ -12,8 +12,8 @@ export const Step2AboutForm: React.FC<Step2AboutThemProps> = ({
     onBack,
     onNext,
 }) => {
-    const [age, setAge] = useState("25");
-    const [gender, setGender] = useState("male");
+    const [age, setAge] = useState("");
+    const [gender, setGender] = useState("");
 
     const handleNext = () => {
         onNext({ age, gender });
@@ -55,12 +55,7 @@ export const Step2AboutForm: React.FC<Step2AboutThemProps> = ({
                 >
                     Back
                 </Button>
-                <Button
-                    fullWidth
-                    size="large"
-                    onClick={handleNext}
-                    disabled={!age || !gender}
-                >
+                <Button fullWidth size="large" onClick={handleNext}>
                     Next
                 </Button>
             </div>
