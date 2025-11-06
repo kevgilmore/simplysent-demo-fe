@@ -76,9 +76,8 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        height: "calc(env(safe-area-inset-bottom) + 120px)",
-                        background:
-                            "linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.12))",
+                        height: "env(safe-area-inset-bottom)",
+                        background: "rgba(255, 0, 0, 0.7)",
                         pointerEvents: "none",
                         zIndex: 9998,
                     }}
