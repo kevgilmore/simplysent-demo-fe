@@ -24,6 +24,7 @@ export interface ActionPersonSheetProps {
     children?: React.ReactNode;
     snapPoints?: number[]; // Defaults [0, 1] (0 closed, 1 open; height enforced via container style 90vh)
     initialSnap?: number; // Defaults 1 (the 0.9 point)
+    onComplete?: () => void;
 }
 
 const DEFAULT_SNAP_POINTS = [0, 1];
@@ -35,6 +36,7 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
     children,
     snapPoints = DEFAULT_SNAP_POINTS,
     initialSnap = 1,
+    onComplete,
 }) => {
     const sheetRef = useRef<SheetRef>(null);
     const scrollLockRef = useRef<number>(0);
@@ -160,6 +162,7 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                         {children ?? (
                             <AddPersonForm
                                 onClose={() => onOpenChange(false)}
+                                onComplete={onComplete}
                             />
                         )}
                     </Sheet.Content>
@@ -171,7 +174,10 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
 };
 
 // Default form component for Add Person
-const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+const AddPersonForm: React.FC<{
+    onClose: () => void;
+    onComplete?: () => void;
+}> = ({ onClose, onComplete }) => {
     const [step, setStep] = useState(1);
     const [relationship, setRelationship] = useState("");
     const [name, setName] = useState("");
@@ -215,7 +221,11 @@ const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }) => {
         console.log("Step 6:", data);
         console.log("All data collected!");
-        onClose();
+        if (onComplete) {
+            onComplete();
+        } else {
+            onClose();
+        }
     };
 
     if (step === 2) {
@@ -255,39 +265,45 @@ const AddPersonForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
 
     return (
-        <div className="flex flex-col gap-6 py-4">
-            <div className="text-left mb-2">
-                <p className="text-gray-700 text-base font-semibold">
-                    Who are we shopping for?
-                </p>
+        <div className="flex flex-col py-4" style={{ height: "580px" }}>
+            <div className="flex-1 overflow-y-auto">
+                <div className="text-left mb-8">
+                    <p className="text-gray-700 text-base font-semibold">
+                        Who are we shopping for?
+                    </p>
+                </div>
+
+                <div className="flex flex-col gap-6">
+                    <Dropdown
+                        label="Relationship"
+                        placeholder="Select relationship"
+                        value={relationship}
+                        options={relationshipOptions}
+                        onChange={setRelationship}
+                    />
+
+                    <TextInput
+                        label="Name"
+                        placeholder="Enter their name"
+                        value={name}
+                        onChange={setName}
+                    />
+
+                    <Dropdown
+                        label="Occasion"
+                        placeholder="Select occasion"
+                        value={occasion}
+                        options={occasionOptions}
+                        onChange={setOccasion}
+                    />
+                </div>
             </div>
 
-            <Dropdown
-                label="Relationship"
-                placeholder="Select relationship"
-                value={relationship}
-                options={relationshipOptions}
-                onChange={setRelationship}
-            />
-
-            <TextInput
-                label="Name"
-                placeholder="Enter their name"
-                value={name}
-                onChange={setName}
-            />
-
-            <Dropdown
-                label="Occasion"
-                placeholder="Select occasion"
-                value={occasion}
-                options={occasionOptions}
-                onChange={setOccasion}
-            />
-
-            <Button fullWidth size="large" onClick={handleStep1Next}>
-                Next
-            </Button>
+            <div className="flex-shrink-0 mt-6">
+                <Button fullWidth size="large" onClick={handleStep1Next}>
+                    Next
+                </Button>
+            </div>
         </div>
     );
 };

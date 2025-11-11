@@ -19,12 +19,9 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
     };
 
     return (
-        <div className="flex flex-col gap-6 py-4">
+        <div className="flex flex-col py-4">
             <div className="text-left mb-2">
                 <p className="text-gray-700 text-base font-semibold">
-                    Interests
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
                     What do they enjoy in their spare time?
                 </p>
             </div>
@@ -36,7 +33,7 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
                 onChange={setInterests}
             />
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 mt-6">
                 <Button
                     fullWidth
                     size="large"

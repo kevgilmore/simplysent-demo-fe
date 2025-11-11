@@ -20,33 +20,34 @@ export const Step2AboutForm: React.FC<Step2AboutThemProps> = ({
     };
 
     return (
-        <div className="flex flex-col gap-6 py-4">
-            <div className="text-left mb-2">
-                <p className="text-gray-700 text-base font-semibold">
-                    About Them
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                    A few quick details to help personalize ideas.
-                </p>
+        <div className="flex flex-col py-4" style={{ height: "580px" }}>
+            <div className="flex-1 overflow-y-auto">
+                <div className="text-left mb-8">
+                    <p className="text-gray-700 text-base font-semibold">
+                        About Them
+                    </p>
+                </div>
+
+                <div className="flex flex-col gap-6">
+                    <Dropdown
+                        label="Age"
+                        placeholder="Select age"
+                        value={age}
+                        options={ageOptions}
+                        onChange={setAge}
+                    />
+
+                    <Dropdown
+                        label="Gender"
+                        placeholder="Select gender"
+                        value={gender}
+                        options={genderOptions}
+                        onChange={setGender}
+                    />
+                </div>
             </div>
 
-            <Dropdown
-                label="Age"
-                placeholder="Select age"
-                value={age}
-                options={ageOptions}
-                onChange={setAge}
-            />
-
-            <Dropdown
-                label="Gender"
-                placeholder="Select gender"
-                value={gender}
-                options={genderOptions}
-                onChange={setGender}
-            />
-
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 flex-shrink-0 mt-6">
                 <Button
                     fullWidth
                     size="large"

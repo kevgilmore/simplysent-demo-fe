@@ -6,26 +6,27 @@ import {
     useLocation,
 } from "react-router-dom";
 import { GiftRecommenderForm } from "./components/GiftRecommenderForm";
-import { ResultsPage } from "./components/ResultsPage";
-import { SharedRecommendationPage } from "./components/SharedRecommendationPage";
-import { LandingPage } from "./components/LandingPage";
-import { GiftsForHimPage } from "./components/GiftsForHimPage";
-import { GiftsForHerPage } from "./components/GiftsForHerPage";
-import { AboutUs } from "./components/AboutUs";
-import { PrivacyPolicy } from "./components/PrivacyPolicy";
-import { TermsOfService } from "./components/TermsOfService";
+import { ResultsPage } from "./pages/ResultsPage";
+import { SharePage } from "./pages/SharePage";
+import { IntroPage } from "./pages/IntroPage";
+import { GiftsForHimPage } from "./pages/GiftsForHimPage";
+import { GiftsForHerPage } from "./pages/GiftsForHerPage";
+import { AboutUsPage } from "./pages/AboutUsPage";
+import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
+import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { BlogPost1 } from "./components/BlogPost1";
 import { BlogPost2 } from "./components/BlogPost2";
 import { BlogPost3 } from "./components/BlogPost3";
-import { ComponentsPage } from "./components/ComponentsPage";
-import { ImprovedGiftResultsPage } from "./components/ImprovedGiftResultsPage";
-import { ImprovedCarouselResultsPage } from "./components/ImprovedCarouselResultsPage";
+import { UIKitPage } from "./pages/UIKitPage";
+import { ImprovedGiftResultsPage } from "./pages/ImprovedGiftResultsPage";
+import { RecommendationsPage } from "./pages/RecommendationsPage";
+import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { AnimatePresence } from "framer-motion";
-import { ErrorPage } from "./components/ErrorPage";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Analytics } from "./components/Analytics";
-import { MetaPixel } from "./components/MetaPixel";
-import { ToastContainer, useToast } from "./components/Toast";
+import { ErrorPage } from "./pages/ErrorPage";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import { Analytics } from "./components/common/Analytics";
+import { MetaPixel } from "./components/common/MetaPixel";
+import { ToastContainer, useToast } from "./components/common/Toast";
 import { ToastProvider, useToastContext } from "./contexts/ToastContext";
 import { setToastFunctions } from "./services/toastService";
 const GA_MEASUREMENT_ID = "G-JRT058C4VQ";
@@ -140,22 +141,23 @@ const router = createBrowserRouter([
         path: "/",
         element: <AppShell />,
         children: [
-            { index: true, element: <LandingPage /> },
+            { index: true, element: <IntroPage /> },
             { path: "results", element: <GiftRecommenderForm /> },
             { path: "for-him", element: <GiftsForHimPage /> },
             { path: "for-her", element: <GiftsForHerPage /> },
             { path: "products", element: <ResultsPage /> },
-            { path: "about-us", element: <AboutUs /> },
-            { path: "privacy-policy", element: <PrivacyPolicy /> },
-            { path: "terms-of-service", element: <TermsOfService /> },
+            { path: "about-us", element: <AboutUsPage /> },
+            { path: "privacy-policy", element: <PrivacyPolicyPage /> },
+            { path: "terms-of-service", element: <TermsOfServicePage /> },
             { path: "app-release-blog", element: <BlogPost1 /> },
             { path: "fathers-day-guide", element: <BlogPost2 /> },
             { path: "budget-gifts-guide", element: <BlogPost3 /> },
-            { path: "components", element: <ComponentsPage /> },
+            { path: "components", element: <UIKitPage /> },
             { path: "error", element: <ErrorPage /> },
-            { path: "new", element: <ImprovedCarouselResultsPage /> },
-            { path: "new-mum", element: <ImprovedCarouselResultsPage /> },
-            { path: ":recId", element: <SharedRecommendationPage /> }, // Add at end to avoid conflicts
+            { path: "new", element: <RecommendationsPage /> },
+            { path: "new-mum", element: <RecommendationsPage /> },
+            { path: "product/:productId", element: <ProductDetailPage /> },
+            { path: ":recId", element: <SharePage /> }, // Add at end to avoid conflicts
         ],
     },
 ]);

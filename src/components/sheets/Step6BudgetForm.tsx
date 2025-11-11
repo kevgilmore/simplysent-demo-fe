@@ -36,24 +36,25 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
     };
 
     return (
-        <div className="flex flex-col gap-6 py-4">
-            <div className="text-left mb-2">
-                <p className="text-gray-700 text-base font-semibold">Budget</p>
-                <p className="text-sm text-gray-500 mt-1">
-                    Finally, what's your spending range?
-                </p>
+        <div className="flex flex-col py-4" style={{ height: "580px" }}>
+            <div className="flex-1 overflow-y-auto">
+                <div className="text-left mb-8">
+                    <p className="text-gray-700 text-base font-semibold">
+                        Finally, what's your spending range?
+                    </p>
+                </div>
+
+                <RangeSlider
+                    label="Budget Range"
+                    min={10}
+                    max={500}
+                    minValue={minBudget}
+                    maxValue={maxBudget}
+                    onChange={handleBudgetChange}
+                />
             </div>
 
-            <RangeSlider
-                label="Budget Range"
-                min={10}
-                max={500}
-                minValue={minBudget}
-                maxValue={maxBudget}
-                onChange={handleBudgetChange}
-            />
-
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 flex-shrink-0 mt-6">
                 <Button
                     fullWidth
                     size="large"

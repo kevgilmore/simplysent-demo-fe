@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { Heading } from "./ui_kit/Heading";
-import { ProductCard } from "./ui_kit/ProductCard";
-import { TextInput } from "./ui_kit/TextInput";
-import { Dropdown } from "./ui_kit/Dropdown";
-import { RangeSlider } from "./ui_kit/RangeSlider";
-import { Button } from "./ui_kit/Button";
-import { TabMenu } from "./ui_kit/TabMenu";
+import { Heading } from "../components/ui/Heading";
+import { ProductCard } from "../components/ui/ProductCard";
+import { TextInput } from "../components/ui/TextInput";
+import { Dropdown } from "../components/ui/Dropdown";
+import { RangeSlider } from "../components/ui/RangeSlider";
+import { Button } from "../components/ui/Button";
+import { TabMenu } from "../components/ui/TabMenu";
 
-export const ComponentsPage: React.FC = () => {
+export const UIKitPage: React.FC = () => {
     // State for interactive components
     const [textValue, setTextValue] = useState("");
     const [emailValue, setEmailValue] = useState("");

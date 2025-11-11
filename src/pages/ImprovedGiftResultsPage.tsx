@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ProductCard } from "./ui/ProductCard";
-import { Button } from "./ui/Button";
-import { RefineSheet } from "./sheets/RefineSheet";
+import { ProductCard } from "../components/ui/ProductCard";
+import { Button } from "../components/ui/Button";
+import { RefineSheet } from "../components/sheets/RefineSheet";
 
 export const ImprovedGiftResultsPage: React.FC = () => {
     const navigate = useNavigate();

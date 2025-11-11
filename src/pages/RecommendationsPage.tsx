@@ -8,14 +8,14 @@ import {
     faUserPlus,
     faBars,
 } from "@fortawesome/free-solid-svg-icons";
-import { ProductCard } from "./ui_kit/ProductCard";
-import { Button } from "./ui_kit/Button";
-import { RangeSlider } from "./ui_kit/RangeSlider";
+import { ProductCard } from "../components/ui/ProductCard";
+import { Button } from "../components/ui/Button";
+import { RangeSlider } from "../components/ui/RangeSlider";
 
-import { RefineSheet } from "./sheets/RefineSheet";
-import { ActionPersonSheet } from "./sheets/ActionPersonSheet";
+import { RefineSheet } from "../components/sheets/RefineSheet";
+import { ActionPersonSheet } from "../components/sheets/ActionPersonSheet";
 
-export const ImprovedCarouselResultsPage: React.FC = () => {
+export const RecommendationsPage: React.FC = () => {
     const navigate = useNavigate();
     const [pageTab, setPageTab] = useState("gifts");
     const [favourites, setFavourites] = useState<Set<string>>(
@@ -158,6 +158,10 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
         });
     };
 
+    const handleProductClick = (productId: string) => {
+        navigate(`/product/${productId}`);
+    };
+
     const toggleInterest = (interest: string) => {
         setSelectedInterests((prev) =>
             prev.includes(interest)
@@ -293,6 +297,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                                 className="flex-shrink-0 w-[280px]"
                                             >
                                                 <ProductCard
+                                                    id={p.id}
                                                     image={p.image}
                                                     name={p.name}
                                                     price={p.price}
@@ -303,6 +308,9 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                                     )}
                                                     onFavoriteToggle={() =>
                                                         toggleFavourite(p.id)
+                                                    }
+                                                    onClick={() =>
+                                                        handleProductClick(p.id)
                                                     }
                                                 />
                                             </div>
@@ -332,6 +340,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                                 className="flex-shrink-0 w-[280px]"
                                             >
                                                 <ProductCard
+                                                    id={p.id}
                                                     image={p.image}
                                                     name={p.name}
                                                     price={p.price}
@@ -341,6 +350,9 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                                     )}
                                                     onFavoriteToggle={() =>
                                                         toggleFavourite(p.id)
+                                                    }
+                                                    onClick={() =>
+                                                        handleProductClick(p.id)
                                                     }
                                                 />
                                             </div>
@@ -370,6 +382,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                                 className="flex-shrink-0 w-[280px]"
                                             >
                                                 <ProductCard
+                                                    id={p.id}
                                                     image={p.image}
                                                     name={p.name}
                                                     price={p.price}
@@ -379,6 +392,9 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                                     )}
                                                     onFavoriteToggle={() =>
                                                         toggleFavourite(p.id)
+                                                    }
+                                                    onClick={() =>
+                                                        handleProductClick(p.id)
                                                     }
                                                 />
                                             </div>
@@ -416,6 +432,7 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                         .map((p) => (
                                             <ProductCard
                                                 key={p.id}
+                                                id={p.id}
                                                 image={p.image}
                                                 name={p.name}
                                                 price={p.price}
@@ -424,6 +441,9 @@ export const ImprovedCarouselResultsPage: React.FC = () => {
                                                     toggleFavourite(p.id)
                                                 }
                                                 hideActions={true}
+                                                onClick={() =>
+                                                    handleProductClick(p.id)
+                                                }
                                             />
                                         ))}
                                 </div>
