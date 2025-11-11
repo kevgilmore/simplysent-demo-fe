@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Sheet, SheetRef } from "react-modal-sheet";
 import { X } from "lucide-react";
-import { MultiSelectList } from "../ui_kit/MultiSelectList";
-import { RangeSlider } from "../ui_kit/RangeSlider";
+import { MultiSelectList } from "../ui/MultiSelectList";
+import { RangeSlider } from "../ui/RangeSlider";
 import { interestOptions } from "./formConstants";
 
 export interface RefineSheetProps {

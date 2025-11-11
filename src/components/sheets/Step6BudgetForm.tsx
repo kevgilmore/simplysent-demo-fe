@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Button } from "../ui_kit/Button";
-import { RangeSlider } from "../ui_kit/RangeSlider";
+import { Button } from "../ui/Button";
+import { RangeSlider } from "../ui/RangeSlider";
 import { Loader2, Sparkles } from "lucide-react";
 
 interface Step6BudgetFormProps {

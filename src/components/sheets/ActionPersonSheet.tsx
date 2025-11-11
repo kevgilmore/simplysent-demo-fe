@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
 import { Sheet, SheetRef } from "react-modal-sheet";
 import { X } from "lucide-react";
-import { TextInput } from "../ui_kit/TextInput";
-import { Dropdown } from "../ui_kit/Dropdown";
-import { Button } from "../ui_kit/Button";
+import { TextInput } from "../ui/TextInput";
+import { Dropdown } from "../ui/Dropdown";
+import { Button } from "../ui/Button";
 import { Step2AboutForm } from "./Step2AboutForm";
 import { Step3StyleForm } from "./Step3StyleForm";
 import { Step4InterestsForm } from "./Step4InterestsForm";

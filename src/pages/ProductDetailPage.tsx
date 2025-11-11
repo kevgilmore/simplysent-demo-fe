@@ -1066,6 +1066,30 @@ export const ProductDetailPage: React.FC = () => {
                         </div>
                     </div>
                 </motion.div>
+
+                {/* Footer */}
+                <footer className="mt-16 pt-8 pb-6 border-t border-gray-200">
+                    <div className="max-w-7xl mx-auto px-4 text-center">
+                        <p className="text-sm text-gray-600 mb-3">
+                            © {new Date().getFullYear()} SimplySent.co - All
+                            rights reserved
+                        </p>
+                        <div className="flex justify-center gap-6 text-sm">
+                            <a
+                                href="/terms"
+                                className="text-gray-600 hover:text-simplysent-purple transition-colors"
+                            >
+                                Terms of Service
+                            </a>
+                            <a
+                                href="/privacy"
+                                className="text-gray-600 hover:text-simplysent-purple transition-colors"
+                            >
+                                Privacy Policy
+                            </a>
+                        </div>
+                    </div>
+                </footer>
             </div>
         </div>
     );

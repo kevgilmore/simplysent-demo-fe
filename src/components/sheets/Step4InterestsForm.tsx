@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Button } from "../ui_kit/Button";
-import { MultiSelectList } from "../ui_kit/MultiSelectList";
+import { Button } from "../ui/Button";
+import { MultiSelectList } from "../ui/MultiSelectList";
 import { interestOptions } from "./formConstants";
 
 interface Step4InterestsFormProps {

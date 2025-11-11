@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Dropdown } from "../ui_kit/Dropdown";
-import { Button } from "../ui_kit/Button";
+import { Dropdown } from "../ui/Dropdown";
+import { Button } from "../ui/Button";
 import { sentimentOptions } from "./formConstants";
 
 interface Step5VibeFormProps {

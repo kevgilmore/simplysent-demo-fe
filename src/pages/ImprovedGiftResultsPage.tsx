@@ -1,8 +1,11 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Sparkles } from "lucide-react";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
 import { RefineSheet } from "../components/sheets/RefineSheet";
+import { TabMenu } from "../components/ui/TabMenu";
 
 export const ImprovedGiftResultsPage: React.FC = () => {
     const navigate = useNavigate();
@@ -146,7 +149,12 @@ export const ImprovedGiftResultsPage: React.FC = () => {
         <div className="min-h-[100dvh] py-8 px-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)] overscroll-contain">
             <div className="max-w-7xl mx-auto">
                 {/* Logo and Recipient Selector */}
-                <div className="flex justify-between items-center mb-6">
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex justify-between items-center mb-6"
+                >
                     <img
                         src="/logo.png"
                         alt="SimplySent"
@@ -219,10 +227,15 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                             </div>
                         )}
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Reserved header slot to prevent jump between views */}
-                <div className="mb-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                    className="mb-6"
+                >
                     <div
                         className={`${pageTab === "gifts" ? "" : "invisible pointer-events-none"}`}
                     >
@@ -232,22 +245,63 @@ export const ImprovedGiftResultsPage: React.FC = () => {
                             onTabChange={setActiveTab}
                         />
                     </div>
-                </div>
+                </motion.div>
 
                 {pageTab === "gifts" && (
                     <>
+                        {activeTab === "ai-picks" && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.5, delay: 0.3 }}
+                                className="mb-6 bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-4 border-2 border-purple-300"
+                            >
+                                <div className="flex items-center justify-center gap-2">
+                                    <Sparkles
+                                        className="text-purple-600 animate-pulse"
+                                        size={24}
+                                    />
+                                    <p className="text-base font-bold text-purple-700">
+                                        AI-Powered Recommendations Just For You
+                                    </p>
+                                    <Sparkles
+                                        className="text-purple-600 animate-pulse"
+                                        size={24}
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {productsByTab[activeTab]?.map((p) => (
-                                <ProductCard
+                            {productsByTab[activeTab]?.map((p, index) => (
+                                <motion.div
                                     key={p.id}
-                                    image={p.image}
-                                    name={p.name}
-                                    price={p.price}
-                                    isFavorite={true}
-                                    onFavoriteToggle={() =>
-                                        toggleFavourite(p.id)
-                                    }
-                                />
+                                    initial={{
+                                        opacity: 0,
+                                        y: 30,
+                                        scale: 0.9,
+                                    }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    transition={{
+                                        duration: 0.5,
+                                        delay:
+                                            activeTab === "ai-picks"
+                                                ? 0.5 + index * 0.15
+                                                : index * 0.1,
+                                        type: "spring",
+                                        stiffness: 100,
+                                    }}
+                                >
+                                    <ProductCard
+                                        id={p.id}
+                                        image={p.image}
+                                        name={p.name}
+                                        price={p.price}
+                                        isFavorite={favourites.has(p.id)}
+                                        onFavoriteToggle={() =>
+                                            toggleFavourite(p.id)
+                                        }
+                                    />
+                                </motion.div>
                             ))}
                         </div>
 
