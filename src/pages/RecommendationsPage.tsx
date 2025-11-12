@@ -272,7 +272,7 @@ export const RecommendationsPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto">
                     {/* Carousels Section */}
                     {pageTab === "gifts" && (
-                        <div className="space-y-6">
+                        <div>
                             {/* AI Picks Carousel */}
                             <div className="mt-6">
                                 <div className="flex items-center gap-3 mb-0">
@@ -311,7 +311,7 @@ export const RecommendationsPage: React.FC = () => {
                             </div>
 
                             {/* Tech Carousel */}
-                            <div>
+                            <div className="mt-[10px]">
                                 <div className="flex items-center gap-3 mb-0">
                                     <h2 className="text-[22px] font-bold font-notch text-gray-500">
                                         Tech
@@ -348,7 +348,7 @@ export const RecommendationsPage: React.FC = () => {
                             </div>
 
                             {/* Golf Carousel */}
-                            <div>
+                            <div className="mt-[10px]">
                                 <div className="flex items-center gap-3 mb-0">
                                     <h2 className="text-[22px] font-bold font-notch text-gray-500">
                                         Golf

@@ -132,7 +132,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 } ${
                                     isBad
                                         ? "bg-red-200 text-red-800"
-                                        : "bg-gray-100 text-[#816fe8] hover:bg-gray-200"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                 }`}
                                 aria-label="Mark as bad"
                             >
