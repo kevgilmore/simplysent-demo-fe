@@ -20,6 +20,9 @@ export const RecommendationsPage: React.FC = () => {
     const [favourites, setFavourites] = useState<Set<string>>(
         new Set(["ai-1", "tech-2"]),
     );
+    const [removedProducts, setRemovedProducts] = useState<Set<string>>(
+        new Set(),
+    );
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isRefineOpen, setIsRefineOpen] = useState(false);
     const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -157,6 +160,14 @@ export const RecommendationsPage: React.FC = () => {
         });
     };
 
+    const handleProductRemove = (productId: string) => {
+        setRemovedProducts((prev) => {
+            const next = new Set(prev);
+            next.add(productId);
+            return next;
+        });
+    };
+
     const handleProductClick = (productId: string) => {
         navigate(`/product/${productId}`);
     };
@@ -280,34 +291,63 @@ export const RecommendationsPage: React.FC = () => {
                                         AI Picks For You
                                     </h2>
                                 </div>
-                                <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-4 pb-8">
-                                    <div className="flex gap-4">
-                                        {productsByTab["ai-picks"]?.map((p) => (
-                                            <div
-                                                key={p.id}
-                                                className="flex-shrink-0 w-[260px]"
-                                            >
-                                                <ProductCard
-                                                    id={p.id}
-                                                    image={p.image}
-                                                    name={p.name}
-                                                    price={p.price}
-                                                    compact
-                                                    className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 bg-white"
-                                                    isFavorite={favourites.has(
-                                                        p.id,
-                                                    )}
-                                                    onFavoriteToggle={() =>
-                                                        toggleFavourite(p.id)
-                                                    }
-                                                    onClick={() =>
-                                                        handleProductClick(p.id)
-                                                    }
-                                                />
-                                            </div>
-                                        ))}
+                                {productsByTab["ai-picks"]?.filter(
+                                    (p) => !removedProducts.has(p.id),
+                                ).length === 0 ? (
+                                    <div className="flex items-center justify-center py-12 px-4">
+                                        <div className="text-center max-w-md">
+                                            <p className="text-gray-400 text-lg font-medium">
+                                                No more recommendations here.
+                                            </p>
+                                            <p className="text-gray-400 text-sm mt-2">
+                                                Check back later for new picks!
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-4 pb-8">
+                                        <div className="flex gap-4 transition-all duration-1000">
+                                            {productsByTab["ai-picks"]
+                                                ?.filter(
+                                                    (p) =>
+                                                        !removedProducts.has(
+                                                            p.id,
+                                                        ),
+                                                )
+                                                .map((p) => (
+                                                    <div
+                                                        key={p.id}
+                                                        className="flex-shrink-0 w-[260px]"
+                                                    >
+                                                        <ProductCard
+                                                            id={p.id}
+                                                            image={p.image}
+                                                            name={p.name}
+                                                            price={p.price}
+                                                            compact
+                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 bg-white"
+                                                            isFavorite={favourites.has(
+                                                                p.id,
+                                                            )}
+                                                            onFavoriteToggle={() =>
+                                                                toggleFavourite(
+                                                                    p.id,
+                                                                )
+                                                            }
+                                                            onRemove={
+                                                                handleProductRemove
+                                                            }
+                                                            onClick={() =>
+                                                                handleProductClick(
+                                                                    p.id,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Tech Carousel */}
@@ -317,34 +357,63 @@ export const RecommendationsPage: React.FC = () => {
                                         Tech
                                     </h2>
                                 </div>
-                                <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
-                                    <div className="flex gap-4">
-                                        {productsByTab["tech"]?.map((p) => (
-                                            <div
-                                                key={p.id}
-                                                className="flex-shrink-0 w-[260px]"
-                                            >
-                                                <ProductCard
-                                                    id={p.id}
-                                                    image={p.image}
-                                                    name={p.name}
-                                                    price={p.price}
-                                                    compact
-                                                    className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
-                                                    isFavorite={favourites.has(
-                                                        p.id,
-                                                    )}
-                                                    onFavoriteToggle={() =>
-                                                        toggleFavourite(p.id)
-                                                    }
-                                                    onClick={() =>
-                                                        handleProductClick(p.id)
-                                                    }
-                                                />
-                                            </div>
-                                        ))}
+                                {productsByTab["tech"]?.filter(
+                                    (p) => !removedProducts.has(p.id),
+                                ).length === 0 ? (
+                                    <div className="flex items-center justify-center py-12 px-4">
+                                        <div className="text-center max-w-md">
+                                            <p className="text-gray-400 text-lg font-medium">
+                                                No more recommendations here.
+                                            </p>
+                                            <p className="text-gray-400 text-sm mt-2">
+                                                Check back later for new picks!
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
+                                        <div className="flex gap-4 transition-all duration-1000">
+                                            {productsByTab["tech"]
+                                                ?.filter(
+                                                    (p) =>
+                                                        !removedProducts.has(
+                                                            p.id,
+                                                        ),
+                                                )
+                                                .map((p) => (
+                                                    <div
+                                                        key={p.id}
+                                                        className="flex-shrink-0 w-[260px]"
+                                                    >
+                                                        <ProductCard
+                                                            id={p.id}
+                                                            image={p.image}
+                                                            name={p.name}
+                                                            price={p.price}
+                                                            compact
+                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
+                                                            isFavorite={favourites.has(
+                                                                p.id,
+                                                            )}
+                                                            onFavoriteToggle={() =>
+                                                                toggleFavourite(
+                                                                    p.id,
+                                                                )
+                                                            }
+                                                            onRemove={
+                                                                handleProductRemove
+                                                            }
+                                                            onClick={() =>
+                                                                handleProductClick(
+                                                                    p.id,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Golf Carousel */}
@@ -354,34 +423,63 @@ export const RecommendationsPage: React.FC = () => {
                                         Golf
                                     </h2>
                                 </div>
-                                <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
-                                    <div className="flex gap-4">
-                                        {productsByTab["golf"]?.map((p) => (
-                                            <div
-                                                key={p.id}
-                                                className="flex-shrink-0 w-[260px]"
-                                            >
-                                                <ProductCard
-                                                    id={p.id}
-                                                    image={p.image}
-                                                    name={p.name}
-                                                    price={p.price}
-                                                    compact
-                                                    className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
-                                                    isFavorite={favourites.has(
-                                                        p.id,
-                                                    )}
-                                                    onFavoriteToggle={() =>
-                                                        toggleFavourite(p.id)
-                                                    }
-                                                    onClick={() =>
-                                                        handleProductClick(p.id)
-                                                    }
-                                                />
-                                            </div>
-                                        ))}
+                                {productsByTab["golf"]?.filter(
+                                    (p) => !removedProducts.has(p.id),
+                                ).length === 0 ? (
+                                    <div className="flex items-center justify-center py-12 px-4">
+                                        <div className="text-center max-w-md">
+                                            <p className="text-gray-400 text-lg font-medium">
+                                                No more recommendations here.
+                                            </p>
+                                            <p className="text-gray-400 text-sm mt-2">
+                                                Check back later for new picks!
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
+                                        <div className="flex gap-4 transition-all duration-1000">
+                                            {productsByTab["golf"]
+                                                ?.filter(
+                                                    (p) =>
+                                                        !removedProducts.has(
+                                                            p.id,
+                                                        ),
+                                                )
+                                                .map((p) => (
+                                                    <div
+                                                        key={p.id}
+                                                        className="flex-shrink-0 w-[260px]"
+                                                    >
+                                                        <ProductCard
+                                                            id={p.id}
+                                                            image={p.image}
+                                                            name={p.name}
+                                                            price={p.price}
+                                                            compact
+                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
+                                                            isFavorite={favourites.has(
+                                                                p.id,
+                                                            )}
+                                                            onFavoriteToggle={() =>
+                                                                toggleFavourite(
+                                                                    p.id,
+                                                                )
+                                                            }
+                                                            onRemove={
+                                                                handleProductRemove
+                                                            }
+                                                            onClick={() =>
+                                                                handleProductClick(
+                                                                    p.id,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
