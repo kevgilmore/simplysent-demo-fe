@@ -185,12 +185,11 @@ export const RecommendationsPage: React.FC = () => {
     }, []);
 
     return (
-        <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-gray-50 to-white">
-            {/* Fixed translucent header with notch support */}
+        <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-[#f7f6fe] to-[#f1eefe]">
             {/* Primary App Navbar (logo + top menu) */}
             <header
                 id="topnav"
-                className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200/50"
+                className="bg-[#f7f6fe]"
                 style={{
                     paddingTop: "env(safe-area-inset-top)",
                     paddingLeft: "env(safe-area-inset-left)",
@@ -262,11 +261,10 @@ export const RecommendationsPage: React.FC = () => {
                 </div>
             </header>
 
-            {/* Main content with safe top padding for header */}
+            {/* Main content */}
             <div
                 className="px-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)]"
                 style={{
-                    paddingTop: "calc(env(safe-area-inset-top) + 90px)",
                     paddingLeft: "max(1rem, env(safe-area-inset-left))",
                     paddingRight: "max(1rem, env(safe-area-inset-right))",
                 }}
@@ -278,7 +276,7 @@ export const RecommendationsPage: React.FC = () => {
                             {/* AI Picks Carousel */}
                             <div className="mt-6">
                                 <div className="flex items-center gap-3 mb-0">
-                                    <h2 className="text-2xl font-bold font-notch text-gray-500">
+                                    <h2 className="text-[22px] font-bold font-notch text-gray-500">
                                         AI Picks For You
                                     </h2>
                                 </div>
@@ -315,7 +313,7 @@ export const RecommendationsPage: React.FC = () => {
                             {/* Tech Carousel */}
                             <div>
                                 <div className="flex items-center gap-3 mb-0">
-                                    <h2 className="text-2xl font-bold font-notch text-gray-500">
+                                    <h2 className="text-[22px] font-bold font-notch text-gray-500">
                                         Tech
                                     </h2>
                                 </div>
@@ -352,7 +350,7 @@ export const RecommendationsPage: React.FC = () => {
                             {/* Golf Carousel */}
                             <div>
                                 <div className="flex items-center gap-3 mb-0">
-                                    <h2 className="text-2xl font-bold font-notch text-gray-500">
+                                    <h2 className="text-[22px] font-bold font-notch text-gray-500">
                                         Golf
                                     </h2>
                                 </div>

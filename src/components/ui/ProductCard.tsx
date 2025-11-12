@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ThumbsUp, ThumbsDown, Heart } from "lucide-react";
+import { ThumbsDown, Heart, Star } from "lucide-react";
 
 interface ProductCardProps {
     id?: string;
@@ -28,18 +28,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     compact = false,
     onClick,
 }) => {
-    const [isGood, setIsGood] = useState(false);
     const [isBad, setIsBad] = useState(false);
     const [isFavoriteInternal, setIsFavoriteInternal] = useState(false);
 
-    const handleGoodClick = () => {
-        setIsGood(!isGood);
-        if (isBad) setIsBad(false);
-    };
-
     const handleBadClick = () => {
         setIsBad(!isBad);
-        if (isGood) setIsGood(false);
     };
 
     const favoriteActive =
@@ -61,39 +54,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     return (
         <div
             className={`bg-white rounded-3xl overflow-hidden relative flex flex-col ${className} ${
-                compact ? "shadow-md" : "shadow-lg"
-            } ${onClick ? "cursor-pointer hover:shadow-xl transition-shadow" : ""}`}
-            style={compact ? { aspectRatio: "10 / 16" } : undefined}
+                compact
+                    ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+                    : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
+            } ${onClick ? "cursor-pointer hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1" : ""}`}
+            style={compact ? { aspectRatio: "10 / 13.5" } : undefined}
             onClick={onClick}
         >
             {badge && <div className="absolute top-3 left-3 z-10">{badge}</div>}
-            {/* Favorite Button - Top Right */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleFavoriteClick();
-                }}
-                className={`absolute z-10 bg-white rounded-full shadow-md transition-all duration-200 hover:scale-110 ${
-                    compact ? "top-2 right-2 p-2.5" : "top-4 right-4 p-3"
-                }`}
-                aria-label="Add to favorites"
-            >
-                <Heart
-                    size={compact ? 22 : 20}
-                    className={`transition-colors duration-200 ${
-                        favoriteActive
-                            ? "fill-red-500 text-red-500"
-                            : "text-gray-400"
-                    }`}
-                />
-            </button>
 
             {/* Product Image */}
             <div
                 className="w-full bg-gray-100 overflow-hidden flex-shrink-0"
                 style={
                     compact
-                        ? { aspectRatio: "10 / 10" }
+                        ? { aspectRatio: "10 / 8.5" }
                         : { aspectRatio: "1 / 1" }
                 }
             >
@@ -106,73 +81,91 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Product Info */}
             <div
-                className={`flex flex-col flex-grow ${compact ? "p-3" : "p-5"}`}
+                className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-5 py-3 pb-2.5" : "px-7 py-5 pb-4"}`}
             >
                 <h3
-                    className={`font-semibold text-gray-800 mb-1 ${
+                    className={`font-['Stack_Sans'] font-semibold text-gray-600 mb-1 ${
                         compact
                             ? "text-base leading-tight line-clamp-2"
                             : "text-lg mb-2"
                     }`}
+                    style={
+                        compact
+                            ? { minHeight: "40px", fontWeight: 600 }
+                            : { fontWeight: 600 }
+                    }
                     title={name}
-                    style={compact ? { minHeight: "40px" } : undefined}
                 >
                     {compact ? name : truncateName(name, 20)}
                 </h3>
-                <p
-                    className={`font-bold text-[#5E57AC] ${
-                        compact ? "text-xl mb-auto" : "text-2xl"
-                    }`}
-                >
-                    £{price.toFixed(2)}
-                </p>
 
-                {/* Action Buttons */}
+                {/* Star Rating */}
+                <div className="flex items-center gap-0.5 mb-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                            key={star}
+                            size={compact ? 12 : 14}
+                            className="fill-amber-400 text-amber-400"
+                        />
+                    ))}
+                </div>
+
+                {/* Bottom Row: Price, Thumbs Down, Favorites */}
                 {!hideActions && (
-                    <div
-                        className={`flex gap-2 ${compact ? "mt-3" : "gap-3 mt-4"}`}
-                    >
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleGoodClick();
-                            }}
-                            className={`flex-1 flex items-center justify-center rounded-full font-medium transition-all duration-200 hover:scale-105 ${
-                                compact ? "gap-1 py-3 px-2" : "gap-2 py-3 px-5"
-                            } ${
-                                isGood
-                                    ? "bg-green-200 text-green-800"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                        <p
+                            className={`font-light text-[#816fe8] ${
+                                compact ? "text-lg" : "text-xl"
                             }`}
-                            aria-label="Mark as good"
                         >
-                            <ThumbsUp
-                                size={compact ? 22 : 18}
-                                className={isGood ? "fill-green-800" : ""}
-                            />
-                            {!compact && <span className="text-sm">Good</span>}
-                        </button>
+                            £{price.toFixed(2)}
+                        </p>
 
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleBadClick();
-                            }}
-                            className={`flex-1 flex items-center justify-center rounded-full font-medium transition-all duration-200 hover:scale-105 ${
-                                compact ? "gap-1 py-3 px-2" : "gap-2 py-3 px-5"
-                            } ${
-                                isBad
-                                    ? "bg-red-200 text-red-800"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
-                            aria-label="Mark as bad"
-                        >
-                            <ThumbsDown
-                                size={compact ? 22 : 18}
-                                className={isBad ? "fill-red-800" : ""}
-                            />
-                            {!compact && <span className="text-sm">Bad</span>}
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleBadClick();
+                                }}
+                                className={`flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-110 ${
+                                    compact ? "p-3" : "p-3.5"
+                                } ${
+                                    isBad
+                                        ? "bg-red-200 text-red-800"
+                                        : "bg-gray-100 text-[#816fe8] hover:bg-gray-200"
+                                }`}
+                                aria-label="Mark as bad"
+                            >
+                                <ThumbsDown
+                                    size={compact ? 16 : 18}
+                                    className={isBad ? "fill-red-800" : ""}
+                                />
+                            </button>
+
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleFavoriteClick();
+                                }}
+                                className={`flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-110 ${
+                                    compact ? "p-3" : "p-3.5"
+                                } ${
+                                    favoriteActive
+                                        ? "bg-purple-100"
+                                        : "bg-gray-100 hover:bg-gray-200"
+                                }`}
+                                aria-label="Add to favorites"
+                            >
+                                <Heart
+                                    size={compact ? 16 : 18}
+                                    className={`transition-colors duration-200 ${
+                                        favoriteActive
+                                            ? "fill-[#816fe8] text-[#816fe8]"
+                                            : "text-[#816fe8]"
+                                    }`}
+                                />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

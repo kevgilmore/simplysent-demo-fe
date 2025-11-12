@@ -9,6 +9,11 @@ export default {
                     "purple-dark": "#4a4582",
                 },
             },
+            fontFamily: {
+                sans: ['"Stack Sans"', "system-ui", "sans-serif"],
+                headline: ['"Stack Sans Headline"', "system-ui", "sans-serif"],
+                notch: ['"Stack Sans Notch"', "system-ui", "sans-serif"],
+            },
         },
     },
 };

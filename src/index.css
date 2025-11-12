@@ -2,6 +2,151 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* Custom Fonts */
+@font-face {
+    font-family: "Stack Sans";
+    src: url("/fonts/StackSansText-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans";
+    src: url("/fonts/StackSansText-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans";
+    src: url("/fonts/StackSansText-ExtraLight.ttf") format("truetype");
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans";
+    src: url("/fonts/StackSansText-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans";
+    src: url("/fonts/StackSansText-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans";
+    src: url("/fonts/StackSansText-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Headline";
+    src: url("/fonts/StackSansHeadline-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Headline";
+    src: url("/fonts/StackSansHeadline-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Headline";
+    src: url("/fonts/StackSansHeadline-ExtraLight.ttf") format("truetype");
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Headline";
+    src: url("/fonts/StackSansHeadline-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Headline";
+    src: url("/fonts/StackSansHeadline-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Headline";
+    src: url("/fonts/StackSansHeadline-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Notch";
+    src: url("/fonts/StackSansNotch-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Notch";
+    src: url("/fonts/StackSansNotch-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Notch";
+    src: url("/fonts/StackSansNotch-ExtraLight.ttf") format("truetype");
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Notch";
+    src: url("/fonts/StackSansNotch-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Notch";
+    src: url("/fonts/StackSansNotch-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Stack Sans Notch";
+    src: url("/fonts/StackSansNotch-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* Smooth gradient animation for CTA button */
 @keyframes gradient-slide {
     0% {
@@ -26,8 +171,47 @@
     }
 }
 
+/* Shimmer effect for AI picks cards */
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+/* Rotating gradient for AI picks borders */
+@keyframes rotate-gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
 .animate-gradient-slide {
     animation: gradient-slide 4s ease-in-out infinite;
+}
+
+.animate-shimmer {
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+.animate-rotate-gradient {
+    background-size: 200% 200%;
+    animation: rotate-gradient 3s ease infinite;
 }
 
 /* (intentionally left minimal) */
