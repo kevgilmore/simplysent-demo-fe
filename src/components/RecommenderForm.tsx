@@ -244,7 +244,7 @@ const getSortedInterests = (gender: string): string[] => {
         return [...allInterests].sort();
     }
 };
-export function GiftRecommenderForm() {
+export function RecommenderForm() {
     const navigate = useNavigate();
 
     // Initialize tracking with periodic pings

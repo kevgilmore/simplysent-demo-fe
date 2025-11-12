@@ -11,7 +11,6 @@ import {
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
 import { RangeSlider } from "../components/ui/RangeSlider";
-
 import { RefineSheet } from "../components/sheets/RefineSheet";
 import { ActionPersonSheet } from "../components/sheets/ActionPersonSheet";
 
@@ -278,23 +277,17 @@ export const RecommendationsPage: React.FC = () => {
                         <div className="space-y-6">
                             {/* AI Picks Carousel */}
                             <div className="mt-6">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-md">
-                                        <FontAwesomeIcon
-                                            icon={faStar}
-                                            className="text-white text-sm"
-                                        />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-gray-800">
-                                        AI Picks
+                                <div className="flex items-center gap-3 mb-0">
+                                    <h2 className="text-2xl font-bold font-notch text-gray-500">
+                                        AI Picks For You
                                     </h2>
                                 </div>
-                                <div className="overflow-x-auto no-scrollbar">
-                                    <div className="flex gap-3 pb-4">
+                                <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-4 pb-8">
+                                    <div className="flex gap-4">
                                         {productsByTab["ai-picks"]?.map((p) => (
                                             <div
                                                 key={p.id}
-                                                className="flex-shrink-0 w-[280px]"
+                                                className="flex-shrink-0 w-[260px]"
                                             >
                                                 <ProductCard
                                                     id={p.id}
@@ -302,7 +295,7 @@ export const RecommendationsPage: React.FC = () => {
                                                     name={p.name}
                                                     price={p.price}
                                                     compact
-                                                    className="border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
+                                                    className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 bg-white"
                                                     isFavorite={favourites.has(
                                                         p.id,
                                                     )}
@@ -321,23 +314,17 @@ export const RecommendationsPage: React.FC = () => {
 
                             {/* Tech Carousel */}
                             <div>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-md">
-                                        <FontAwesomeIcon
-                                            icon={faMicrochip}
-                                            className="text-white text-sm"
-                                        />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-gray-800">
+                                <div className="flex items-center gap-3 mb-0">
+                                    <h2 className="text-2xl font-bold font-notch text-gray-500">
                                         Tech
                                     </h2>
                                 </div>
-                                <div className="overflow-x-auto no-scrollbar">
-                                    <div className="flex gap-3 pb-4">
+                                <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
+                                    <div className="flex gap-4">
                                         {productsByTab["tech"]?.map((p) => (
                                             <div
                                                 key={p.id}
-                                                className="flex-shrink-0 w-[280px]"
+                                                className="flex-shrink-0 w-[260px]"
                                             >
                                                 <ProductCard
                                                     id={p.id}
@@ -345,6 +332,7 @@ export const RecommendationsPage: React.FC = () => {
                                                     name={p.name}
                                                     price={p.price}
                                                     compact
+                                                    className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
                                                     isFavorite={favourites.has(
                                                         p.id,
                                                     )}
@@ -363,23 +351,17 @@ export const RecommendationsPage: React.FC = () => {
 
                             {/* Golf Carousel */}
                             <div>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-md">
-                                        <FontAwesomeIcon
-                                            icon={faGolfBallTee}
-                                            className="text-white text-sm"
-                                        />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-gray-800">
+                                <div className="flex items-center gap-3 mb-0">
+                                    <h2 className="text-2xl font-bold font-notch text-gray-500">
                                         Golf
                                     </h2>
                                 </div>
-                                <div className="overflow-x-auto no-scrollbar">
-                                    <div className="flex gap-3 pb-4">
+                                <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
+                                    <div className="flex gap-4">
                                         {productsByTab["golf"]?.map((p) => (
                                             <div
                                                 key={p.id}
-                                                className="flex-shrink-0 w-[280px]"
+                                                className="flex-shrink-0 w-[260px]"
                                             >
                                                 <ProductCard
                                                     id={p.id}
@@ -387,6 +369,7 @@ export const RecommendationsPage: React.FC = () => {
                                                     name={p.name}
                                                     price={p.price}
                                                     compact
+                                                    className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
                                                     isFavorite={favourites.has(
                                                         p.id,
                                                     )}

@@ -5,8 +5,7 @@ import {
     Outlet,
     useLocation,
 } from "react-router-dom";
-import { GiftRecommenderForm } from "./components/GiftRecommenderForm";
-import { ResultsPage } from "./pages/ResultsPage";
+import { RecommenderForm } from "./components/RecommenderForm";
 import { SharePage } from "./pages/SharePage";
 import { IntroPage } from "./pages/IntroPage";
 import { GiftsForHimPage } from "./pages/GiftsForHimPage";
@@ -18,7 +17,6 @@ import { BlogPost1 } from "./components/BlogPost1";
 import { BlogPost2 } from "./components/BlogPost2";
 import { BlogPost3 } from "./components/BlogPost3";
 import { UIKitPage } from "./pages/UIKitPage";
-import { ImprovedGiftResultsPage } from "./pages/ImprovedGiftResultsPage";
 import { RecommendationsPage } from "./pages/RecommendationsPage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { AnimatePresence } from "framer-motion";
@@ -26,7 +24,7 @@ import { ErrorPage } from "./pages/ErrorPage";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { Analytics } from "./components/common/Analytics";
 import { MetaPixel } from "./components/common/MetaPixel";
-import { ToastContainer, useToast } from "./components/common/Toast";
+import { ToastContainer } from "./components/common/Toast";
 import { ToastProvider, useToastContext } from "./contexts/ToastContext";
 import { setToastFunctions } from "./services/toastService";
 const GA_MEASUREMENT_ID = "G-JRT058C4VQ";
@@ -90,8 +88,7 @@ function AppShell() {
     console.log("Current route:", location.pathname);
 
     // Check if current route is a carousel page that needs full width
-    const isCarouselPage =
-        location.pathname === "/new" || location.pathname === "/new-mum";
+    const isCarouselPage = location.pathname === "/recommendations";
 
     return (
         <>
@@ -142,10 +139,9 @@ const router = createBrowserRouter([
         element: <AppShell />,
         children: [
             { index: true, element: <IntroPage /> },
-            { path: "results", element: <GiftRecommenderForm /> },
+            { path: "results", element: <RecommenderForm /> },
             { path: "for-him", element: <GiftsForHimPage /> },
             { path: "for-her", element: <GiftsForHerPage /> },
-            { path: "products", element: <ResultsPage /> },
             { path: "about-us", element: <AboutUsPage /> },
             { path: "privacy-policy", element: <PrivacyPolicyPage /> },
             { path: "terms-of-service", element: <TermsOfServicePage /> },
@@ -154,8 +150,7 @@ const router = createBrowserRouter([
             { path: "budget-gifts-guide", element: <BlogPost3 /> },
             { path: "components", element: <UIKitPage /> },
             { path: "error", element: <ErrorPage /> },
-            { path: "new", element: <RecommendationsPage /> },
-            { path: "new-mum", element: <RecommendationsPage /> },
+            { path: "recommendations", element: <RecommendationsPage /> },
             { path: "product/:productId", element: <ProductDetailPage /> },
             { path: ":recId", element: <SharePage /> }, // Add at end to avoid conflicts
         ],

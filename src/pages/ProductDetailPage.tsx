@@ -378,7 +378,7 @@ export const ProductDetailPage: React.FC = () => {
             setProduct(mockProducts[productId]);
         } else {
             // If product not found, redirect back
-            navigate("/new");
+            navigate("/recommendations");
         }
     }, [productId, navigate]);
 

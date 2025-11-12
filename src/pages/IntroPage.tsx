@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { PlusIcon } from "lucide-react";
@@ -11,7 +11,7 @@ export function IntroPage() {
 
     const handleFormComplete = () => {
         setIsSheetOpen(false);
-        navigate("/new");
+        navigate("/recommendations");
     };
 
     return (

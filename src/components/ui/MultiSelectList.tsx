@@ -49,12 +49,17 @@ export const MultiSelectList: React.FC<MultiSelectListProps> = ({
                         >
                             <div className="flex items-center gap-3">
                                 {option.emoji && (
-                                    <span className="text-2xl">{option.emoji}</span>
+                                    <span className="text-2xl">
+                                        {option.emoji}
+                                    </span>
                                 )}
                                 <span>{option.label}</span>
                             </div>
                             {isSelected && (
-                                <Check size={20} className="text-white flex-shrink-0" />
+                                <Check
+                                    size={20}
+                                    className="text-white flex-shrink-0"
+                                />
                             )}
                         </button>
                     );
