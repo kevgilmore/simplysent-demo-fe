@@ -74,9 +74,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className={`relative transition-all ${isRemoving ? "duration-1000 w-0 min-w-0 opacity-0 scale-75 -ml-[260px]" : "duration-300 w-[260px] min-w-[260px] opacity-100 scale-100 ml-0"}`}
         >
             {/* Product Image - Hanging above card */}
-            <div className="w-full overflow-hidden flex-shrink-0 relative z-10 px-4 pt-0">
+            <div className="w-full overflow-visible flex-shrink-0 relative z-10 px-4 pt-0">
                 <div
-                    className="w-full rounded-2xl overflow-hidden"
+                    className="w-full rounded-2xl overflow-visible"
                     style={
                         compact
                             ? { aspectRatio: "10 / 8.5" }
