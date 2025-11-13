@@ -31,9 +31,7 @@ const getRandomProductImage = () => {
 export const PersonPage: React.FC = () => {
     const navigate = useNavigate();
     const [pageTab, setPageTab] = useState("gifts");
-    const [favourites, setFavourites] = useState<Set<string>>(
-        new Set(["ai-1", "tech-2"]),
-    );
+    const [favourites, setFavourites] = useState<Set<string>>(new Set());
     const [removedProducts, setRemovedProducts] = useState<Set<string>>(
         new Set(),
     );

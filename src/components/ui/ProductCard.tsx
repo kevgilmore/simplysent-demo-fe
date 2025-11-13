@@ -112,7 +112,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                 {/* Product Info */}
                 <div
-                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-6 pt-[58%] pb-3" : "px-8 pt-[63%] pb-4"}`}
+                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-5 pt-[58%] pb-3" : "px-7 pt-[63%] pb-4"}`}
                 >
                     <h3
                         className={`font-['Stack_Sans'] font-semibold text-gray-600 mb-0 truncate ${
@@ -141,7 +141,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                     {/* Bottom Row: Price, Thumbs Down, Favorites */}
                     {!hideActions && (
-                        <div className="flex items-end justify-between gap-2 -mt-3">
+                        <div className="flex items-end justify-between gap-2 -mt-3 mb-2">
                             <p
                                 className={`font-light text-[#816fe8] ${
                                     compact ? "text-lg" : "text-xl"
@@ -150,45 +150,43 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 £{price.toFixed(2)}
                             </p>
 
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-4 -ml-3">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleFavoriteClick();
                                     }}
-                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none ${
+                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
                                         compact ? "p-3" : "p-3.5"
                                     } ${
                                         favoriteActive
-                                            ? "bg-purple-100 text-simplysent-purple"
-                                            : "bg-gray-100 text-simplysent-purple hover:bg-gray-200"
+                                            ? "bg-simplysent-purple text-white"
+                                            : "bg-white text-simplysent-purple hover:bg-gray-50"
                                     }`}
                                     aria-label="Thumbs up"
                                 >
                                     <ThumbsUp
                                         size={compact ? 16 : 18}
                                         className={
-                                            favoriteActive
-                                                ? "fill-simplysent-purple"
-                                                : ""
+                                            favoriteActive ? "fill-white" : ""
                                         }
                                     />
                                 </button>
 
                                 <button
                                     onClick={handleBadClick}
-                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none ${
+                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
                                         compact ? "p-3" : "p-3.5"
                                     } ${
                                         isBad
-                                            ? "bg-red-200 text-red-800"
-                                            : "bg-gray-100 text-simplysent-purple hover:bg-gray-200"
+                                            ? "bg-simplysent-purple text-white"
+                                            : "bg-white text-simplysent-purple hover:bg-gray-50"
                                     }`}
                                     aria-label="Thumbs down"
                                 >
                                     <ThumbsDown
                                         size={compact ? 16 : 18}
-                                        className={isBad ? "fill-red-800" : ""}
+                                        className={isBad ? "fill-white" : ""}
                                     />
                                 </button>
                             </div>
