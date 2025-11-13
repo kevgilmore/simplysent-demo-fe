@@ -98,7 +98,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
                 } ${onClick ? "cursor-pointer hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-shadow duration-300 hover:-translate-y-1" : ""}`}
                 onClick={onClick}
-                style={{ marginTop: "-50%", minHeight: "200px" }}
+                style={{ marginTop: "-50%", minHeight: "180px" }}
             >
                 {badge && (
                     <div className="absolute top-3 left-3 z-10">{badge}</div>
@@ -106,13 +106,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                 {/* Product Info */}
                 <div
-                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-6 pt-[55%] pb-4" : "px-8 pt-[60%] pb-5"}`}
+                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-6 pt-[55%] pb-3" : "px-8 pt-[60%] pb-4"}`}
                 >
                     <h3
-                        className={`font-['Stack_Sans'] font-semibold text-gray-600 mb-2 ${
-                            compact
-                                ? "text-base leading-tight line-clamp-2"
-                                : "text-xl mb-2"
+                        className={`font-['Stack_Sans'] font-semibold text-gray-600 mb-0 truncate ${
+                            compact ? "text-base leading-tight" : "text-xl mb-0"
                         }`}
                         style={
                             compact
@@ -125,7 +123,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </h3>
 
                     {/* Star Rating */}
-                    <div className="flex items-center gap-0.5 mb-2">
+                    <div className="flex items-center gap-0.5 mb-1 -mt-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={star}
@@ -137,7 +135,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                     {/* Bottom Row: Price, Thumbs Down, Favorites */}
                     {!hideActions && (
-                        <div className="flex items-center justify-between gap-2 mt-2">
+                        <div className="flex items-center justify-between gap-2 mt-1">
                             <p
                                 className={`font-light text-[#816fe8] ${
                                     compact ? "text-xl" : "text-2xl"
