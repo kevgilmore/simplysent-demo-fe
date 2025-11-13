@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ThumbsDown, Heart, Star } from "lucide-react";
+import { ThumbsDown, ThumbsUp, Star } from "lucide-react";
 
 interface ProductCardProps {
     id?: string;
@@ -14,6 +14,9 @@ interface ProductCardProps {
     hideActions?: boolean;
     compact?: boolean;
     onClick?: () => void;
+    isSpecial?: boolean;
+    textColor?: string;
+    priceColor?: string;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -29,6 +32,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     hideActions = false,
     compact = false,
     onClick,
+    isSpecial = false,
+    textColor,
+    priceColor,
 }) => {
     const [isBad, setIsBad] = useState(false);
     const [isFavoriteInternal, setIsFavoriteInternal] = useState(false);
@@ -96,7 +102,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     compact
                         ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
                         : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
-                } ${onClick ? "cursor-pointer hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-shadow duration-300 hover:-translate-y-1" : ""}`}
+                } ${onClick ? "cursor-pointer transition-all duration-300 hover:-translate-y-1" : ""}`}
                 onClick={onClick}
                 style={{ marginTop: "-50%", minHeight: "180px" }}
             >
@@ -106,7 +112,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                 {/* Product Info */}
                 <div
-                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-6 pt-[55%] pb-3" : "px-8 pt-[60%] pb-4"}`}
+                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-6 pt-[58%] pb-3" : "px-8 pt-[63%] pb-4"}`}
                 >
                     <h3
                         className={`font-['Stack_Sans'] font-semibold text-gray-600 mb-0 truncate ${
@@ -123,7 +129,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </h3>
 
                     {/* Star Rating */}
-                    <div className="flex items-center gap-0.5 mb-1 -mt-2">
+                    <div className="flex items-center gap-0.5 mb-1 -mt-3">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={star}
@@ -135,33 +141,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                     {/* Bottom Row: Price, Thumbs Down, Favorites */}
                     {!hideActions && (
-                        <div className="flex items-center justify-between gap-2 mt-1">
+                        <div className="flex items-end justify-between gap-2 -mt-3">
                             <p
                                 className={`font-light text-[#816fe8] ${
-                                    compact ? "text-xl" : "text-2xl"
+                                    compact ? "text-lg" : "text-xl"
                                 }`}
                             >
                                 £{price.toFixed(2)}
                             </p>
 
                             <div className="flex items-center gap-1.5">
-                                <button
-                                    onClick={handleBadClick}
-                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none ${
-                                        compact ? "p-3" : "p-3.5"
-                                    } ${
-                                        isBad
-                                            ? "bg-red-200 text-red-800"
-                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                    }`}
-                                    aria-label="Mark as bad"
-                                >
-                                    <ThumbsDown
-                                        size={compact ? 16 : 18}
-                                        className={isBad ? "fill-red-800" : ""}
-                                    />
-                                </button>
-
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -171,18 +160,35 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                         compact ? "p-3" : "p-3.5"
                                     } ${
                                         favoriteActive
-                                            ? "bg-purple-100"
-                                            : "bg-gray-100 hover:bg-gray-200"
+                                            ? "bg-purple-100 text-simplysent-purple"
+                                            : "bg-gray-100 text-simplysent-purple hover:bg-gray-200"
                                     }`}
-                                    aria-label="Add to favorites"
+                                    aria-label="Thumbs up"
                                 >
-                                    <Heart
+                                    <ThumbsUp
                                         size={compact ? 16 : 18}
-                                        className={`transition-colors duration-200 ${
+                                        className={
                                             favoriteActive
-                                                ? "fill-[#816fe8] text-[#816fe8]"
-                                                : "text-[#816fe8]"
-                                        }`}
+                                                ? "fill-simplysent-purple"
+                                                : ""
+                                        }
+                                    />
+                                </button>
+
+                                <button
+                                    onClick={handleBadClick}
+                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none ${
+                                        compact ? "p-3" : "p-3.5"
+                                    } ${
+                                        isBad
+                                            ? "bg-red-200 text-red-800"
+                                            : "bg-gray-100 text-simplysent-purple hover:bg-gray-200"
+                                    }`}
+                                    aria-label="Thumbs down"
+                                >
+                                    <ThumbsDown
+                                        size={compact ? 16 : 18}
+                                        className={isBad ? "fill-red-800" : ""}
                                     />
                                 </button>
                             </div>

@@ -339,7 +339,6 @@ export const PersonPage: React.FC = () => {
                                                             name={p.name}
                                                             price={p.price}
                                                             compact
-                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 bg-white"
                                                             isFavorite={favourites.has(
                                                                 p.id,
                                                             )}
