@@ -182,8 +182,8 @@ Yellow (Amazon): #FFA500  ████████
 ## 🔗 Related Files
 
 - **`tailwind.config.js`** - Tailwind theme configuration
-- **`src/pages/ProductDetailPage.tsx`** - Example usage of brand colors
-- **`src/pages/RecommendationsPage.tsx`** - Original source of brand color
+- **`src/pages/ProductPage.tsx`** - Example usage of brand colors
+- **`src/pages/PersonPage.tsx`** - Original source of brand color
 
 ## 📝 Best Practices
 

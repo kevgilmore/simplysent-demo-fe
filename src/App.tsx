@@ -8,8 +8,6 @@ import {
 import { RecommenderForm } from "./components/RecommenderForm";
 import { SharePage } from "./pages/SharePage";
 import { IntroPage } from "./pages/IntroPage";
-import { GiftsForHimPage } from "./pages/GiftsForHimPage";
-import { GiftsForHerPage } from "./pages/GiftsForHerPage";
 import { AboutUsPage } from "./pages/AboutUsPage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
@@ -17,8 +15,8 @@ import { BlogPost1 } from "./components/BlogPost1";
 import { BlogPost2 } from "./components/BlogPost2";
 import { BlogPost3 } from "./components/BlogPost3";
 import { UIKitPage } from "./pages/UIKitPage";
-import { RecommendationsPage } from "./pages/RecommendationsPage";
-import { ProductDetailPage } from "./pages/ProductDetailPage";
+import { PersonPage } from "./pages/PersonPage";
+import { ProductPage } from "./pages/ProductPage";
 import { AnimatePresence } from "framer-motion";
 import { ErrorPage } from "./pages/ErrorPage";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
@@ -140,8 +138,6 @@ const router = createBrowserRouter([
         children: [
             { index: true, element: <IntroPage /> },
             { path: "results", element: <RecommenderForm /> },
-            { path: "for-him", element: <GiftsForHimPage /> },
-            { path: "for-her", element: <GiftsForHerPage /> },
             { path: "about-us", element: <AboutUsPage /> },
             { path: "privacy-policy", element: <PrivacyPolicyPage /> },
             { path: "terms-of-service", element: <TermsOfServicePage /> },
@@ -150,8 +146,8 @@ const router = createBrowserRouter([
             { path: "budget-gifts-guide", element: <BlogPost3 /> },
             { path: "components", element: <UIKitPage /> },
             { path: "error", element: <ErrorPage /> },
-            { path: "recommendations", element: <RecommendationsPage /> },
-            { path: "product/:productId", element: <ProductDetailPage /> },
+            { path: "recommendations", element: <PersonPage /> },
+            { path: "product/:productId", element: <ProductPage /> },
             { path: ":recId", element: <SharePage /> }, // Add at end to avoid conflicts
         ],
     },
