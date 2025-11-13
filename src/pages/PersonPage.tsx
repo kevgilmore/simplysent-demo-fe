@@ -14,6 +14,20 @@ import { RangeSlider } from "../components/ui/RangeSlider";
 import { RefineSheet } from "../components/sheets/RefineSheet";
 import { ActionPersonSheet } from "../components/sheets/ActionPersonSheet";
 
+// Available product images
+const PRODUCT_IMAGES = [
+    "/img/products/fitbit.png",
+    "/img/products/ninaj2.png",
+    "/img/products/ninja.png",
+    "/img/products/pop.png",
+    "/img/products/sony.png",
+];
+
+// Helper function to get a random product image
+const getRandomProductImage = () => {
+    return PRODUCT_IMAGES[Math.floor(Math.random() * PRODUCT_IMAGES.length)];
+};
+
 export const PersonPage: React.FC = () => {
     const navigate = useNavigate();
     const [pageTab, setPageTab] = useState("gifts");
@@ -50,31 +64,31 @@ export const PersonPage: React.FC = () => {
             "ai-picks": [
                 {
                     id: "ai-1",
-                    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Top-Rated Wireless Headphones",
                     price: 189.99,
                 },
                 {
                     id: "ai-2",
-                    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Smart Home Starter Kit",
                     price: 139.99,
                 },
                 {
                     id: "ai-3",
-                    image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Cosy Deluxe Candle",
                     price: 18.99,
                 },
                 {
                     id: "ai-4",
-                    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Premium Noise-Cancelling Earbuds",
                     price: 249.99,
                 },
                 {
                     id: "ai-5",
-                    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Designer Watch Collection",
                     price: 299.99,
                 },
@@ -82,31 +96,31 @@ export const PersonPage: React.FC = () => {
             tech: [
                 {
                     id: "tech-1",
-                    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Wireless Headphones Pro Max",
                     price: 199.99,
                 },
                 {
                     id: "tech-2",
-                    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Smart Home Hub",
                     price: 129.99,
                 },
                 {
                     id: "tech-3",
-                    image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Portable Bluetooth Speaker",
                     price: 59.99,
                 },
                 {
                     id: "tech-4",
-                    image: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "4K Action Camera",
                     price: 279.99,
                 },
                 {
                     id: "tech-5",
-                    image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Mechanical Gaming Keyboard",
                     price: 149.99,
                 },
@@ -114,31 +128,31 @@ export const PersonPage: React.FC = () => {
             golf: [
                 {
                     id: "golf-1",
-                    image: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Premium Golf Balls (12 pack)",
                     price: 34.99,
                 },
                 {
                     id: "golf-2",
-                    image: "https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Golf Swing Trainer Aid",
                     price: 44.99,
                 },
                 {
                     id: "golf-3",
-                    image: "https://images.unsplash.com/photo-1592919505780-303950717480?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Golf Glove Leather",
                     price: 19.99,
                 },
                 {
                     id: "golf-4",
-                    image: "https://images.unsplash.com/photo-1596727362302-b8d891c42ab8?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Golf Club Set - Irons",
                     price: 499.99,
                 },
                 {
                     id: "golf-5",
-                    image: "https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=800&auto=format&fit=crop",
+                    image: getRandomProductImage(),
                     name: "Golf Range Finder",
                     price: 189.99,
                 },

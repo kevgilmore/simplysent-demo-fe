@@ -71,24 +71,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
     return (
         <div
-            className={`transition-all ${isRemoving ? "duration-1000 w-0 min-w-0 opacity-0 scale-75 -ml-[260px]" : "duration-300 w-[260px] min-w-[260px] opacity-100 scale-100 ml-0"}`}
-            style={compact ? { aspectRatio: "10 / 13.5" } : undefined}
+            className={`relative transition-all ${isRemoving ? "duration-1000 w-0 min-w-0 opacity-0 scale-75 -ml-[260px]" : "duration-300 w-[260px] min-w-[260px] opacity-100 scale-100 ml-0"}`}
         >
-            <div
-                className={`bg-white rounded-3xl overflow-hidden relative flex flex-col h-full ${className} ${
-                    compact
-                        ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
-                        : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
-                } ${onClick ? "cursor-pointer hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-shadow duration-300 hover:-translate-y-1" : ""}`}
-                onClick={onClick}
-            >
-                {badge && (
-                    <div className="absolute top-3 left-3 z-10">{badge}</div>
-                )}
-
-                {/* Product Image */}
+            {/* Product Image - Hanging above card */}
+            <div className="w-full overflow-hidden flex-shrink-0 relative z-10 px-4 pt-0">
                 <div
-                    className="w-full bg-gray-100 overflow-hidden flex-shrink-0"
+                    className="w-full rounded-2xl overflow-hidden"
                     style={
                         compact
                             ? { aspectRatio: "10 / 8.5" }
@@ -98,19 +86,33 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     <img
                         src={image}
                         alt={name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain scale-110"
                     />
                 </div>
+            </div>
+
+            <div
+                className={`bg-white rounded-3xl relative flex flex-col ${className} ${
+                    compact
+                        ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+                        : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
+                } ${onClick ? "cursor-pointer hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-shadow duration-300 hover:-translate-y-1" : ""}`}
+                onClick={onClick}
+                style={{ marginTop: "-50%", minHeight: "200px" }}
+            >
+                {badge && (
+                    <div className="absolute top-3 left-3 z-10">{badge}</div>
+                )}
 
                 {/* Product Info */}
                 <div
-                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-5 py-3 pb-2.5" : "px-7 py-5 pb-4"}`}
+                    className={`flex flex-col flex-grow font-['Stack_Sans'] ${compact ? "px-6 pt-[55%] pb-4" : "px-8 pt-[60%] pb-5"}`}
                 >
                     <h3
-                        className={`font-['Stack_Sans'] font-semibold text-gray-600 mb-1 ${
+                        className={`font-['Stack_Sans'] font-semibold text-gray-600 mb-2 ${
                             compact
                                 ? "text-base leading-tight line-clamp-2"
-                                : "text-lg mb-2"
+                                : "text-xl mb-2"
                         }`}
                         style={
                             compact
@@ -123,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     </h3>
 
                     {/* Star Rating */}
-                    <div className="flex items-center gap-0.5 mb-1">
+                    <div className="flex items-center gap-0.5 mb-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={star}
@@ -135,10 +137,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                     {/* Bottom Row: Price, Thumbs Down, Favorites */}
                     {!hideActions && (
-                        <div className="flex items-center justify-between gap-2 mt-1">
+                        <div className="flex items-center justify-between gap-2 mt-2">
                             <p
                                 className={`font-light text-[#816fe8] ${
-                                    compact ? "text-lg" : "text-xl"
+                                    compact ? "text-xl" : "text-2xl"
                                 }`}
                             >
                                 £{price.toFixed(2)}
