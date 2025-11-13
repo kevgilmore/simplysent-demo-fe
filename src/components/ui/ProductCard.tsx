@@ -156,7 +156,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                         e.stopPropagation();
                                         handleFavoriteClick();
                                     }}
-                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
+                                    className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
                                         compact ? "p-3" : "p-3.5"
                                     } ${
                                         favoriteActive
@@ -175,7 +175,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                                 <button
                                     onClick={handleBadClick}
-                                    className={`flex items-center justify-center rounded-xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
+                                    className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
                                         compact ? "p-3" : "p-3.5"
                                     } ${
                                         isBad
