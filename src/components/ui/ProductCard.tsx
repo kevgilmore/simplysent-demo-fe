@@ -70,7 +70,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         if (isRemoving && onRemove && id) {
             const timer = setTimeout(() => {
                 onRemove(id);
-            }, 1000);
+            }, 600);
             return () => clearTimeout(timer);
         }
     }, [isRemoving, onRemove, id]);
@@ -168,8 +168,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     <ThumbsUp
                                         size={compact ? 16 : 18}
                                         className={
-                                            favoriteActive ? "fill-white" : ""
+                                            favoriteActive ? "fill-white" : "fill-simplysent-purple"
                                         }
+                                    />
+                                </button>
+</parameter>
+
+<old_text line=183>
+                                <button
+                                    onClick={handleBadClick}
+                                    className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
+                                        compact ? "p-3" : "p-3.5"
+                                    } ${
+                                        isBad
+                                            ? "bg-simplysent-purple text-white"
+                                            : "bg-white text-simplysent-purple hover:bg-gray-50"
+                                    }`}
+                                    aria-label="Thumbs down"
+                                >
+                                    <ThumbsDown
+                                        size={compact ? 16 : 18}
+                                        className={isBad ? "fill-white" : ""}
                                     />
                                 </button>
 

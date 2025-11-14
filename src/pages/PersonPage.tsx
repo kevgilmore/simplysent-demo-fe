@@ -232,7 +232,7 @@ export const PersonPage: React.FC = () => {
                                 type="button"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 id="person-select-button"
-                                className="inline-flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 shadow-md hover:bg-gray-50 transition-colors"
+                                className="inline-flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
                                 aria-label="Select person"
                             >
                                 <FontAwesomeIcon
@@ -275,7 +275,7 @@ export const PersonPage: React.FC = () => {
                             type="button"
                             onClick={() => setIsAddPersonOpen(true)}
                             id="add-person-button"
-                            className="flex items-center justify-center w-10 h-10 rounded-full bg-simplysent-purple hover:bg-simplysent-purple-dark transition-colors shadow-md"
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-simplysent-purple hover:bg-simplysent-purple-dark transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
                             aria-label="Add person"
                         >
                             <FontAwesomeIcon
@@ -303,7 +303,7 @@ export const PersonPage: React.FC = () => {
                             <div className="mt-6">
                                 <div className="flex items-center gap-3 mb-0">
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
-                                        AI Picks For You
+                                        AI Picks For Kevin
                                     </h2>
                                 </div>
                                 {productsByTab["ai-picks"]?.filter(
@@ -320,7 +320,7 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-4 pb-8">
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8">
                                         <div className="flex gap-4 transition-all duration-1000">
                                             {productsByTab["ai-picks"]
                                                 ?.filter(
@@ -385,7 +385,7 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8">
                                         <div className="flex gap-4 transition-all duration-1000">
                                             {productsByTab["tech"]
                                                 ?.filter(
@@ -451,7 +451,7 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar pt-4 pb-8">
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8">
                                         <div className="flex gap-4 transition-all duration-1000">
                                             {productsByTab["golf"]
                                                 ?.filter(
