@@ -598,16 +598,30 @@ export const ProductPage: React.FC = () => {
                                 {/* Favorite Button */}
                                 <button
                                     onClick={handleFavorite}
-                                    className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] p-4 w-fit ${
-                                        isFavorite
-                                            ? "bg-simplysent-purple text-white"
-                                            : "bg-white text-simplysent-purple hover:bg-gray-50"
-                                    }`}
+                                    className="flex items-center justify-center rounded-2xl focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50"
+                                    style={{ 
+                                        width: "56px", 
+                                        height: "56px", 
+                                        padding: "16px", 
+                                        flexShrink: 0,
+                                        position: "relative"
+                                    }}
                                     aria-label="Favorite"
                                 >
                                     <Heart
                                         size={22}
-                                        className="fill-current"
+                                        className={isFavorite ? "fill-simplysent-purple text-simplysent-purple" : "text-simplysent-purple"}
+                                        fill={isFavorite ? "currentColor" : "none"}
+                                        style={{ 
+                                            width: "22px", 
+                                            height: "22px", 
+                                            flexShrink: 0,
+                                            position: "absolute",
+                                            top: "50%",
+                                            left: "50%",
+                                            transform: "translate(-50%, -50%)",
+                                            pointerEvents: "none"
+                                        }}
                                     />
                                 </button>
 
@@ -680,17 +694,16 @@ export const ProductPage: React.FC = () => {
                             </div>
                             
                             {/* Carousel Dots - Inside purple area below image */}
-                            <div className="flex items-center justify-center gap-2 mt-2 relative z-30">
+                            <div className="flex items-center justify-center gap-2 relative z-30" style={{ marginTop: "-60px" }}>
                                 {product.images.map((_, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
-                                        className={`h-3 rounded-full transition-all ${
+                                        className={`h-3 w-3 rounded-full transition-all ${
                                             index === currentImageIndex
-                                                ? "bg-simplysent-purple w-10"
-                                                : "bg-purple-300 w-3"
+                                                ? "bg-simplysent-purple"
+                                                : "bg-white"
                                         }`}
-                                        style={{ minWidth: index === currentImageIndex ? "40px" : "12px" }}
                                     />
                                 ))}
                             </div>
@@ -716,8 +729,8 @@ export const ProductPage: React.FC = () => {
             </div>
 
             {/* Product Details Section - White Background (Mobile Only) */}
-            <div className="md:hidden w-full pt-8 pb-8 bg-white relative" style={{ marginTop: "-1px" }}>
-                <div className="px-4 space-y-6">
+            <div className="md:hidden w-full pt-8 pb-8 bg-white relative overflow-visible" style={{ marginTop: "-1px" }}>
+                <div className="px-4 space-y-6" style={{ marginTop: "-20px" }}>
                     {/* Product Name */}
                     <div className="flex items-start justify-between gap-4 relative px-4">
                         <h1 className="text-2xl font-bold text-gray-900 flex-1">
@@ -726,17 +739,25 @@ export const ProductPage: React.FC = () => {
                         {/* Favorite Button */}
                         <button
                             onClick={handleFavorite}
-                            className={`absolute top-0 right-0 flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] p-4 ${
-                                isFavorite
-                                    ? "bg-simplysent-purple text-white"
-                                    : "bg-white text-simplysent-purple hover:bg-gray-50"
-                            }`}
-                            style={{ transform: "translateY(-32px)", right: "16px" }}
+                            className="flex items-center justify-center rounded-2xl focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50 flex-shrink-0"
+                            style={{ 
+                                width: "56px", 
+                                height: "56px", 
+                                padding: "0",
+                                marginTop: "-32px",
+                                minWidth: "56px",
+                                minHeight: "56px",
+                                position: "relative",
+                                zIndex: 10
+                            }}
                             aria-label="Favorite"
+                            onMouseDown={(e) => e.preventDefault()}
                         >
                             <Heart
                                 size={22}
-                                className="fill-current"
+                                className={isFavorite ? "fill-simplysent-purple text-simplysent-purple" : "text-simplysent-purple"}
+                                fill={isFavorite ? "currentColor" : "none"}
+                                style={{ width: "22px", height: "22px", flexShrink: 0 }}
                             />
                         </button>
                     </div>

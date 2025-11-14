@@ -114,12 +114,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {favouritesVariant ? (
                 // Favourites variant: image inside card
                 <div
-                    className={`bg-white rounded-3xl relative flex flex-col ${className} shadow-[0_4px_20px_rgba(0,0,0,0.06)] ${onClick ? "cursor-pointer transition-all duration-300 hover:-translate-y-1" : ""}`}
+                    className={`bg-white rounded-3xl relative flex flex-col ${className} shadow-[0_4px_20px_rgba(0,0,0,0.06)] ${onClick ? "cursor-pointer" : ""}`}
                     onClick={onClick}
                     style={{ minHeight: cardMinHeight }}
                 >
                     {/* Product Image - Inside card */}
-                    <div className="w-full flex-shrink-0 relative pt-3 px-3">
+                    <div 
+                        className="w-full flex-shrink-0 relative pt-3 px-3"
+                        onClick={onClick}
+                        style={{ cursor: onClick ? "pointer" : "default" }}
+                    >
                         <div
                             className="w-full rounded-xl overflow-hidden"
                             style={{ aspectRatio: "1 / 1" }}
@@ -128,6 +132,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 src={image}
                                 alt={name}
                                 className="w-full h-full object-contain"
+                                style={{ pointerEvents: "none" }}
                             />
                         </div>
                     </div>
@@ -157,7 +162,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 // Regular variant: image hanging above card
                 <>
                     {/* Product Image - Hanging above card */}
-                    <div className="w-full overflow-visible flex-shrink-0 relative z-10 px-4 pt-0">
+                    <div 
+                        className="w-full overflow-visible flex-shrink-0 relative z-10 px-4 pt-0"
+                        onClick={onClick}
+                        style={{ cursor: onClick ? "pointer" : "default" }}
+                    >
                         <div
                             className="w-full rounded-2xl overflow-visible relative"
                             style={
@@ -170,6 +179,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 src={image}
                                 alt={name}
                                 className="w-full h-full object-contain scale-110 relative z-10"
+                                style={{ pointerEvents: "none" }}
                             />
                             {isAiPick && (
                                 <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl z-10">
@@ -204,7 +214,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             compact
                                 ? isAiPick ? "" : "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
                                 : isAiPick ? "" : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
-                        } ${onClick ? "cursor-pointer transition-all duration-300 hover:-translate-y-1" : ""} ${isAiPick ? (compact ? "animate-purple-glow" : "animate-purple-glow-large") : ""}`}
+                        } ${onClick ? "cursor-pointer" : ""} ${isAiPick ? (compact ? "animate-purple-glow" : "animate-purple-glow-large") : ""}`}
                         onClick={onClick}
                         style={{ marginTop: "-50%", minHeight: cardMinHeight }}
                     >
@@ -290,35 +300,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     <div className="flex items-center gap-4 -ml-3">
                                         <button
                                             onClick={handleThumbsUpClick}
-                                            className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
-                                                compact ? "p-3" : "p-3.5"
-                                            } ${
-                                                isThumbsUp
-                                                    ? "bg-simplysent-purple text-white"
-                                                    : "bg-white text-simplysent-purple hover:bg-gray-50"
-                                            }`}
+                                            className="flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50"
+                                            style={{ padding: compact ? "12px" : "14px" }}
                                             aria-label="Thumbs up"
                                         >
                                             <ThumbsUp
                                                 size={compact ? 16 : 18}
-                                                className="fill-current"
+                                                className={isThumbsUp ? "fill-simplysent-purple text-simplysent-purple" : "text-simplysent-purple"}
+                                                fill={isThumbsUp ? "currentColor" : "none"}
                                             />
                                         </button>
 
                                         <button
                                             onClick={handleBadClick}
-                                            className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
-                                                compact ? "p-3" : "p-3.5"
-                                            } ${
-                                                isBad
-                                                    ? "bg-simplysent-purple text-white"
-                                                    : "bg-white text-simplysent-purple hover:bg-gray-50"
-                                            }`}
+                                            className="flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50"
+                                            style={{ padding: compact ? "12px" : "14px" }}
                                             aria-label="Thumbs down"
                                         >
                                             <ThumbsDown
                                                 size={compact ? 16 : 18}
-                                                className="fill-current"
+                                                className={isBad ? "fill-simplysent-purple text-simplysent-purple" : "text-simplysent-purple"}
+                                                fill={isBad ? "currentColor" : "none"}
                                             />
                                         </button>
                                     </div>
