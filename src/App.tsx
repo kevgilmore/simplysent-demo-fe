@@ -87,6 +87,8 @@ function AppShell() {
 
     // Check if current route is a carousel page that needs full width
     const isCarouselPage = location.pathname === "/recommendations";
+    // Check if current route is a product page that needs full width purple background
+    const isProductPage = location.pathname.startsWith("/product/");
 
     return (
         <>
@@ -94,7 +96,7 @@ function AppShell() {
             <MetaPixel pixelId={META_PIXEL_ID} />
             <ToastContainer toasts={toasts} onRemove={removeToast} />
             <div
-                className={`w-full min-h-screen overflow-x-hidden ${isCarouselPage ? "" : "bg-gradient-to-br from-purple-50 to-pink-100 pt-8"}`}
+                className={`w-full min-h-screen overflow-x-hidden ${isCarouselPage || isProductPage ? "" : "bg-gradient-to-br from-purple-50 to-pink-100 pt-8"}`}
             >
                 <style>{`
           .no-scrollbar {

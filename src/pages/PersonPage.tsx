@@ -222,6 +222,7 @@ export const PersonPage: React.FC = () => {
         }
     }, [allProducts]);
 
+
     return (
         <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-[#f7f6fe] to-[#f1eefe]">
             {/* Primary App Navbar (logo + top menu) */}
@@ -324,19 +325,29 @@ export const PersonPage: React.FC = () => {
                                 {productsByTab["ai-picks"]?.filter(
                                     (p) => !removedProducts.has(p.id),
                                 ).length === 0 ? (
-                                    <div className="flex items-center justify-center py-12 px-4">
-                                        <div className="text-center max-w-md">
-                                            <p className="text-gray-400 text-lg font-medium">
-                                                No more recommendations here.
+                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
+                                        <div className="text-center px-4">
+                                            {/* Shimmer graphic circle */}
+                                            <div className="relative mx-auto mb-6 w-20 h-20">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 shimmer-placeholder" />
+                                                <div className="absolute inset-2 rounded-full bg-white" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-simplysent-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <p className="text-simplysent-purple font-semibold text-lg mb-2">
+                                                Swipe down to generate new recommendations
                                             </p>
-                                            <p className="text-gray-400 text-sm mt-2">
-                                                Check back later for new picks!
+                                            <p className="text-gray-500 text-sm">
+                                                We'll find more great picks for you
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12 mt-[10px]">
-                                        <div className="flex gap-4 transition-all duration-1000">
+                                        <div className="flex gap-4 transition-all duration-700 ease-out">
                                             {productsByTab["ai-picks"]
                                                 ?.filter(
                                                     (p) =>
@@ -344,37 +355,39 @@ export const PersonPage: React.FC = () => {
                                                             p.id,
                                                         ),
                                                 )
-                                                .map((p) => (
-                                                    <div
-                                                        key={p.id}
-                                                        className="flex-shrink-0 w-[260px]"
-                                                    >
-                                                        <ProductCard
-                                                            id={p.id}
-                                                            image={p.image}
-                                                            name={p.name}
-                                                            price={p.price}
-                                                            compact
-                                                            isAiPick={true}
-                                                            isFavorite={favourites.has(
-                                                                p.id,
-                                                            )}
-                                                            onFavoriteToggle={() =>
-                                                                toggleFavourite(
+                                                .map((p) => {
+                                                    return (
+                                                        <div
+                                                            key={p.id}
+                                                            className="flex-shrink-0 w-[260px] transition-all duration-700 ease-out"
+                                                        >
+                                                            <ProductCard
+                                                                id={p.id}
+                                                                image={p.image}
+                                                                name={p.name}
+                                                                price={p.price}
+                                                                compact
+                                                                isAiPick={true}
+                                                                isFavorite={favourites.has(
                                                                     p.id,
-                                                                )
-                                                            }
-                                                            onRemove={
-                                                                handleProductRemove
-                                                            }
-                                                            onClick={() =>
-                                                                handleProductClick(
-                                                                    p.id,
-                                                                )
-                                                            }
-                                                        />
-                                                    </div>
-                                                ))}
+                                                                )}
+                                                                onFavoriteToggle={() =>
+                                                                    toggleFavourite(
+                                                                        p.id,
+                                                                    )
+                                                                }
+                                                                onRemove={
+                                                                    handleProductRemove
+                                                                }
+                                                                onClick={() =>
+                                                                    handleProductClick(
+                                                                        p.id,
+                                                                    )
+                                                                }
+                                                            />
+                                                        </div>
+                                                    );
+                                                })}
                                         </div>
                                     </div>
                                 )}

@@ -269,6 +269,44 @@
     }
 }
 
+/* Fade in animation for new products */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Shimmer effect for placeholder */
+@keyframes shimmer-placeholder {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.shimmer-placeholder {
+    background: linear-gradient(
+        90deg,
+        rgba(229, 231, 235, 0.4) 0%,
+        rgba(243, 244, 246, 0.8) 50%,
+        rgba(229, 231, 235, 0.4) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer-placeholder 2s infinite;
+    background-color: rgba(229, 231, 235, 0.3);
+}
+
 .animate-gradient-slide {
     animation: gradient-slide 4s ease-in-out infinite;
 }

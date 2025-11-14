@@ -34,25 +34,32 @@ interface ProductDetail {
     shipping: string;
 }
 
+// Available product images (transparent PNGs like person page)
+const PRODUCT_IMAGES = [
+    "/img/products/fitbit.png",
+    "/img/products/ninaj2.png",
+    "/img/products/ninja.png",
+    "/img/products/pop.png",
+    "/img/products/sony.png",
+    "/img/products/controller.png",
+];
+
 // Mock product data - in a real app, this would come from an API
 const mockProducts: Record<string, ProductDetail> = {
     "ai-1": {
         id: "ai-1",
-        name: "Top-Rated Wireless Headphones",
-        price: 189.99,
-        image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+        name: "Playstation Controller",
+        price: 59.96,
+        image: "/img/products/controller.png",
         images: [
-            "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1484704849700-f032a568e944?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1546435770-a3e426bf472b?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1524678606370-a47ad25cb82a?q=80&w=800&auto=format&fit=crop",
+            "/img/products/controller.png",
+            "/img/products/controller.png",
+            "/img/products/controller.png",
         ],
         description:
-            "Experience premium sound quality with these top-rated wireless headphones. Featuring advanced noise cancellation, comfortable over-ear design, and up to 30 hours of battery life. Perfect for music lovers, professionals, and travelers who demand the best audio experience.",
-        rating: 4.8,
-        reviews: 1243,
+            "Take total control of every game with the most intelligently designed controller we've ever created, with responsive triggers, refined sticks, textured grips and a host of innovative features that bring you closer to your games.",
+        rating: 5.0,
+        reviews: 25,
         features: [
             "Active Noise Cancellation",
             "30-hour battery life",
@@ -76,14 +83,11 @@ const mockProducts: Record<string, ProductDetail> = {
         id: "ai-2",
         name: "Smart Home Starter Kit",
         price: 139.99,
-        image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+        image: PRODUCT_IMAGES[0], // fitbit.png
         images: [
-            "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1558089687-e1d617c0ca85?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1556656793-08538906a9f8?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1519558260268-cde7e03a0152?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1545259741-2ea3ebf61fa3?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1558346490-a72e53ae2d4f?q=80&w=800&auto=format&fit=crop",
+            PRODUCT_IMAGES[0],
+            PRODUCT_IMAGES[1],
+            PRODUCT_IMAGES[2],
         ],
         description:
             "Transform your house into a smart home with this comprehensive starter kit. Includes smart plugs, light bulbs, and a central hub that works with all major voice assistants. Easy to set up and control everything from your smartphone.",
@@ -112,14 +116,11 @@ const mockProducts: Record<string, ProductDetail> = {
         id: "ai-3",
         name: "Cosy Deluxe Candle",
         price: 18.99,
-        image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop",
+        image: PRODUCT_IMAGES[3], // pop.png
         images: [
-            "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1602874801006-5e97b52c9635?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1603006905003-be475563bc59?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1608452964553-9b4d97b2752f?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1587049352846-4a222e784587?q=80&w=800&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1615485500665-c3e6e7e49c3f?q=80&w=800&auto=format&fit=crop",
+            PRODUCT_IMAGES[3],
+            PRODUCT_IMAGES[0],
+            PRODUCT_IMAGES[1],
         ],
         description:
             "Indulge in the warm, inviting aroma of our handcrafted deluxe candle. Made with premium soy wax and natural essential oils, this candle creates the perfect ambiance for relaxation. With a burn time of up to 50 hours, it's the perfect gift for creating a cozy atmosphere.",
@@ -451,645 +452,166 @@ export const ProductPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
-            <div className="max-w-7xl mx-auto px-4 py-8">
-                {/* Back Button */}
-                <motion.button
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 text-purple-700 hover:text-purple-900 mb-6 font-semibold transition-colors"
-                >
-                    <ArrowLeft size={20} />
-                    Back to Results
-                </motion.button>
-
-                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8 lg:gap-12">
-                    {/* Product Title Section - Order 1 on mobile */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="order-1 lg:col-start-2"
-                    >
-                        {/* Product Title */}
-                        <div>
-                            <div className="flex items-start justify-between gap-4 mb-2">
-                                <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 flex-1">
-                                    {product.name}
-                                </h1>
-                                {/* Share Button - Discrete placement */}
-                                <button
-                                    onClick={handleShare}
-                                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg font-medium text-sm bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all hover:scale-105"
-                                    aria-label="Share product"
-                                >
-                                    <Share2 size={16} />
-                                    <span className="hidden sm:inline">
-                                        Share
-                                    </span>
-                                </button>
-                            </div>
-
-                            {/* Rating */}
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            size={18}
-                                            className={`${
-                                                i < Math.floor(product.rating)
-                                                    ? "fill-yellow-400 text-yellow-400"
-                                                    : "text-gray-300"
-                                            }`}
-                                        />
-                                    ))}
-                                </div>
-                                <span className="text-sm text-gray-600">
-                                    {product.rating} ({product.reviews} reviews)
-                                </span>
-                            </div>
-
-                            {/* Price */}
-                            <div className="flex items-baseline gap-3 mb-4">
-                                <span className="text-4xl font-bold text-simplysent-purple">
-                                    £{product.price.toFixed(2)}
-                                </span>
-                            </div>
+        <div className="min-h-screen bg-white overflow-x-hidden">
+            {/* Purple Section - Extended */}
+            <div className="relative" style={{ height: "50vh", minHeight: "400px" }}>
+                <div className="bg-gradient-to-br from-purple-100 to-purple-50 h-full relative overflow-hidden">
+                    {/* Header buttons */}
+                    <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-12 pb-4">
+                        <div className="flex items-center justify-between">
+                            {/* Back Button */}
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="w-10 h-10 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-white transition-all"
+                            >
+                                <ArrowLeft size={20} className="text-gray-800" />
+                            </button>
+                            
+                            {/* Share Button */}
+                            <button
+                                onClick={handleShare}
+                                className="w-10 h-10 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-white transition-all"
+                            >
+                                <Share2 size={20} className="text-gray-800" />
+                            </button>
                         </div>
-                    </motion.div>
+                    </div>
 
-                    {/* Product Image Carousel - Order 2 on mobile */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="order-2 lg:row-start-1 lg:col-start-1 lg:row-span-2 -mt-4 lg:mt-0"
-                    >
-                        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+                    {/* Product Image Section - Transparent, no container */}
+                    <div className="absolute inset-x-0 top-[10%] bottom-0 flex flex-col items-center justify-start px-4 pb-20">
+                        <div className="w-full max-w-md">
                             <div
-                                className="aspect-square relative"
+                                className="aspect-square relative bg-transparent"
                                 onTouchStart={handleTouchStart}
                                 onTouchMove={handleTouchMove}
                                 onTouchEnd={handleTouchEnd}
                             >
-                                {/* Main Carousel Image */}
+                                {/* Product Image - Transparent PNG like person page */}
                                 <AnimatePresence mode="wait">
-                                    <motion.img
+                                    <motion.div
                                         key={currentImageIndex}
-                                        src={product.images[currentImageIndex]}
-                                        alt={`${product.name} - Image ${currentImageIndex + 1}`}
-                                        className="w-full h-full object-cover"
+                                        className="absolute inset-0 flex items-center justify-center p-8 bg-transparent"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.3 }}
-                                    />
-                                </AnimatePresence>
-
-                                {/* Navigation Arrows */}
-                                <button
-                                    onClick={handlePrevImage}
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all z-20"
-                                    aria-label="Previous image"
-                                >
-                                    <ChevronLeft
-                                        size={24}
-                                        className="text-gray-800"
-                                    />
-                                </button>
-                                <button
-                                    onClick={handleNextImage}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow-lg transition-all z-20"
-                                    aria-label="Next image"
-                                >
-                                    <ChevronRight
-                                        size={24}
-                                        className="text-gray-800"
-                                    />
-                                </button>
-
-                                {/* Favorite Button Overlay */}
-                                <button
-                                    onClick={handleFavorite}
-                                    className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-lg hover:scale-110 transition-transform z-10"
-                                >
-                                    <Heart
-                                        size={24}
-                                        className={`transition-colors ${
-                                            isFavorite
-                                                ? "fill-red-500 text-red-500"
-                                                : "text-gray-400"
-                                        }`}
-                                    />
-                                </button>
-
-                                {/* In Stock Badge */}
-                                {product.inStock && (
-                                    <div className="absolute top-4 left-4 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1 z-10">
-                                        <CheckCircle size={16} />
-                                        In Stock
-                                    </div>
-                                )}
-
-                                {/* SimplySent Verified Badge */}
-                                <div className="absolute bottom-4 left-4 bg-simplysent-purple text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg z-10">
-                                    <Award size={16} />
-                                    SimplySent Verified
-                                </div>
-
-                                {/* Image Counter */}
-                                <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-semibold z-10">
-                                    {currentImageIndex + 1} /{" "}
-                                    {product.images.length}
-                                </div>
-                            </div>
-
-                            {/* Thumbnail Navigation */}
-                            <div className="flex gap-2 p-3 overflow-x-auto">
-                                {product.images.map((img, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() =>
-                                            setCurrentImageIndex(index)
-                                        }
-                                        className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                                            index === currentImageIndex
-                                                ? "border-simplysent-purple ring-2 ring-simplysent-purple/30"
-                                                : "border-gray-200 hover:border-simplysent-purple-light"
-                                        }`}
                                     >
                                         <img
-                                            src={img}
-                                            alt={`Thumbnail ${index + 1}`}
-                                            className="w-full h-full object-cover"
+                                            src={product.images[currentImageIndex]}
+                                            alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                                            className="w-full h-full object-contain scale-110"
+                                            style={{ mixBlendMode: "normal" }}
                                         />
-                                    </button>
-                                ))}
+                                    </motion.div>
+                                </AnimatePresence>
                             </div>
-                        </div>
-
-                        {/* Gift Wrap - Simple text */}
-                        <p className="flex items-center justify-center gap-2 text-gray-600 mt-4 text-sm">
-                            <span className="text-base">🎁</span>
-                            <span className="font-medium">
-                                Gift wrap available at checkout
-                            </span>
-                        </p>
-                    </motion.div>
-
-                    {/* Product Info & Actions - Order 3 on mobile */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="space-y-6 order-3 lg:col-start-2"
-                    >
-                        {/* Thumbs Up/Down Feedback */}
-                        <div className="bg-white rounded-2xl p-4 shadow-md">
-                            <p className="text-sm font-semibold text-gray-700 mb-3">
-                                How do you feel about this gift?
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={handleThumbsUp}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all hover:scale-105 ${
-                                        thumbsUp
-                                            ? "bg-green-500 text-white"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
-                                >
-                                    <ThumbsUp
-                                        size={20}
-                                        className={thumbsUp ? "fill-white" : ""}
-                                    />
-                                    Love it
-                                </button>
-                                <button
-                                    onClick={handleThumbsDown}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all hover:scale-105 ${
-                                        thumbsDown
-                                            ? "bg-red-500 text-white"
-                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                    }`}
-                                >
-                                    <ThumbsDown
-                                        size={20}
-                                        className={
-                                            thumbsDown ? "fill-white" : ""
-                                        }
-                                    />
-                                    Not for me
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Amazon Button */}
-                        <div className="space-y-3">
-                            {/* Shipping Badge - Above Button */}
-                            <div className="flex items-center justify-center gap-2 text-green-700 bg-green-50 rounded-lg px-4 py-2 w-fit mx-auto">
-                                <Truck size={18} />
-                                <span className="font-semibold text-sm">
-                                    {product.shipping}
-                                </span>
-                            </div>
-
-                            <button
-                                onClick={() =>
-                                    alert(
-                                        "Opening Amazon App... (Demo feature)",
-                                    )
-                                }
-                                className="w-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 text-gray-900 py-4 px-6 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] flex items-center justify-center gap-3"
-                            >
-                                <ExternalLink size={24} />
-                                Purchase with Amazon
-                            </button>
-                            <p className="text-center text-sm text-gray-500">
-                                Opens in Amazon app
-                            </p>
-                        </div>
-
-                        {/* Why SimplySent Section */}
-                        <div className="bg-gradient-to-br from-simplysent-purple/10 to-pink-50 rounded-2xl p-6 border-2 border-simplysent-purple/30 shadow-sm">
-                            <div className="flex items-center justify-center gap-2 mb-4">
-                                <Award
-                                    className="text-simplysent-purple"
-                                    size={24}
-                                />
-                                <h3 className="text-lg font-bold text-gray-900">
-                                    Why SimplySent?
-                                </h3>
-                            </div>
-                            <div className="space-y-3">
-                                <div className="flex items-start gap-3">
-                                    <div className="bg-simplysent-purple/20 rounded-full p-1.5 mt-0.5">
-                                        <CheckCircle
-                                            className="text-simplysent-purple"
-                                            size={16}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-800 text-sm">
-                                            AI-Powered Recommendations
-                                        </p>
-                                        <p className="text-xs text-gray-600 mt-0.5">
-                                            Personalized gifts matched to their
-                                            interests and style
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="bg-simplysent-purple/20 rounded-full p-1.5 mt-0.5">
-                                        <CheckCircle
-                                            className="text-simplysent-purple"
-                                            size={16}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-800 text-sm">
-                                            Expert Gift Curation
-                                        </p>
-                                        <p className="text-xs text-gray-600 mt-0.5">
-                                            Every product is carefully vetted
-                                            for gift-worthiness
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="bg-simplysent-purple/20 rounded-full p-1.5 mt-0.5">
-                                        <Shield
-                                            className="text-simplysent-purple"
-                                            size={16}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-800 text-sm">
-                                            Amazon's Trust & Security
-                                        </p>
-                                        <p className="text-xs text-gray-600 mt-0.5">
-                                            Purchase with confidence through
-                                            Amazon's secure platform
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-start gap-3">
-                                    <div className="bg-simplysent-purple/20 rounded-full p-1.5 mt-0.5">
-                                        <CheckCircle
-                                            className="text-simplysent-purple"
-                                            size={16}
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="font-semibold text-gray-800 text-sm">
-                                            Trusted by Thousands
-                                        </p>
-                                        <p className="text-xs text-gray-600 mt-0.5">
-                                            Join thousands of happy gift-givers
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Social Proof */}
-                        <div className="bg-white rounded-2xl p-5 shadow-md border border-gray-100">
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex -space-x-2">
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 border-2 border-white" />
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 border-2 border-white" />
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 border-2 border-white" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-gray-900">
-                                            2,500+ Happy Customers
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            This month
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                    {[...Array(5)].map((_, i) => (
-                                        <Star
-                                            key={i}
-                                            size={14}
-                                            className="fill-yellow-400 text-yellow-400"
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                            <p className="text-sm text-gray-600 italic">
-                                "SimplySent helped me find the perfect gift in
-                                minutes. My friend absolutely loved it!"
-                            </p>
-                            <p className="text-xs text-gray-500 mt-2">
-                                - Sarah M., verified customer
-                            </p>
-                        </div>
-
-                        {/* Description */}
-                        <div className="bg-white rounded-2xl p-6 shadow-md">
-                            <h2 className="text-xl font-bold text-gray-900 mb-3">
-                                Description
-                            </h2>
-                            <p className="text-gray-700 leading-relaxed">
-                                {product.description}
-                            </p>
-                        </div>
-
-                        {/* Features */}
-                        <div className="bg-white rounded-2xl p-6 shadow-md">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">
-                                Key Features
-                            </h2>
-                            <ul className="space-y-2">
-                                {product.features.map((feature, index) => (
-                                    <li
+                            
+                            {/* Carousel Dots - Inside purple area below image */}
+                            <div className="flex items-center justify-center gap-2 pt-4">
+                                {product.images.map((_, index) => (
+                                    <button
                                         key={index}
-                                        className="flex items-start gap-3"
-                                    >
-                                        <div className="mt-1 bg-simplysent-purple/20 rounded-full p-1">
-                                            <div className="w-2 h-2 bg-simplysent-purple rounded-full" />
-                                        </div>
-                                        <span className="text-gray-700">
-                                            {feature}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {/* Specifications */}
-                        <div className="bg-white rounded-2xl p-6 shadow-md">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">
-                                Specifications
-                            </h2>
-                            <div className="space-y-3">
-                                {product.specifications.map((spec, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex justify-between py-2 border-b border-gray-100 last:border-0"
-                                    >
-                                        <span className="text-gray-600 font-medium">
-                                            {spec.label}
-                                        </span>
-                                        <span className="text-gray-900 font-semibold">
-                                            {spec.value}
-                                        </span>
-                                    </div>
+                                        onClick={() => setCurrentImageIndex(index)}
+                                        className={`h-2 rounded-full transition-all ${
+                                            index === currentImageIndex
+                                                ? "bg-red-500 w-8"
+                                                : "bg-red-300 w-2"
+                                        }`}
+                                    />
                                 ))}
                             </div>
                         </div>
+                    </div>
 
-                        {/* SimplySent Promise */}
-                        <div className="bg-gradient-to-r from-simplysent-purple/10 to-pink-50 rounded-2xl p-6 border-2 border-simplysent-purple/30 shadow-md">
-                            <div className="flex items-start gap-4">
-                                <div className="bg-simplysent-purple rounded-full p-3 flex-shrink-0">
-                                    <Award className="text-white" size={28} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-2">
-                                        The SimplySent Promise
-                                    </h3>
-                                    <p className="text-sm text-gray-700 leading-relaxed">
-                                        We carefully curate every gift
-                                        recommendation to ensure it's perfect
-                                        for your recipient. Purchase confidently
-                                        through Amazon's trusted platform with
-                                        their excellent customer service and
-                                        return policies.
-                                    </p>
-                                    <div className="flex items-center gap-4 mt-3">
-                                        <div className="flex items-center gap-2">
-                                            <CheckCircle
-                                                size={16}
-                                                className="text-simplysent-purple"
-                                            />
-                                            <span className="text-xs font-semibold text-simplysent-purple">
-                                                Expert Curation
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Shield
-                                                size={16}
-                                                className="text-simplysent-purple"
-                                            />
-                                            <span className="text-xs font-semibold text-simplysent-purple">
-                                                Amazon Backed
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Trust Badges - Order 4 on mobile */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="space-y-4 order-4 lg:col-start-1"
-                    >
-                        {/* Amazon Purchase Benefits */}
-                        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-2xl p-4 border border-orange-200">
-                            <p className="text-xs font-bold text-orange-800 text-center mb-3 uppercase tracking-wide">
-                                🛡️ Amazon Purchase Benefits
-                            </p>
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="bg-white rounded-xl p-3 shadow-sm flex flex-col items-center text-center">
-                                    <Truck
-                                        size={28}
-                                        className="text-orange-600 mb-2"
-                                    />
-                                    <p className="text-xs font-bold text-gray-800">
-                                        Prime Shipping
-                                    </p>
-                                    <p className="text-[10px] text-gray-500 mt-0.5">
-                                        Fast & free
-                                    </p>
-                                </div>
-                                <div className="bg-white rounded-xl p-3 shadow-sm flex flex-col items-center text-center">
-                                    <Shield
-                                        size={28}
-                                        className="text-orange-600 mb-2"
-                                    />
-                                    <p className="text-xs font-bold text-gray-800">
-                                        Amazon Secure
-                                    </p>
-                                    <p className="text-[10px] text-gray-500 mt-0.5">
-                                        Trusted checkout
-                                    </p>
-                                </div>
-                                <div className="bg-white rounded-xl p-3 shadow-sm flex flex-col items-center text-center">
-                                    <Package
-                                        size={28}
-                                        className="text-orange-600 mb-2"
-                                    />
-                                    <p className="text-xs font-bold text-gray-800">
-                                        Easy Returns
-                                    </p>
-                                    <p className="text-[10px] text-gray-500 mt-0.5">
-                                        Amazon policy
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* SimplySent Recommendation Badge */}
-                        <div className="bg-gradient-to-r from-simplysent-purple to-pink-600 rounded-2xl p-4 text-white text-center shadow-lg">
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                                <Award size={24} />
-                                <p className="font-bold text-lg">
-                                    SimplySent Recommended
-                                </p>
-                            </div>
-                            <p className="text-sm opacity-90">
-                                AI-powered matching + expert curation for the
-                                perfect gift
-                            </p>
-                        </div>
-                    </motion.div>
+                    {/* Simple Curved Transition to White - Upside down curve */}
+                    <div className="absolute bottom-0 left-0 right-0 z-10" style={{ height: "80px" }}>
+                        <svg
+                            viewBox="0 0 1440 160"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="w-full h-full"
+                            preserveAspectRatio="none"
+                        >
+                            <path
+                                d="M0 0Q720 160 1440 0L1440 160L0 160Z"
+                                fill="white"
+                            />
+                        </svg>
+                    </div>
                 </div>
+            </div>
 
-                {/* Bottom Trust Banner - Full Width */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="mt-12 bg-white rounded-3xl p-8 shadow-xl border border-gray-200"
-                >
-                    <div className="text-center mb-6">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                            🎁 How SimplySent Works
-                        </h3>
-                        <p className="text-gray-600">
-                            We find the perfect gifts, Amazon handles the rest
+            {/* Product Details Section - White Background */}
+            <div className="w-full pt-8 pb-8 bg-white relative" style={{ marginTop: "-1px" }}>
+                <div className="px-4 space-y-6">
+                    {/* Product Name */}
+                    <div className="flex items-start justify-between gap-4">
+                        <h1 className="text-2xl font-bold text-gray-900 flex-1">
+                            {product.name}
+                        </h1>
+                        {/* Favorite Button */}
+                        <button
+                            onClick={handleFavorite}
+                            className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] p-4 ${
+                                isFavorite
+                                    ? "bg-simplysent-purple text-white"
+                                    : "bg-white text-simplysent-purple hover:bg-gray-50"
+                            }`}
+                            aria-label="Favorite"
+                        >
+                            <Heart
+                                size={22}
+                                className="fill-current"
+                            />
+                        </button>
+                    </div>
+
+                    {/* Rating and Price */}
+                    <div className="flex items-start justify-between">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-0.5">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star
+                                        key={i}
+                                        size={16}
+                                        className={`${
+                                            i < Math.floor(product.rating)
+                                                ? "fill-yellow-400 text-yellow-400"
+                                                : "text-gray-300"
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+                            <span className="text-sm text-gray-500">
+                                ({product.reviews} reviews)
+                            </span>
+                        </div>
+                        <span className="text-3xl font-bold text-simplysent-purple">
+                            ${product.price.toFixed(2)}
+                        </span>
+                    </div>
+
+                    {/* About this item */}
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-900 mb-2">
+                            About this item
+                        </h2>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                            {product.description}
                         </p>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="text-center">
-                            <div className="bg-simplysent-purple/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                                <Award
-                                    className="text-simplysent-purple"
-                                    size={32}
-                                />
-                            </div>
-                            <h4 className="font-bold text-gray-900 mb-1">
-                                Smart Recommendations
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                                AI-powered matching finds the perfect gift
-                            </p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                                <CheckCircle
-                                    className="text-blue-600"
-                                    size={32}
-                                />
-                            </div>
-                            <h4 className="font-bold text-gray-900 mb-1">
-                                Curated Quality
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                                Only top-rated, gift-worthy products
-                            </p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-orange-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                                <ShoppingCart
-                                    className="text-orange-600"
-                                    size={32}
-                                />
-                            </div>
-                            <h4 className="font-bold text-gray-900 mb-1">
-                                Amazon Purchase
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                                Buy securely through Amazon's trusted platform
-                            </p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
-                                <Package className="text-green-600" size={32} />
-                            </div>
-                            <h4 className="font-bold text-gray-900 mb-1">
-                                Amazon Delivery
-                            </h4>
-                            <p className="text-sm text-gray-600">
-                                Fast shipping with gift wrap options
-                            </p>
-                        </div>
-                    </div>
-                </motion.div>
 
-                {/* Footer */}
-                <footer className="mt-16 pt-8 pb-6 border-t border-gray-200">
-                    <div className="max-w-7xl mx-auto px-4 text-center">
-                        <p className="text-sm text-gray-600 mb-3">
-                            © {new Date().getFullYear()} SimplySent.co - All
-                            rights reserved
-                        </p>
-                        <div className="flex justify-center gap-6 text-sm">
-                            <a
-                                href="/terms"
-                                className="text-gray-600 hover:text-simplysent-purple transition-colors"
-                            >
-                                Terms of Service
-                            </a>
-                            <a
-                                href="/privacy"
-                                className="text-gray-600 hover:text-simplysent-purple transition-colors"
-                            >
-                                Privacy Policy
-                            </a>
-                        </div>
-                    </div>
-                </footer>
+                    {/* Add to cart button */}
+                    <button
+                        onClick={() =>
+                            alert("Add to cart (Demo feature)")
+                        }
+                        className="w-full bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] active:shadow-[0_8px_30px_rgba(0,0,0,0.2)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95"
+                    >
+                        Add to cart
+                    </button>
+
+                </div>
             </div>
         </div>
     );
