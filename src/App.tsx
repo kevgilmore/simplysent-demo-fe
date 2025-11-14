@@ -119,7 +119,7 @@ function AppShell() {
         `}</style>
                 <div
                     className={
-                        isCarouselPage ? "" : "max-w-7xl mx-auto px-2 sm:px-4"
+                        isCarouselPage || isProductPage ? "" : "max-w-7xl mx-auto px-2 sm:px-4"
                     }
                 >
                     <AnimatePresence mode="wait">

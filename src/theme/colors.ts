@@ -18,6 +18,9 @@ export const colors = {
 
     // Dark variant for active states and emphasis
     purpleDark: '#4a4582',
+
+    // Alternative purple for backgrounds and sections
+    purpleAlt: '#d1ccfb',
   },
 
   /**

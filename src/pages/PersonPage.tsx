@@ -184,7 +184,7 @@ export const PersonPage: React.FC = () => {
     };
 
     const handleProductClick = (productId: string) => {
-        navigate(`/product/${productId}`);
+        navigate(`/product/ai-1`); // All products navigate to Playstation Controller
     };
 
     const toggleInterest = (interest: string) => {
@@ -530,10 +530,10 @@ export const PersonPage: React.FC = () => {
                     {pageTab === "gifts" && (
                         <div className="mt-8">
                             <Button
-                                fullWidth
                                 variant="primary"
                                 size="large"
                                 onClick={() => setIsRefineOpen(true)}
+                                className="w-[95%] mx-auto block"
                             >
                                 Refine
                             </Button>

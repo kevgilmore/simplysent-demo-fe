@@ -453,9 +453,182 @@ export const ProductPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-white overflow-x-hidden">
-            {/* Purple Section - Extended */}
-            <div className="relative" style={{ height: "50vh", minHeight: "400px" }}>
-                <div className="bg-gradient-to-br from-purple-100 to-purple-50 h-full relative overflow-hidden">
+            {/* Desktop: Two Column Layout */}
+            <div className="hidden md:block relative" style={{ height: "50vh", minHeight: "400px", overflow: "visible" }}>
+                <div className="flex h-full max-w-6xl mx-auto" style={{ overflow: "visible" }}>
+                    {/* Left Column - Purple Section with Image */}
+                    <div className="flex-1 bg-simplysent-purple-alt h-full relative overflow-hidden">
+                        {/* Header buttons */}
+                        <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-12 pb-4">
+                            <div className="flex items-center justify-between">
+                                {/* Back Button */}
+                                <button
+                                    onClick={() => navigate(-1)}
+                                    className="w-10 h-10 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-white transition-all"
+                                >
+                                    <ArrowLeft size={20} className="text-gray-800" />
+                                </button>
+                                
+                                {/* Share Button */}
+                                <button
+                                    onClick={handleShare}
+                                    className="w-10 h-10 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-md hover:bg-white transition-all"
+                                >
+                                    <Share2 size={20} className="text-gray-800" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Product Image Section */}
+                        <div className="absolute inset-0 top-[10%] bottom-0 flex flex-col items-center justify-start px-4 pb-20">
+                            <div className="w-full max-w-sm">
+                                <div
+                                    className="aspect-square relative bg-transparent"
+                                    onTouchStart={handleTouchStart}
+                                    onTouchMove={handleTouchMove}
+                                    onTouchEnd={handleTouchEnd}
+                                >
+                                    {/* Product Image - Transparent PNG like person page */}
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={currentImageIndex}
+                                            className="absolute inset-0 flex items-center justify-center p-8 bg-transparent"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                        >
+                                            <img
+                                                src={product.images[currentImageIndex]}
+                                                alt={`${product.name} - Image ${currentImageIndex + 1}`}
+                                                className="w-full h-full object-contain scale-110"
+                                                style={{ mixBlendMode: "normal" }}
+                                            />
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </div>
+                                
+                                {/* Carousel Dots - Inside purple area below image */}
+                                <div className="flex items-center justify-center gap-2 mt-2 relative z-30">
+                                    {product.images.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setCurrentImageIndex(index)}
+                                            className={`h-3 rounded-full transition-all ${
+                                                index === currentImageIndex
+                                                    ? "bg-simplysent-purple w-10"
+                                                    : "bg-purple-300 w-3"
+                                            }`}
+                                            style={{ minWidth: index === currentImageIndex ? "40px" : "12px" }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - White Section with Content */}
+                    <div className="flex-1 bg-white flex flex-col justify-center px-8 pt-24 relative">
+                        {/* Curved overlay on left edge - creates smooth transition from purple */}
+                        <div 
+                            className="absolute left-0 top-0 bottom-0 pointer-events-none z-0"
+                            style={{ 
+                                width: "120px",
+                                left: "-2px"
+                            }}
+                        >
+                            <svg
+                                viewBox="0 0 240 1000"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="w-full h-full"
+                                preserveAspectRatio="none"
+                            >
+                                <path
+                                    d="M0 0C40 100 80 300 120 500C160 700 200 900 240 1000L240 1000L0 1000Z"
+                                    fill="white"
+                                />
+                            </svg>
+                        </div>
+                        <div className="relative z-10 space-y-4">
+                            {/* Product Name */}
+                            <h1 className="text-3xl font-bold text-gray-900">
+                                {product.name}
+                            </h1>
+
+                            {/* Rating */}
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-0.5">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star
+                                            key={i}
+                                            size={18}
+                                            className={`${
+                                                i < Math.floor(product.rating)
+                                                    ? "fill-yellow-400 text-yellow-400"
+                                                    : "text-gray-300"
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                                <span className="text-sm text-gray-600">
+                                    ({product.reviews} reviews)
+                                </span>
+                            </div>
+
+                            {/* Price */}
+                            <div>
+                                <span className="text-4xl font-bold text-simplysent-purple">
+                                    ${product.price.toFixed(2)}
+                                </span>
+                            </div>
+
+                            {/* About this item */}
+                            <div>
+                                <h2 className="text-lg font-bold text-gray-900 mb-2">
+                                    About this item
+                                </h2>
+                                <p className="text-sm text-gray-600 leading-relaxed">
+                                    {product.description}
+                                </p>
+                            </div>
+
+                            {/* Favorite and Add to Cart Buttons */}
+                            <div className="flex flex-col md:flex-row gap-4 md:items-center w-[95%]">
+                                {/* Favorite Button */}
+                                <button
+                                    onClick={handleFavorite}
+                                    className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] p-4 w-fit ${
+                                        isFavorite
+                                            ? "bg-simplysent-purple text-white"
+                                            : "bg-white text-simplysent-purple hover:bg-gray-50"
+                                    }`}
+                                    aria-label="Favorite"
+                                >
+                                    <Heart
+                                        size={22}
+                                        className="fill-current"
+                                    />
+                                </button>
+
+                                {/* Add to cart button */}
+                                <button
+                                    onClick={() =>
+                                        alert("Add to cart (Demo feature)")
+                                    }
+                                    className="bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] active:shadow-[0_8px_30px_rgba(0,0,0,0.2)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95 w-full md:flex-1"
+                                >
+                                    Add to cart
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mobile: Purple Section - Full Width */}
+            <div className="md:hidden relative" style={{ height: "50vh", minHeight: "400px" }}>
+                <div className="bg-simplysent-purple-alt h-full relative overflow-hidden">
                     {/* Header buttons */}
                     <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-12 pb-4">
                         <div className="flex items-center justify-between">
@@ -477,8 +650,8 @@ export const ProductPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Product Image Section - Transparent, no container */}
-                    <div className="absolute inset-x-0 top-[10%] bottom-0 flex flex-col items-center justify-start px-4 pb-20">
+                    {/* Mobile: Single Column Layout */}
+                    <div className="md:hidden absolute inset-0 top-[10%] bottom-0 flex flex-col items-center justify-start px-4 pb-20">
                         <div className="w-full max-w-md">
                             <div
                                 className="aspect-square relative bg-transparent"
@@ -507,22 +680,23 @@ export const ProductPage: React.FC = () => {
                             </div>
                             
                             {/* Carousel Dots - Inside purple area below image */}
-                            <div className="flex items-center justify-center gap-2 pt-4">
+                            <div className="flex items-center justify-center gap-2 mt-2 relative z-30">
                                 {product.images.map((_, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
-                                        className={`h-2 rounded-full transition-all ${
+                                        className={`h-3 rounded-full transition-all ${
                                             index === currentImageIndex
-                                                ? "bg-red-500 w-8"
-                                                : "bg-red-300 w-2"
+                                                ? "bg-simplysent-purple w-10"
+                                                : "bg-purple-300 w-3"
                                         }`}
+                                        style={{ minWidth: index === currentImageIndex ? "40px" : "12px" }}
                                     />
                                 ))}
                             </div>
                         </div>
                     </div>
-
+                    
                     {/* Simple Curved Transition to White - Upside down curve */}
                     <div className="absolute bottom-0 left-0 right-0 z-10" style={{ height: "80px" }}>
                         <svg
@@ -541,22 +715,23 @@ export const ProductPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Product Details Section - White Background */}
-            <div className="w-full pt-8 pb-8 bg-white relative" style={{ marginTop: "-1px" }}>
+            {/* Product Details Section - White Background (Mobile Only) */}
+            <div className="md:hidden w-full pt-8 pb-8 bg-white relative" style={{ marginTop: "-1px" }}>
                 <div className="px-4 space-y-6">
                     {/* Product Name */}
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-4 relative px-4">
                         <h1 className="text-2xl font-bold text-gray-900 flex-1">
                             {product.name}
                         </h1>
                         {/* Favorite Button */}
                         <button
                             onClick={handleFavorite}
-                            className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] p-4 ${
+                            className={`absolute top-0 right-0 flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] p-4 ${
                                 isFavorite
                                     ? "bg-simplysent-purple text-white"
                                     : "bg-white text-simplysent-purple hover:bg-gray-50"
                             }`}
+                            style={{ transform: "translateY(-32px)", right: "16px" }}
                             aria-label="Favorite"
                         >
                             <Heart
@@ -567,8 +742,8 @@ export const ProductPage: React.FC = () => {
                     </div>
 
                     {/* Rating and Price */}
-                    <div className="flex items-start justify-between">
-                        <div className="flex flex-col gap-1">
+                    <div className="flex items-start justify-between px-4">
+                        <div className="flex flex-col gap-1" style={{ marginTop: "-16px" }}>
                             <div className="flex items-center gap-0.5">
                                 {[...Array(5)].map((_, i) => (
                                     <Star
@@ -592,7 +767,7 @@ export const ProductPage: React.FC = () => {
                     </div>
 
                     {/* About this item */}
-                    <div>
+                    <div className="px-4">
                         <h2 className="text-lg font-bold text-gray-900 mb-2">
                             About this item
                         </h2>
@@ -606,7 +781,7 @@ export const ProductPage: React.FC = () => {
                         onClick={() =>
                             alert("Add to cart (Demo feature)")
                         }
-                        className="w-full bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] active:shadow-[0_8px_30px_rgba(0,0,0,0.2)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95"
+                        className="w-[95%] mx-auto block bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] active:shadow-[0_8px_30px_rgba(0,0,0,0.2)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95"
                     >
                         Add to cart
                     </button>
