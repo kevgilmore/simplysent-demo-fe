@@ -647,7 +647,7 @@ export function SharePage() {
                     Back to Home
                 </motion.button>
 
-                <h1 className="text-4xl font-bold text-gray-900 mb-3">
+                <h1 className="text-4xl font-bold font-headline text-gray-900 mb-3">
                     {contextInfo?.relationship?.toLowerCase() === "father"
                         ? "🎁 Top Picks for Dad"
                         : contextInfo?.relationship?.toLowerCase() === "mother"

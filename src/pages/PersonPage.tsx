@@ -7,6 +7,9 @@ import {
     faGolfBallTee,
     faUserPlus,
     faGift,
+    faSearch,
+    faHeart,
+    faShare,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
@@ -206,6 +209,18 @@ export const PersonPage: React.FC = () => {
         return () =>
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    // Initialize favourites with two products on load
+    useEffect(() => {
+        if (allProducts.length >= 2) {
+            setFavourites((prev) => {
+                if (prev.size === 0) {
+                    return new Set([allProducts[0].id, allProducts[1].id]);
+                }
+                return prev;
+            });
+        }
+    }, [allProducts]);
 
     return (
         <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-[#f7f6fe] to-[#f1eefe]">
@@ -513,31 +528,42 @@ export const PersonPage: React.FC = () => {
 
                     {pageTab === "favourites" && (
                         <div>
+                            <div className="mt-6">
+                                <div className="flex items-center gap-3 mb-0">
+                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
+                                        Favourites
+                                    </h2>
+                                </div>
+                            </div>
                             {Array.from(favourites).length === 0 ? (
-                                <p className="text-center text-gray-600">
-                                    No favourites yet. Tap the heart on any
-                                    product to add it here.
-                                </p>
+                                <div className="mt-6">
+                                    <p className="text-center text-gray-600">
+                                        No favourites yet. Tap the heart on any
+                                        product to add it here.
+                                    </p>
+                                </div>
                             ) : (
-                                <div className="grid grid-cols-2 gap-4 sm:gap-6">
+                                <div className="mt-6 grid grid-cols-2 gap-1 sm:gap-2">
                                     {allProducts
                                         .filter((p) => favourites.has(p.id))
                                         .map((p) => (
-                                            <ProductCard
-                                                key={p.id}
-                                                id={p.id}
-                                                image={p.image}
-                                                name={p.name}
-                                                price={p.price}
-                                                isFavorite={true}
-                                                onFavoriteToggle={() =>
-                                                    toggleFavourite(p.id)
-                                                }
-                                                hideActions={true}
-                                                onClick={() =>
-                                                    handleProductClick(p.id)
-                                                }
-                                            />
+                                            <div key={p.id} className="flex justify-center w-full">
+                                                <ProductCard
+                                                    id={p.id}
+                                                    image={p.image}
+                                                    name={p.name}
+                                                    price={p.price}
+                                                    isFavorite={true}
+                                                    onFavoriteToggle={() =>
+                                                        toggleFavourite(p.id)
+                                                    }
+                                                    hideActions={true}
+                                                    favouritesVariant={true}
+                                                    onClick={() =>
+                                                        handleProductClick(p.id)
+                                                    }
+                                                />
+                                            </div>
                                         ))}
                                 </div>
                             )}
@@ -545,7 +571,15 @@ export const PersonPage: React.FC = () => {
                     )}
 
                     {pageTab === "share" && (
-                        <div className="mt-6 flex flex-col items-center">
+                        <div>
+                            <div className="mt-6">
+                                <div className="flex items-center gap-3 mb-0">
+                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
+                                        Share
+                                    </h2>
+                                </div>
+                            </div>
+                            <div className="mt-6 flex flex-col items-center">
                             <div className="w-full max-w-xl flex items-center gap-3 bg-white rounded-xl border-2 border-gray-200 p-3">
                                 <input
                                     value="https://simplysent.co/1234"
@@ -567,6 +601,7 @@ export const PersonPage: React.FC = () => {
                             <p className="text-gray-500 text-sm mt-2">
                                 Share this link with friends and family
                             </p>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -601,39 +636,42 @@ export const PersonPage: React.FC = () => {
                 }}
             >
                 <div className="w-full flex justify-center">
-                    <div className="relative inline-flex items-center bg-white/95 backdrop-blur-lg rounded-full border-2 border-gray-200 p-1 shadow-lg overflow-hidden will-change-transform">
+                    <div className="relative inline-flex items-center bg-white/95 backdrop-blur-lg rounded-full border border-gray-200 p-1.5 shadow-lg overflow-hidden will-change-transform gap-1.5">
                         <div
-                            className="absolute inset-y-1 left-1 rounded-full transition-transform duration-300 ease-[cubic-bezier(.32,.72,.33,.99)] pointer-events-none"
+                            className="absolute rounded-full transition-transform duration-300 ease-[cubic-bezier(.32,.72,.33,.99)] pointer-events-none"
                             style={{
-                                width: "calc((100% - 0.5rem) / 3)",
-                                transform: `translateX(${pageTab === "gifts" ? 0 : pageTab === "favourites" ? 100 : 200}%)`,
+                                width: "60px",
+                                height: "60px",
+                                left: "4px",
+                                top: "50%",
+                                transform: `translateY(-50%) translateX(${pageTab === "gifts" ? 0 : pageTab === "favourites" ? 62 : 124}px)`,
                             }}
                         >
-                            <div className="w-full h-full bg-[#5E57AC] rounded-full shadow-md" />
+                            <div className="w-full h-full bg-simplysent-purple rounded-full shadow-md" />
                         </div>
                         <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => setPageTab("gifts")}
-                            className={`px-5 py-2 w-28 rounded-full font-semibold focus:outline-none focus:ring-0 transition-colors relative z-10 ${pageTab === "gifts" ? "text-white" : "text-gray-700 hover:text-gray-900"}`}
+                            className={`flex items-center justify-center w-14 h-14 rounded-full transition-colors duration-200 relative z-10 hover:scale-105 ${pageTab === "gifts" ? "text-white" : "text-simplysent-purple hover:text-simplysent-purple-dark"}`}
                         >
-                            Gifts
+                            <FontAwesomeIcon icon={faSearch} size="lg" />
                         </button>
                         <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => setPageTab("favourites")}
-                            className={`px-5 py-2 w-28 rounded-full font-semibold focus:outline-none focus:ring-0 transition-colors relative z-10 ${pageTab === "favourites" ? "text-white" : "text-gray-700 hover:text-gray-900"}`}
+                            className={`flex items-center justify-center w-14 h-14 rounded-full transition-colors duration-200 relative z-10 hover:scale-105 ${pageTab === "favourites" ? "text-white" : "text-simplysent-purple hover:text-simplysent-purple-dark"}`}
                         >
-                            Favourites
+                            <FontAwesomeIcon icon={faHeart} size="lg" />
                         </button>
                         <button
                             type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => setPageTab("share")}
-                            className={`px-5 py-2 w-28 rounded-full font-semibold focus:outline-none focus:ring-0 transition-colors relative z-10 ${pageTab === "share" ? "text-white" : "text-gray-700 hover:text-gray-900"}`}
+                            className={`flex items-center justify-center w-14 h-14 rounded-full transition-colors duration-200 relative z-10 hover:scale-105 ${pageTab === "share" ? "text-white" : "text-simplysent-purple hover:text-simplysent-purple-dark"}`}
                         >
-                            Share
+                            <FontAwesomeIcon icon={faShare} size="lg" />
                         </button>
                     </div>
                 </div>
