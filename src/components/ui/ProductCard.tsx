@@ -18,6 +18,7 @@ interface ProductCardProps {
     isSpecial?: boolean;
     textColor?: string;
     priceColor?: string;
+    isAiPick?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -37,6 +38,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     isSpecial = false,
     textColor,
     priceColor,
+    isAiPick = false,
 }) => {
     const [isBad, setIsBad] = useState(false);
     const [isThumbsUp, setIsThumbsUp] = useState(false);
@@ -157,7 +159,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     {/* Product Image - Hanging above card */}
                     <div className="w-full overflow-visible flex-shrink-0 relative z-10 px-4 pt-0">
                         <div
-                            className="w-full rounded-2xl overflow-visible"
+                            className="w-full rounded-2xl overflow-visible relative"
                             style={
                                 compact
                                     ? { aspectRatio: "10 / 8.5" }
@@ -167,27 +169,83 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                             <img
                                 src={image}
                                 alt={name}
-                                className="w-full h-full object-contain scale-110"
+                                className="w-full h-full object-contain scale-110 relative z-10"
                             />
+                            {isAiPick && (
+                                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl z-10">
+                                    <div
+                                        className="absolute inset-0"
+                                        style={{
+                                            maskImage: `url(${image})`,
+                                            WebkitMaskImage: `url(${image})`,
+                                            maskSize: "contain",
+                                            WebkitMaskSize: "contain",
+                                            maskRepeat: "no-repeat",
+                                            WebkitMaskRepeat: "no-repeat",
+                                            maskPosition: "center",
+                                            WebkitMaskPosition: "center",
+                                            background: "linear-gradient(105deg, transparent 0%, transparent 30%, rgba(255, 255, 255, 0.7) 45%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.7) 55%, transparent 70%, transparent 100%)",
+                                            backgroundSize: "200% 200%",
+                                            width: "200%",
+                                            height: "200%",
+                                            left: "-50%",
+                                            top: "-50%",
+                                            animation: "shimmer-shine 3s ease-in-out infinite",
+                                            mixBlendMode: "screen",
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     <div
-                        className={`bg-white rounded-3xl relative flex flex-col ${className} ${
+                        className={`${isAiPick ? "bg-gradient-to-br from-purple-50/50 via-white to-purple-100/30" : "bg-white"} rounded-3xl relative flex flex-col overflow-hidden ${className} ${
                             compact
-                                ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
-                                : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
-                        } ${onClick ? "cursor-pointer transition-all duration-300 hover:-translate-y-1" : ""}`}
+                                ? isAiPick ? "" : "shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+                                : isAiPick ? "" : "shadow-[0_10px_40px_rgba(0,0,0,0.1)]"
+                        } ${onClick ? "cursor-pointer transition-all duration-300 hover:-translate-y-1" : ""} ${isAiPick ? (compact ? "animate-purple-glow" : "animate-purple-glow-large") : ""}`}
                         onClick={onClick}
                         style={{ marginTop: "-50%", minHeight: cardMinHeight }}
                     >
+                        {isAiPick && (
+                            <>
+                                {/* Base radial glow */}
+                                <div
+                                    className="absolute inset-0 pointer-events-none rounded-3xl"
+                                    style={{
+                                        background: "radial-gradient(circle at center, rgba(122, 117, 186, 0.25) 0%, rgba(95, 89, 166, 0.15) 40%, rgba(122, 117, 186, 0.08) 70%, transparent 100%)",
+                                        animation: "purple-inner-glow 3s ease-in-out infinite",
+                                        zIndex: 1,
+                                    }}
+                                />
+                                {/* Secondary shimmer overlay */}
+                                <div
+                                    className="absolute inset-0 pointer-events-none rounded-3xl"
+                                    style={{
+                                        background: "linear-gradient(135deg, rgba(122, 117, 186, 0.1) 0%, transparent 50%, rgba(95, 89, 166, 0.1) 100%)",
+                                        animation: "purple-shimmer-overlay 4s ease-in-out infinite",
+                                        zIndex: 1,
+                                    }}
+                                />
+                                {/* Subtle border accent */}
+                                <div
+                                    className="absolute inset-0 pointer-events-none rounded-3xl"
+                                    style={{
+                                        border: "1px solid",
+                                        borderColor: "rgba(122, 117, 186, 0.2)",
+                                        zIndex: 1,
+                                    }}
+                                />
+                            </>
+                        )}
                         {badge && (
                             <div className="absolute top-3 left-3 z-10">{badge}</div>
                         )}
 
                         {/* Product Info */}
                         <div
-                            className={`flex flex-col flex-grow font-['Stack_Sans'] ${
+                            className={`flex flex-col flex-grow font-['Stack_Sans'] relative z-10 ${
                                 compact
                                     ? "px-5 pt-[58%] pb-3"
                                     : "px-7 pt-[63%] pb-4"

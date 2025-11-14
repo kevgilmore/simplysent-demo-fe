@@ -335,7 +335,7 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12 mt-[10px]">
                                         <div className="flex gap-4 transition-all duration-1000">
                                             {productsByTab["ai-picks"]
                                                 ?.filter(
@@ -355,6 +355,7 @@ export const PersonPage: React.FC = () => {
                                                             name={p.name}
                                                             price={p.price}
                                                             compact
+                                                            isAiPick={true}
                                                             isFavorite={favourites.has(
                                                                 p.id,
                                                             )}
