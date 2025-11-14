@@ -77,7 +77,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
     return (
         <div
-            className={`relative transition-all ${isRemoving ? "duration-1000 w-0 min-w-0 opacity-0 scale-75 -ml-[260px]" : "duration-300 w-[260px] min-w-[260px] opacity-100 scale-100 ml-0"}`}
+            className={`relative transition-all ${isRemoving ? "duration-700 w-0 min-w-0 opacity-0 scale-75 -ml-[260px]" : "duration-300 w-[260px] min-w-[260px] opacity-100 scale-100 ml-0"}`}
+            style={
+                isRemoving
+                    ? {
+                          transform: "translateY(-100px)",
+                          transition: "all 700ms ease-out",
+                      }
+                    : {}
+            }
         >
             {/* Product Image - Hanging above card */}
             <div className="w-full overflow-visible flex-shrink-0 relative z-10 px-4 pt-0">
@@ -167,28 +175,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 >
                                     <ThumbsUp
                                         size={compact ? 16 : 18}
-                                        className={
-                                            favoriteActive ? "fill-white" : "fill-simplysent-purple"
-                                        }
-                                    />
-                                </button>
-</parameter>
-
-<old_text line=183>
-                                <button
-                                    onClick={handleBadClick}
-                                    className={`flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] ${
-                                        compact ? "p-3" : "p-3.5"
-                                    } ${
-                                        isBad
-                                            ? "bg-simplysent-purple text-white"
-                                            : "bg-white text-simplysent-purple hover:bg-gray-50"
-                                    }`}
-                                    aria-label="Thumbs down"
-                                >
-                                    <ThumbsDown
-                                        size={compact ? 16 : 18}
-                                        className={isBad ? "fill-white" : ""}
+                                        className="fill-current"
                                     />
                                 </button>
 
@@ -205,7 +192,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                 >
                                     <ThumbsDown
                                         size={compact ? 16 : 18}
-                                        className={isBad ? "fill-white" : ""}
+                                        className="fill-current"
                                     />
                                 </button>
                             </div>
