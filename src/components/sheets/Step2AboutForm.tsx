@@ -47,7 +47,7 @@ export const Step2AboutForm: React.FC<Step2AboutThemProps> = ({
                 </div>
             </div>
 
-            <div className="flex flex-col gap-3 flex-shrink-0 mt-6">
+            <div className="flex flex-col gap-3 flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible" }}>
                 <Button
                     fullWidth
                     size="large"

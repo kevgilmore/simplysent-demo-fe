@@ -104,7 +104,7 @@ export function IntroPage() {
                     className="pb-6"
                     style={{
                         paddingBottom:
-                            "calc(24px + env(safe-area-inset-bottom))",
+                            "calc(36px + env(safe-area-inset-bottom))",
                     }}
                 >
                     <Button

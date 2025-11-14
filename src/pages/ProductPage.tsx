@@ -374,6 +374,15 @@ export const ProductPage: React.FC = () => {
     const [touchStart, setTouchStart] = useState(0);
     const [touchEnd, setTouchEnd] = useState(0);
 
+    // Set html background to purple for safe area (same approach as PersonPage but with purple)
+    useEffect(() => {
+        const html = document.documentElement;
+        html.style.setProperty('background', '#d1ccfb', 'important');
+        return () => {
+            html.style.removeProperty('background');
+        };
+    }, []);
+
     useEffect(() => {
         if (productId && mockProducts[productId]) {
             setProduct(mockProducts[productId]);
@@ -452,14 +461,14 @@ export const ProductPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-white overflow-x-hidden">
+        <div className="min-h-screen bg-white overflow-x-hidden" style={{ marginTop: "-16px", backgroundColor: "white", minHeight: "100vh", position: "relative", zIndex: 1 }}>
             {/* Desktop: Two Column Layout */}
             <div className="hidden md:block relative" style={{ height: "50vh", minHeight: "400px", overflow: "visible" }}>
                 <div className="flex h-full max-w-6xl mx-auto" style={{ overflow: "visible" }}>
                     {/* Left Column - Purple Section with Image */}
-                    <div className="flex-1 bg-simplysent-purple-alt h-full relative overflow-hidden">
+                    <div className="flex-1 bg-simplysent-purple-alt h-full relative overflow-hidden" style={{ marginTop: "calc(-1 * env(safe-area-inset-top))" }}>
                         {/* Header buttons */}
-                        <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-12 pb-4">
+                        <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-8 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top) + 32px)" }}>
                             <div className="flex items-center justify-between">
                                 {/* Back Button */}
                                 <button
@@ -528,7 +537,7 @@ export const ProductPage: React.FC = () => {
                     </div>
 
                     {/* Right Column - White Section with Content */}
-                    <div className="flex-1 bg-white flex flex-col justify-center px-8 pt-24 relative">
+                    <div className="flex-1 bg-white flex flex-col justify-center px-8 pt-16 relative">
                         {/* Curved overlay on left edge - creates smooth transition from purple */}
                         <div 
                             className="absolute left-0 top-0 bottom-0 pointer-events-none z-0"
@@ -641,10 +650,10 @@ export const ProductPage: React.FC = () => {
             </div>
 
             {/* Mobile: Purple Section - Full Width */}
-            <div className="md:hidden relative" style={{ height: "50vh", minHeight: "400px" }}>
+            <div className="md:hidden relative" style={{ height: "50vh", minHeight: "400px", marginTop: "calc(-1 * env(safe-area-inset-top))" }}>
                 <div className="bg-simplysent-purple-alt h-full relative overflow-hidden">
                     {/* Header buttons */}
-                    <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-12 pb-4">
+                    <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-8 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top) + 32px)" }}>
                         <div className="flex items-center justify-between">
                             {/* Back Button */}
                             <button
@@ -729,7 +738,7 @@ export const ProductPage: React.FC = () => {
             </div>
 
             {/* Product Details Section - White Background (Mobile Only) */}
-            <div className="md:hidden w-full pt-8 pb-8 bg-white relative overflow-visible" style={{ marginTop: "-1px" }}>
+            <div className="md:hidden w-full pt-4 pb-8 bg-white relative overflow-visible" style={{ marginTop: "-1px", marginBottom: "50px" }}>
                 <div className="px-4 space-y-6" style={{ marginTop: "-20px" }}>
                     {/* Product Name */}
                     <div className="flex items-start justify-between gap-4 relative px-4">

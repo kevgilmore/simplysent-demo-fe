@@ -2,6 +2,70 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+/* Top safe area background for iPhone - covers notch area */
+html {
+    background: #f7f6fe;
+}
+
+
+body {
+    background: linear-gradient(to bottom, #f7f6fe 0%, #f1eefe 100%);
+    background-attachment: fixed;
+}
+
+/* Product page: use white for body background (purple only in top safe area) */
+body.product-page {
+    background: white;
+    background-attachment: fixed;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    min-height: env(safe-area-inset-top);
+    background: #f7f6fe;
+    z-index: 99999;
+    pointer-events: none;
+    display: block;
+}
+
+@supports (padding: max(0px)) {
+    body::before {
+        height: max(env(safe-area-inset-top), 0px);
+        min-height: max(env(safe-area-inset-top), 0px);
+    }
+    
+    body.product-page::before {
+        height: max(env(safe-area-inset-top), 0px);
+        min-height: max(env(safe-area-inset-top), 0px);
+        background: #d1ccfb !important;
+    }
+}
+
+/* Bottom safe area red background - TEST */
+body::after {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-bottom);
+    background: #ff0000;
+    z-index: 999999;
+    pointer-events: none;
+    display: none;
+}
+
+/* Show red bottom safe area when sheets are open */
+body.sheet-open::after {
+    display: block;
+}
+
+
 /* Custom Fonts */
 @font-face {
     font-family: "Stack Sans";
@@ -345,4 +409,10 @@ html {
 body {
     /* Always show vertical scrollbar space in browsers that ignore scrollbar-gutter */
     overflow-y: scroll;
+    /* Background already set above */
+}
+
+/* Product page: ensure purple top safe area - placed at end for maximum specificity */
+body.product-page::before {
+    background: #d1ccfb !important;
 }

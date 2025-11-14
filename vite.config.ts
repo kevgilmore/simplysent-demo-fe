@@ -11,6 +11,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: true
+    host: '0.0.0.0', // Explicitly bind to all interfaces for network access
+    strictPort: true // Fail if port is already in use
   }
 })

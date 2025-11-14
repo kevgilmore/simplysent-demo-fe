@@ -43,6 +43,7 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
 
     // Stable pixel height derived from visualViewport (falls back to window.innerHeight)
     // Converts 90vh to a concrete px value to avoid iOS Safari floating toolbar cutoff.
+    // Extends into bottom safe area
     const dynamicHeight = React.useMemo(() => {
         if (typeof window === "undefined") return "90vh";
         const vpH =
@@ -68,13 +69,15 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
     // (Lines intentionally preserved count for edit stability.)
     // (Lines intentionally preserved count for edit stability.)
 
-    // Body scroll lock (simple; library backdrop prevents interactions but this stops background bounce).
+    // Body scroll lock and white bottom safe area
     useEffect(() => {
         if (open) {
             const prev = document.body.style.overflow;
             document.body.style.overflow = "hidden";
+            document.body.classList.add("sheet-open");
             return () => {
                 document.body.style.overflow = prev;
+                document.body.classList.remove("sheet-open");
             };
         }
     }, [open]);
@@ -82,22 +85,6 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
     // (Removed duplicate dynamicHeight declaration)
     return (
         <>
-            {open && (
-                <div
-                    style={{
-                        position: "fixed",
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        height: "max(env(safe-area-inset-bottom), 60px)",
-                        background: "rgba(255, 255, 255, 1)",
-                        pointerEvents: "none",
-                        zIndex: 9998,
-                    }}
-                />
-            )}
-
-            {/* (Removed duplicate overlay block) */}
             <Sheet
                 ref={sheetRef}
                 isOpen={open}
@@ -111,7 +98,9 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                         borderTopLeftRadius: 28,
                         borderTopRightRadius: 28,
                         boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
-                        height: dynamicHeight,
+                        height: `calc(${dynamicHeight} + env(safe-area-inset-bottom))`,
+                        marginBottom: `calc(-1 * env(safe-area-inset-bottom))`,
+                        background: "#ffffff",
                     }}
                 >
                     <Sheet.Header>
@@ -156,7 +145,7 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                         style={{
                             padding: "0 24px 24px 24px",
                             paddingBottom:
-                                "calc(24px + env(safe-area-inset-bottom))",
+                                "calc(36px + env(safe-area-inset-bottom))",
                         }}
                     >
                         {children ?? (
@@ -167,6 +156,21 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                         )}
                     </Sheet.Content>
                 </Sheet.Container>
+                {/* Red bottom safe area overlay - TEST */}
+                {open && (
+                    <div
+                        style={{
+                            position: "fixed",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: "env(safe-area-inset-bottom)",
+                            background: "#ff0000",
+                            pointerEvents: "none",
+                            zIndex: 999999,
+                        }}
+                    />
+                )}
                 <Sheet.Backdrop onTap={() => onOpenChange(false)} />
             </Sheet>
         </>
@@ -299,7 +303,7 @@ const AddPersonForm: React.FC<{
                 </div>
             </div>
 
-            <div className="flex-shrink-0 mt-6">
+            <div className="flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible" }}>
                 <Button fullWidth size="large" onClick={handleStep1Next}>
                     Next
                 </Button>

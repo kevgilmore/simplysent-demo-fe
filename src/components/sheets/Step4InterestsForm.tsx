@@ -33,7 +33,7 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
                 onChange={setInterests}
             />
 
-            <div className="flex flex-col gap-3 mt-6">
+            <div className="flex flex-col gap-3 mt-6 pb-3" style={{ overflow: "visible" }}>
                 <Button
                     fullWidth
                     size="large"

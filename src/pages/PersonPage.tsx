@@ -211,6 +211,28 @@ export const PersonPage: React.FC = () => {
             document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    // White bottom safe area overlay when sheets are open
+    useEffect(() => {
+        if (isRefineOpen || isAddPersonOpen) {
+            const overlay = document.createElement("div");
+            overlay.style.position = "fixed";
+            overlay.style.bottom = "0";
+            overlay.style.left = "0";
+            overlay.style.right = "0";
+            overlay.style.height = "34px"; // iPhone safe area bottom
+            overlay.style.background = "#ffffff";
+            overlay.style.pointerEvents = "none";
+            overlay.style.zIndex = "9999999";
+            overlay.id = "sheet-bottom-safe-area";
+            document.body.appendChild(overlay);
+            
+            return () => {
+                const el = document.getElementById("sheet-bottom-safe-area");
+                if (el) el.remove();
+            };
+        }
+    }, [isRefineOpen, isAddPersonOpen]);
+
     // Initialize favourites with two products on load
     useEffect(() => {
         if (allProducts.length >= 2) {
@@ -249,14 +271,14 @@ export const PersonPage: React.FC = () => {
                                 type="button"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 id="person-select-button"
-                                className="inline-flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 hover:bg-gray-50 transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+                                className="inline-flex items-center gap-3 bg-white rounded-full border border-gray-200 px-5 py-2.5 hover:bg-gray-50 transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
                                 aria-label="Select person"
                             >
                                 <FontAwesomeIcon
                                     icon={faGift}
-                                    className="w-5 h-5 text-gray-700"
+                                    className="w-6 h-6 text-gray-700"
                                 />
-                                <span className="font-semibold text-gray-800">
+                                <span className="font-semibold text-gray-800 text-base">
                                     Kevin
                                 </span>
                             </button>
@@ -332,12 +354,12 @@ export const PersonPage: React.FC = () => {
                             type="button"
                             onClick={() => setIsAddPersonOpen(true)}
                             id="add-person-button"
-                            className="flex items-center justify-center w-10 h-10 rounded-full bg-simplysent-purple hover:bg-simplysent-purple-dark transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
+                            className="flex items-center justify-center w-12 h-12 rounded-full bg-simplysent-purple hover:bg-simplysent-purple-dark transition-colors shadow-[0_8px_30px_rgba(0,0,0,0.08)]"
                             aria-label="Add person"
                         >
                             <FontAwesomeIcon
                                 icon={faUserPlus}
-                                className="w-5 h-5 text-white"
+                                className="w-6 h-6 text-white"
                             />
                         </button>
                     </div>

@@ -57,13 +57,15 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
         return `${target}px`;
     }, [open]);
 
-    // Body scroll lock
+    // Body scroll lock and white bottom safe area
     useEffect(() => {
         if (open) {
             const prev = document.body.style.overflow;
             document.body.style.overflow = "hidden";
+            document.body.classList.add("sheet-open");
             return () => {
                 document.body.style.overflow = prev;
+                document.body.classList.remove("sheet-open");
             };
         }
     }, [open]);
@@ -75,21 +77,6 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
 
     return (
         <>
-            {open && (
-                <div
-                    style={{
-                        position: "fixed",
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        height: "max(env(safe-area-inset-bottom), 60px)",
-                        background: "rgba(255, 255, 255, 1)",
-                        pointerEvents: "none",
-                        zIndex: 9997,
-                    }}
-                />
-            )}
-
             <Sheet
                 ref={sheetRef}
                 isOpen={open}
@@ -103,7 +90,9 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
                         borderTopLeftRadius: 28,
                         borderTopRightRadius: 28,
                         boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
-                        height: dynamicHeight,
+                        height: `calc(${dynamicHeight} + env(safe-area-inset-bottom))`,
+                        marginBottom: `calc(-1 * env(safe-area-inset-bottom))`,
+                        background: "#ffffff",
                     }}
                 >
                     <Sheet.Header>
@@ -174,10 +163,11 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
                         {/* Interests - 50% scrollable at bottom */}
                         <div
                             style={{
-                                flex: "0 0 50%",
+                                flex: "1 1 auto",
+                                minHeight: 0,
                                 padding: "16px 24px",
                                 paddingBottom:
-                                    "calc(16px + env(safe-area-inset-bottom))",
+                                    "calc(40px + env(safe-area-inset-bottom))",
                                 overflowY: "auto",
                                 WebkitOverflowScrolling: "touch",
                                 touchAction: "pan-y",
@@ -191,6 +181,21 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
                         </div>
                     </Sheet.Content>
                 </Sheet.Container>
+                {/* Red bottom safe area overlay - TEST */}
+                {open && (
+                    <div
+                        style={{
+                            position: "fixed",
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: "env(safe-area-inset-bottom)",
+                            background: "#ff0000",
+                            pointerEvents: "none",
+                            zIndex: 999999,
+                        }}
+                    />
+                )}
                 <Sheet.Backdrop onTap={() => onOpenChange(false)} />
             </Sheet>
         </>
