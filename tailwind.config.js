@@ -7,6 +7,7 @@ export default {
                     purple: "#5f59a6",
                     "purple-light": "#7a75ba",
                     "purple-dark": "#4a4582",
+                    "grey-heading": "#7c7b7f",
                 },
             },
             fontFamily: {

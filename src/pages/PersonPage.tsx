@@ -232,7 +232,7 @@ export const PersonPage: React.FC = () => {
                                 type="button"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                                 id="person-select-button"
-                                className="inline-flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 shadow-sm hover:bg-gray-50 transition-colors"
+                                className="inline-flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 shadow-md hover:bg-gray-50 transition-colors"
                                 aria-label="Select person"
                             >
                                 <FontAwesomeIcon
@@ -275,7 +275,7 @@ export const PersonPage: React.FC = () => {
                             type="button"
                             onClick={() => setIsAddPersonOpen(true)}
                             id="add-person-button"
-                            className="flex items-center justify-center w-10 h-10 rounded-full bg-simplysent-purple hover:bg-simplysent-purple-dark transition-colors shadow-sm"
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-simplysent-purple hover:bg-simplysent-purple-dark transition-colors shadow-md"
                             aria-label="Add person"
                         >
                             <FontAwesomeIcon
@@ -302,7 +302,7 @@ export const PersonPage: React.FC = () => {
                             {/* AI Picks Carousel */}
                             <div className="mt-6">
                                 <div className="flex items-center gap-3 mb-0">
-                                    <h2 className="text-[22px] font-bold font-notch text-gray-500">
+                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                         AI Picks For You
                                     </h2>
                                 </div>
@@ -367,7 +367,7 @@ export const PersonPage: React.FC = () => {
                             {/* Tech Carousel */}
                             <div className="mt-[10px]">
                                 <div className="flex items-center gap-3 mb-0">
-                                    <h2 className="text-[22px] font-bold font-notch text-gray-500">
+                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                         Tech
                                     </h2>
                                 </div>
@@ -433,7 +433,7 @@ export const PersonPage: React.FC = () => {
                             {/* Golf Carousel */}
                             <div className="mt-[10px]">
                                 <div className="flex items-center gap-3 mb-0">
-                                    <h2 className="text-[22px] font-bold font-notch text-gray-500">
+                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                         Golf
                                     </h2>
                                 </div>
