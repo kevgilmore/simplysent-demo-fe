@@ -6,7 +6,7 @@ import {
     faMicrochip,
     faGolfBallTee,
     faUserPlus,
-    faBars,
+    faGift,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
@@ -220,66 +220,69 @@ export const PersonPage: React.FC = () => {
                 }}
             >
                 <div className="px-4 py-3 flex justify-between items-center">
-                    <img
-                        src="/logo.png"
-                        alt="SimplySent"
-                        className="h-10 w-auto"
-                    />
+                    <h1 className="font-notch font-bold text-2xl bg-gradient-to-r from-purple-600 via-simplysent-purple to-pink-500 bg-clip-text text-transparent tracking-tight drop-shadow-sm">
+                        SimplySent
+                    </h1>
 
-                    {/* Menu Icons */}
-                    <div className="relative" ref={dropdownRef}>
-                        <div
-                            id="topnav-menu"
-                            className="inline-flex items-center gap-1 bg-white rounded-full border-2 border-gray-200 px-3 py-1.5 shadow-sm"
-                        >
-                            <button
-                                type="button"
-                                onClick={() => setIsAddPersonOpen(true)}
-                                className="px-3 py-2 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center"
-                                aria-label="Add person"
-                            >
-                                <FontAwesomeIcon
-                                    icon={faUserPlus}
-                                    className="w-5 h-5 text-gray-700"
-                                />
-                            </button>
+                    {/* Menu Buttons */}
+                    <div className="flex items-center gap-2">
+                        {/* Person Select Button */}
+                        <div className="relative" ref={dropdownRef}>
                             <button
                                 type="button"
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                                className="px-3 py-2 rounded-full hover:bg-gray-100 transition-colors flex items-center justify-center"
-                                aria-label="Menu"
+                                id="person-select-button"
+                                className="inline-flex items-center gap-2 bg-white rounded-full border border-gray-200 px-4 py-2 shadow-sm hover:bg-gray-50 transition-colors"
+                                aria-label="Select person"
                             >
                                 <FontAwesomeIcon
-                                    icon={faBars}
+                                    icon={faGift}
                                     className="w-5 h-5 text-gray-700"
                                 />
+                                <span className="font-semibold text-gray-800">
+                                    Kevin
+                                </span>
                             </button>
+
+                            {isMenuOpen && (
+                                <div className="absolute right-0 mt-2 bg-white rounded-2xl shadow-lg border border-gray-200 z-50 p-2 min-w-[150px]">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            navigate("/new");
+                                        }}
+                                        className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Dad
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            navigate("/new-mum");
+                                        }}
+                                        className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Mum
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
-                        {isMenuOpen && (
-                            <div className="absolute right-0 mt-2 bg-white rounded-2xl shadow-lg border-2 border-gray-200 z-50 p-2 min-w-[150px]">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsMenuOpen(false);
-                                        navigate("/new");
-                                    }}
-                                    className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
-                                >
-                                    Dad
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setIsMenuOpen(false);
-                                        navigate("/new-mum");
-                                    }}
-                                    className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
-                                >
-                                    Mum
-                                </button>
-                            </div>
-                        )}
+                        {/* Add Person Button */}
+                        <button
+                            type="button"
+                            onClick={() => setIsAddPersonOpen(true)}
+                            id="add-person-button"
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-simplysent-purple hover:bg-simplysent-purple-dark transition-colors shadow-sm"
+                            aria-label="Add person"
+                        >
+                            <FontAwesomeIcon
+                                icon={faUserPlus}
+                                className="w-5 h-5 text-white"
+                            />
+                        </button>
                     </div>
                 </div>
             </header>
