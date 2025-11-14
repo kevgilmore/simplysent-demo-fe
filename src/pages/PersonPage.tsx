@@ -261,14 +261,14 @@ export const PersonPage: React.FC = () => {
                             </button>
 
                             {isMenuOpen && (
-                                <div className="absolute right-0 mt-2 bg-white rounded-2xl shadow-lg border border-gray-200 z-50 p-2 min-w-[150px]">
+                                <div className="absolute left-0 mt-2 bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-gray-200 z-50 min-w-[120px] overflow-hidden">
                                     <button
                                         type="button"
                                         onClick={() => {
                                             setIsMenuOpen(false);
                                             navigate("/new");
                                         }}
-                                        className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
+                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
                                     >
                                         Dad
                                     </button>
@@ -278,9 +278,49 @@ export const PersonPage: React.FC = () => {
                                             setIsMenuOpen(false);
                                             navigate("/new-mum");
                                         }}
-                                        className="block w-full px-4 py-2 rounded-lg font-semibold transition-colors text-left text-gray-700 hover:bg-gray-100"
+                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
                                     >
                                         Mum
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            navigate("/new");
+                                        }}
+                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
+                                    >
+                                        Brother
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            navigate("/new");
+                                        }}
+                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
+                                    >
+                                        Sister
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            navigate("/new");
+                                        }}
+                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
+                                    >
+                                        Harry
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            navigate("/new");
+                                        }}
+                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
+                                    >
+                                        Coral
                                     </button>
                                 </div>
                             )}
