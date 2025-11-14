@@ -83,6 +83,11 @@ function AppShell() {
         setToastFunctions({ showError });
     }, [showError]);
 
+    // Scroll to top on route change
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [location.pathname]);
+
     console.log("Current route:", location.pathname);
 
     // Check if current route is a carousel page that needs full width

@@ -10,6 +10,7 @@ import {
     faSearch,
     faHeart,
     faShareNodes,
+    faSliders,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
@@ -224,7 +225,7 @@ export const PersonPage: React.FC = () => {
 
 
     return (
-        <div className="min-h-[100dvh] overscroll-contain bg-gradient-to-b from-[#f7f6fe] to-[#f1eefe]">
+        <div className="overscroll-contain bg-gradient-to-b from-[#f7f6fe] to-[#f1eefe] min-h-screen">
             {/* Primary App Navbar (logo + top menu) */}
             <header
                 id="topnav"
@@ -345,10 +346,11 @@ export const PersonPage: React.FC = () => {
 
             {/* Main content */}
             <div
-                className="px-4 pb-[calc(env(safe-area-inset-bottom)_+_96px)]"
+                className="px-4 pb-4"
                 style={{
                     paddingLeft: "max(1rem, env(safe-area-inset-left))",
                     paddingRight: "max(1rem, env(safe-area-inset-right))",
+                    paddingBottom: "calc(env(safe-area-inset-bottom) + 80px)",
                 }}
             >
                 <div className="max-w-7xl mx-auto">
@@ -357,10 +359,21 @@ export const PersonPage: React.FC = () => {
                         <div>
                             {/* AI Picks Carousel */}
                             <div className="mt-6">
-                                <div className="flex items-center gap-3 mb-0">
+                                <div className="flex items-center justify-between gap-3 mb-0">
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                         AI Picks For Kevin
                                     </h2>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsRefineOpen(true)}
+                                        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+                                        aria-label="Open refine panel"
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faSliders}
+                                            className="w-5 h-5 text-gray-500"
+                                        />
+                                    </button>
                                 </div>
                                 {productsByTab["ai-picks"]?.filter(
                                     (p) => !removedProducts.has(p.id),
@@ -567,18 +580,6 @@ export const PersonPage: React.FC = () => {
                         </div>
                     )}
 
-                    {pageTab === "gifts" && (
-                        <div className="mt-8">
-                            <Button
-                                variant="primary"
-                                size="large"
-                                onClick={() => setIsRefineOpen(true)}
-                                className="w-[95%] mx-auto block"
-                            >
-                                Refine
-                            </Button>
-                        </div>
-                    )}
 
                     {pageTab === "favourites" && (
                         <div>
