@@ -136,7 +136,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     {/* Product Info */}
                     <div className="flex flex-col flex-grow font-['Stack_Sans'] px-3 pb-3 pt-2">
                         <h3
-                            className="font-['Stack_Sans'] font-semibold text-gray-600 mb-1 text-sm leading-tight truncate"
+                            className="font-['Stack_Sans'] font-semibold text-gray-600 mb-0 text-sm leading-tight truncate pl-0.5"
                             style={{ minHeight: "32px", fontWeight: 600 }}
                             title={name}
                         >
@@ -144,8 +144,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                         </h3>
 
                         {/* Price - Always shown for favourites */}
-                        <div className="flex items-center justify-between">
-                            <p className="font-light text-[#816fe8] text-base">
+                        <div className="flex items-center justify-between -mt-2 pl-0.5">
+                            <p className="font-normal text-[#816fe8] text-base">
                                 £{price.toFixed(2)}
                             </p>
                         </div>

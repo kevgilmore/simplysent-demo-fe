@@ -9,7 +9,7 @@ import {
     faGift,
     faSearch,
     faHeart,
-    faShare,
+    faShareNodes,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
@@ -335,7 +335,7 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8">
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
                                         <div className="flex gap-4 transition-all duration-1000">
                                             {productsByTab["ai-picks"]
                                                 ?.filter(
@@ -400,7 +400,7 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8">
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
                                         <div className="flex gap-4 transition-all duration-1000">
                                             {productsByTab["tech"]
                                                 ?.filter(
@@ -466,7 +466,7 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8">
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
                                         <div className="flex gap-4 transition-all duration-1000">
                                             {productsByTab["golf"]
                                                 ?.filter(
@@ -543,7 +543,7 @@ export const PersonPage: React.FC = () => {
                                     </p>
                                 </div>
                             ) : (
-                                <div className="mt-6 grid grid-cols-2 gap-1 sm:gap-2">
+                                <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                                     {allProducts
                                         .filter((p) => favourites.has(p.id))
                                         .map((p) => (
@@ -671,7 +671,7 @@ export const PersonPage: React.FC = () => {
                             onClick={() => setPageTab("share")}
                             className={`flex items-center justify-center w-14 h-14 rounded-full transition-colors duration-200 relative z-10 hover:scale-105 ${pageTab === "share" ? "text-white" : "text-simplysent-purple hover:text-simplysent-purple-dark"}`}
                         >
-                            <FontAwesomeIcon icon={faShare} size="lg" />
+                            <FontAwesomeIcon icon={faShareNodes} size="lg" />
                         </button>
                     </div>
                 </div>
