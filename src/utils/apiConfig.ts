@@ -22,6 +22,11 @@ if (isBrowser) {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('dev') === '1') {
     localStorage.setItem(DEV_MODE_KEY, 'true');
+    // Also enable sandbox mode (dev sandbox) so API calls work
+    // This allows ?dev=1 to work in production by using sandbox API mode
+    if (!getPersistedMode()) {
+      localStorage.setItem(STORAGE_KEY, 'sandbox');
+    }
   }
   
   // Expose console command: dev=1
@@ -222,8 +227,14 @@ export const isDevSandboxMode = (): boolean => getApiMode() === 'sandbox';
  * Check if any dev mode is enabled (Dev Local or Dev Sandbox, not Prod)
  * Dev modes: Dev Local (sandbox-local) and Dev Sandbox (sandbox)
  * Both use X-Sandbox header, just different URLs
+ * Also checks DEV_MODE_KEY flag set by ?dev=1 parameter
  */
 export const isAnyDevModeEnabled = (): boolean => {
+  // Check if dev mode UI flag is set (from ?dev=1)
+  if (isDevModeEnabled()) {
+    return true;
+  }
+  // Check API mode
   const m = getApiMode();
   return m === 'sandbox-local' || m === 'sandbox';
 };
