@@ -3,12 +3,40 @@ const PROD_BASE = 'https://catboost-recommender-api-973409790816.europe-west1.ru
 const DEV_BASE = 'http://localhost:8080/v3';
 const STORAGE_KEY = 'ss_api_mode'; // 'sandbox-local' | 'sandbox' | 'prod' (legacy: 'dev')
 
+// Dev mode flag - controls whether dev mode UI is visible
+const DEV_MODE_KEY = 'ss_dev_mode'; // 'true' | 'false' - whether dev mode is enabled
+const SANDBOX_HEADER_KEY = 'ss_sandbox_header'; // 'true' | 'false' - whether to send X-Sandbox header with prod API
+const LOCAL_MODE_KEY = 'ss_local_mode'; // 'true' | 'false' - whether to use local API + X-Sandbox header
+const MOCK_RECOMMENDATIONS_KEY = 'ss_mock_recommendations'; // 'true' | 'false' - whether to send X-Mock-Recommendations header (only for /recommend)
+
 // Import tracking utilities for anon ID
 import { getOrCreateAnonId } from './tracking';
 
 type ApiMode = 'sandbox-local' | 'sandbox' | 'prod' | 'training';
 
 const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+
+// Initialize dev mode from URL parameter or console command
+if (isBrowser) {
+  // Check URL parameter ?dev=1
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('dev') === '1') {
+    localStorage.setItem(DEV_MODE_KEY, 'true');
+  }
+  
+  // Expose console command: dev=1
+  (window as any).dev = (value: string | number) => {
+    if (value === '1' || value === 1) {
+      localStorage.setItem(DEV_MODE_KEY, 'true');
+      console.log('✅ Dev mode enabled');
+      window.location.reload();
+    } else {
+      localStorage.removeItem(DEV_MODE_KEY);
+      console.log('❌ Dev mode disabled');
+      window.location.reload();
+    }
+  };
+}
 
 function detectAndPersistModeFromQuery(): ApiMode | undefined {
   if (!isBrowser) return undefined;
@@ -52,7 +80,112 @@ export const getApiMode = (): ApiMode => {
   return queryMode ?? persistedMode ?? 'prod';
 };
 
+/**
+ * Check if dev mode UI is enabled (flag that shows the dev mode indicator)
+ */
+export const isDevModeEnabled = (): boolean => {
+  if (!isBrowser) return false;
+  return localStorage.getItem(DEV_MODE_KEY) === 'true';
+};
+
+/**
+ * Enable or disable dev mode UI
+ */
+export const setDevModeEnabled = (enabled: boolean): void => {
+  if (!isBrowser) return;
+  if (enabled) {
+    localStorage.setItem(DEV_MODE_KEY, 'true');
+  } else {
+    localStorage.removeItem(DEV_MODE_KEY);
+  }
+};
+
+/**
+ * Check if sandbox header mode is enabled (dev sandbox mode)
+ */
+export const isSandboxHeaderEnabled = (): boolean => {
+  if (!isBrowser) return false;
+  return localStorage.getItem(SANDBOX_HEADER_KEY) === 'true';
+};
+
+/**
+ * Enable sandbox header mode (dev sandbox)
+ */
+export const setSandboxHeader = (enabled: boolean): void => {
+  if (!isBrowser) return;
+  if (enabled) {
+    localStorage.setItem(SANDBOX_HEADER_KEY, 'true');
+    localStorage.removeItem(LOCAL_MODE_KEY);
+  } else {
+    localStorage.removeItem(SANDBOX_HEADER_KEY);
+  }
+};
+
+/**
+ * Check if local mode is enabled (dev local mode)
+ */
+export const isLocalModeEnabled = (): boolean => {
+  if (!isBrowser) return false;
+  return localStorage.getItem(LOCAL_MODE_KEY) === 'true';
+};
+
+/**
+ * Enable local mode (dev local)
+ */
+export const setLocalMode = (enabled: boolean): void => {
+  if (!isBrowser) return;
+  if (enabled) {
+    localStorage.setItem(LOCAL_MODE_KEY, 'true');
+    localStorage.removeItem(SANDBOX_HEADER_KEY);
+    localStorage.setItem(STORAGE_KEY, 'sandbox-local');
+  } else {
+    localStorage.removeItem(LOCAL_MODE_KEY);
+  }
+};
+
+/**
+ * Set prod mode (disable all dev modes)
+ */
+export const setProdMode = (): void => {
+  if (!isBrowser) return;
+  localStorage.removeItem(SANDBOX_HEADER_KEY);
+  localStorage.removeItem(LOCAL_MODE_KEY);
+  localStorage.setItem(STORAGE_KEY, 'prod');
+};
+
+/**
+ * Check if prod mode is active
+ */
+export const isProdMode = (): boolean => {
+  return !isLocalModeEnabled() && !isSandboxHeaderEnabled();
+};
+
+/**
+ * Check if mock recommendations is enabled
+ */
+export const isMockRecommendationsEnabled = (): boolean => {
+  if (!isBrowser) return false;
+  return localStorage.getItem(MOCK_RECOMMENDATIONS_KEY) === 'true';
+};
+
+/**
+ * Enable or disable mock recommendations
+ */
+export const setMockRecommendations = (enabled: boolean): void => {
+  if (!isBrowser) return;
+  if (enabled) {
+    localStorage.setItem(MOCK_RECOMMENDATIONS_KEY, 'true');
+  } else {
+    localStorage.removeItem(MOCK_RECOMMENDATIONS_KEY);
+  }
+};
+
 export const getApiBaseUrl = (): string => {
+  // If local mode is enabled, use local API
+  if (isLocalModeEnabled()) {
+    return DEV_BASE;
+  }
+  
   const mode = getApiMode();
   if (isBrowser) {
     if ((mode === 'sandbox-local' || mode === 'sandbox') && !(window as any).__ssModeLogShown) {
@@ -199,14 +332,12 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
     
     // Inject X-Sandbox header for both dev modes (dev local and dev sandbox)
     // Both dev modes use the same header, just different URLs
-    if (devModeEnabled) {
+    if (isSandboxHeaderEnabled() || isLocalModeEnabled()) {
       headers.set('X-Sandbox', 'true');
     }
     
     // Inject mock recommendations header for /recommend endpoint if enabled
-    // Check if mock mode is enabled (you can add a function to check localStorage or URL param)
-    const mockEnabled = isBrowser && (localStorage.getItem('ss_mock_recommendations') === 'true' || new URLSearchParams(window.location.search).get('mock') === '1');
-    if (mockEnabled && /\/recommend(\b|\?|$)/.test(urlString)) {
+    if (isMockRecommendationsEnabled() && /\/recommend(\b|\?|$)/.test(urlString)) {
       headers.set('X-Mock-Recommendations', 'true');
     }
     

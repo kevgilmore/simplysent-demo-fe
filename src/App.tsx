@@ -25,6 +25,7 @@ import { MetaPixel } from "./components/common/MetaPixel";
 import { ToastContainer } from "./components/common/Toast";
 import { ToastProvider, useToastContext } from "./contexts/ToastContext";
 import { setToastFunctions } from "./services/toastService";
+import { DevModeIndicator } from "./components/common/DevModeIndicator";
 const GA_MEASUREMENT_ID = "G-JRT058C4VQ";
 const META_PIXEL_ID = "907664617393399";
 // Import Google Fonts in the head section
@@ -100,6 +101,7 @@ function AppShell() {
             <Analytics measurementId={GA_MEASUREMENT_ID} />
             <MetaPixel pixelId={META_PIXEL_ID} />
             <ToastContainer toasts={toasts} onRemove={removeToast} />
+            <DevModeIndicator />
             <div
                 className={`w-full min-h-screen overflow-x-hidden ${isCarouselPage || isProductPage ? "" : "bg-gradient-to-br from-purple-50 to-pink-100 pt-8"}`}
             >
