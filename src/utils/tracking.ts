@@ -1,5 +1,5 @@
 // User session tracking utility
-import { getApiBaseUrl, isAnySandboxMode, apiFetch } from './apiConfig';
+import { getApiBaseUrl, isAnyDevModeEnabled, apiFetch } from './apiConfig';
 import { logApiError } from './errorLogger';
 
 // Base62 character set for ID generation
@@ -108,9 +108,10 @@ export async function trackEvent(event: TrackingEvent, clientOrigin?: string, re
       headers['client_origin'] = clientOrigin;
     }
 
-    // Add sandbox header for sandbox modes
-    if (isAnySandboxMode()) {
-      headers['X-Sandbox-Mode'] = 'true';
+    // Add X-Sandbox header for both dev modes (dev local and dev sandbox)
+    // Both dev modes use the same header, just different URLs
+    if (isAnyDevModeEnabled()) {
+      headers['X-Sandbox'] = 'true';
     }
 
     console.log('📡 Sending to:', `${getApiBaseUrl()}/track`);

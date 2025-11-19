@@ -75,12 +75,32 @@ export const getApiBaseUrl = (): string => {
   return base;
 };
 
-export const isSandboxLocalMode = (): boolean => getApiMode() === 'sandbox-local';
-export const isSandboxMode = (): boolean => getApiMode() === 'sandbox';
-export const isAnySandboxMode = (): boolean => {
+/**
+ * Check if dev local mode is enabled (uses local API URL)
+ */
+export const isDevLocalMode = (): boolean => getApiMode() === 'sandbox-local';
+
+/**
+ * Check if dev sandbox mode is enabled (uses prod API URL)
+ */
+export const isDevSandboxMode = (): boolean => getApiMode() === 'sandbox';
+
+/**
+ * Check if any dev mode is enabled (Dev Local or Dev Sandbox, not Prod)
+ * Dev modes: Dev Local (sandbox-local) and Dev Sandbox (sandbox)
+ * Both use X-Sandbox header, just different URLs
+ */
+export const isAnyDevModeEnabled = (): boolean => {
   const m = getApiMode();
   return m === 'sandbox-local' || m === 'sandbox';
 };
+
+// Legacy compatibility - keep for backward compatibility
+export const isSandboxLocalMode = (): boolean => isDevLocalMode();
+export const isSandboxMode = (): boolean => isDevSandboxMode();
+
+// Legacy compatibility - keep for backward compatibility
+export const isAnySandboxMode = (): boolean => isAnyDevModeEnabled();
 
 // Special function for /error endpoint that doesn't include /v3
 export const getErrorApiUrl = (): string => {
@@ -163,8 +183,8 @@ export interface ApiError extends Error {
 export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: string): Promise<Response> => {
   const urlString = typeof input === 'string' ? input : (input instanceof URL ? input.toString() : (input as Request).url);
   const isOurApi = urlString.startsWith(DEV_BASE) || urlString.startsWith(PROD_BASE);
-  const sandbox = isAnySandboxMode();
-  const shouldLog = isBrowser && sandbox && isOurApi && /\/recommend(\b|\?|$)/.test(urlString);
+  const devModeEnabled = isAnyDevModeEnabled();
+  const shouldLog = isBrowser && devModeEnabled && isOurApi && /\/recommend(\b|\?|$)/.test(urlString);
   if (shouldLog) {
     const method = init?.method || 'GET';
     console.log(`➡️ API CALL${label ? ` (${label})` : ''}: ${method} ${urlString}`);
@@ -177,9 +197,17 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
     headers.set('x-anon-id', getApiAnonId());
     headers.set('x-request-id', requestId);
     
-    // Inject sandbox header for sandbox modes
-    if (sandbox) {
-      headers.set('X-Sandbox-Mode', 'true');
+    // Inject X-Sandbox header for both dev modes (dev local and dev sandbox)
+    // Both dev modes use the same header, just different URLs
+    if (devModeEnabled) {
+      headers.set('X-Sandbox', 'true');
+    }
+    
+    // Inject mock recommendations header for /recommend endpoint if enabled
+    // Check if mock mode is enabled (you can add a function to check localStorage or URL param)
+    const mockEnabled = isBrowser && (localStorage.getItem('ss_mock_recommendations') === 'true' || new URLSearchParams(window.location.search).get('mock') === '1');
+    if (mockEnabled && /\/recommend(\b|\?|$)/.test(urlString)) {
+      headers.set('X-Mock-Recommendations', 'true');
     }
     
     const startTime = Date.now();
