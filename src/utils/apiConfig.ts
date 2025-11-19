@@ -1,6 +1,6 @@
 // API configuration with URL param + localStorage-based mode switching (non-Shopify)
-const PROD_BASE = 'https://catboost-recommender-api-973409790816.europe-west1.run.app/v3';
-const DEV_BASE = 'http://localhost:8080/v3';
+const PROD_BASE = 'https://recommender-api-973409790816.europe-west1.run.app';
+const DEV_BASE = 'http://localhost:8080';
 const STORAGE_KEY = 'ss_api_mode'; // 'sandbox-local' | 'sandbox' | 'prod' (legacy: 'dev')
 
 // Dev mode flag - controls whether dev mode UI is visible
@@ -241,13 +241,13 @@ export const getErrorApiUrl = (): string => {
   if (mode === 'training') {
     return 'http://localhost:8080';
   }
-  return mode === 'sandbox-local' ? 'http://localhost:8080' : 'https://catboost-recommender-api-973409790816.europe-west1.run.app';
+  return mode === 'sandbox-local' ? 'http://localhost:8080' : 'https://recommender-api-973409790816.europe-west1.run.app';
 };
 
 // Helper function to build full API URLs (only for recommender/feedback API)
 export const buildApiUrl = (endpoint: string, queryParams?: URLSearchParams): string => {
   const baseUrl = getApiBaseUrl();
-  // Ensure exactly one slash between base and endpoint and preserve /v3 path
+  // Ensure exactly one slash between base and endpoint (no /v3 path in new API)
   const normalizedBase = baseUrl.replace(/\/$/, '');
   const normalizedEndpoint = endpoint.replace(/^\//, '');
   const url = new URL(`${normalizedBase}/${normalizedEndpoint}`);
@@ -289,6 +289,21 @@ export const getApiAnonId = (): string => {
   return getOrCreateAnonId();
 };
 
+// Helper function to get user ID for API requests (converts aid_xxx to uid_xxx)
+export const getApiUserId = (): string => {
+  const anonId = getOrCreateAnonId();
+  // Convert aid_xxx to uid_xxx format required by new API
+  if (anonId.startsWith('aid_')) {
+    return anonId.replace('aid_', 'uid_');
+  }
+  // If already in uid_ format, return as-is
+  if (anonId.startsWith('uid_')) {
+    return anonId;
+  }
+  // Fallback: create new uid_ format
+  return `uid_${anonId}`;
+};
+
 // Helper function to generate request ID using UUID4
 export const generateRequestId = (): string => {
   // Generate a proper UUID4
@@ -327,8 +342,8 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
   if (isOurApi) {
     const headers = new Headers(init?.headers || {});
     const requestId = generateRequestId();
-    headers.set('x-anon-id', getApiAnonId());
-    headers.set('x-request-id', requestId);
+    headers.set('X-User-Id', getApiUserId());
+    headers.set('X-Request-Id', requestId);
     
     // Inject X-Sandbox header for both dev modes (dev local and dev sandbox)
     // Both dev modes use the same header, just different URLs

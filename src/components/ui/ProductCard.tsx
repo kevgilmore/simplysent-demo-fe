@@ -6,6 +6,8 @@ interface ProductCardProps {
     image: string;
     name: string;
     price: number;
+    rating?: number;
+    numRatings?: number;
     className?: string;
     badge?: React.ReactNode;
     isFavorite?: boolean;
@@ -26,6 +28,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     image,
     name,
     price,
+    rating,
+    numRatings,
     className = "",
     badge,
     isFavorite,
@@ -277,13 +281,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                             {/* Star Rating */}
                             <div className="flex items-center gap-0.5 mb-1 -mt-3">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                        key={star}
-                                        size={compact ? 12 : 14}
-                                        className="fill-amber-400 text-amber-400"
-                                    />
-                                ))}
+                                {[1, 2, 3, 4, 5].map((star) => {
+                                    const starRating = rating || 0;
+                                    // Show filled stars based on rating (e.g., 4.5 = 4.5 filled stars)
+                                    // If rating is undefined or 0, all stars will be unfilled (gray)
+                                    const isFilled = star <= starRating;
+                                    return (
+                                        <Star
+                                            key={star}
+                                            size={compact ? 12 : 14}
+                                            className={isFilled ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                                        />
+                                    );
+                                })}
                             </div>
 
                             {/* Bottom Row: Price, Thumbs Up, Thumbs Down */}
