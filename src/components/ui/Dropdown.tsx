@@ -38,10 +38,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
                     const rect = buttonRef.current.getBoundingClientRect();
                     // Use button's exact position - getBoundingClientRect gives viewport coordinates
                     // which work perfectly with fixed positioning
-                    // Subtract 2px to account for border alignment and move menu left to match input
                     setMenuPosition({
                         top: Math.round(rect.bottom) + 8,
-                        left: Math.round(rect.left) - 2,
+                        left: Math.round(rect.left),
                         width: Math.round(rect.width),
                     });
                 }
@@ -154,7 +153,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
                             top: `${menuPosition.top}px`,
                             left: `${menuPosition.left}px`,
                             width: `${menuPosition.width}px`,
-                            maxHeight: '280px',
+                            maxHeight: '180px', // Limit to 3 items max (each item ~56px: py-4 = 32px + text ~24px)
                             overflowY: 'auto',
                             WebkitOverflowScrolling: 'touch',
                             transform: 'translateZ(0)', // Force hardware acceleration and prevent subpixel rendering issues

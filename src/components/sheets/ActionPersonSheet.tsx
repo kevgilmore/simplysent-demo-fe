@@ -1,15 +1,12 @@
-import React, { useRef, useEffect, useState, useMemo } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Sheet, SheetRef } from "react-modal-sheet";
 import { X } from "lucide-react";
-import { TextInput } from "../ui/TextInput";
-import { Dropdown } from "../ui/Dropdown";
-import { Button } from "../ui/Button";
+import { Step1Form } from "./Step1Form";
 import { Step2AboutForm } from "./Step2AboutForm";
 import { Step3StyleForm } from "./Step3StyleForm";
 import { Step4InterestsForm } from "./Step4InterestsForm";
 import { Step5VibeForm } from "./Step5VibeForm";
 import { Step6BudgetForm } from "./Step6BudgetForm";
-import { relationshipOptions, occasionOptions } from "./formConstants";
 
 /**
  * ActionPersonSheet
@@ -34,12 +31,11 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
     onOpenChange,
     title = "Add Person",
     children,
-    snapPoints = DEFAULT_SNAP_POINTS,
-    initialSnap = 1,
+    snapPoints: _snapPoints = DEFAULT_SNAP_POINTS,
+    initialSnap: _initialSnap = 1,
     onComplete,
 }) => {
     const sheetRef = useRef<SheetRef>(null);
-    const scrollLockRef = useRef<number>(0);
 
     // Stable pixel height derived from visualViewport (falls back to window.innerHeight)
     // Converts 90vh to a concrete px value to avoid iOS Safari floating toolbar cutoff.
@@ -183,11 +179,9 @@ const AddPersonForm: React.FC<{
     onComplete?: () => void;
 }> = ({ onClose, onComplete }) => {
     const [step, setStep] = useState(1);
-    const [relationship, setRelationship] = useState("");
-    const [name, setName] = useState("");
-    const [occasion, setOccasion] = useState("");
 
-    const handleStep1Next = () => {
+    const handleStep1Next = (data: { relationship: string; name: string; occasion: string }) => {
+        console.log("Step 1:", data);
         setStep(2);
     };
 
@@ -232,6 +226,10 @@ const AddPersonForm: React.FC<{
         }
     };
 
+    if (step === 1) {
+        return <Step1Form onNext={handleStep1Next} />;
+    }
+
     if (step === 2) {
         return (
             <Step2AboutForm onBack={handleStep2Back} onNext={handleStep2Next} />
@@ -268,52 +266,7 @@ const AddPersonForm: React.FC<{
         );
     }
 
-    return (
-        <div className="flex flex-col py-4" style={{ height: "580px" }}>
-            <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ overflowX: 'visible' }}>
-                <div className="text-left mb-8">
-                    <p className="text-gray-700 text-base font-semibold">
-                        Who are we shopping for?
-                    </p>
-                </div>
-
-                <div className="flex flex-col gap-6" style={{ position: 'relative', zIndex: 1 }}>
-                    <div style={{ position: 'relative', zIndex: 10 }}>
-                        <Dropdown
-                            label="Relationship"
-                            placeholder="Select relationship"
-                            value={relationship}
-                            options={relationshipOptions}
-                            onChange={setRelationship}
-                        />
-                    </div>
-
-                    <TextInput
-                        label="Name"
-                        placeholder="Enter their name"
-                        value={name}
-                        onChange={setName}
-                    />
-
-                    <div style={{ position: 'relative', zIndex: 10 }}>
-                        <Dropdown
-                            label="Occasion"
-                            placeholder="Select occasion"
-                            value={occasion}
-                            options={occasionOptions}
-                            onChange={setOccasion}
-                        />
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible", padding: "0 4px" }}>
-                <Button fullWidth size="large" onClick={handleStep1Next}>
-                    Next
-                </Button>
-            </div>
-        </div>
-    );
+    return null;
 };
 
 export default ActionPersonSheet;
