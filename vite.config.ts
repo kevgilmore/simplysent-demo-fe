@@ -11,7 +11,7 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    host: '0.0.0.0', // Explicitly bind to all interfaces for network access
+    host: true, // Listen on all addresses (needed for WSL2)
     strictPort: true // Fail if port is already in use
   }
 })
