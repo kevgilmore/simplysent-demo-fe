@@ -439,7 +439,7 @@ export const PersonPage: React.FC = () => {
     };
 
     const handleProductClick = (productId: string) => {
-        navigate(`/product/ai-1`); // All products navigate to Playstation Controller
+        navigate(`/product/${productId}`); // Navigate to product page with actual ASIN
     };
 
     const toggleInterest = (interest: string) => {
@@ -839,11 +839,7 @@ export const PersonPage: React.FC = () => {
                                                             onRemove={
                                                                 handleProductRemove
                                                             }
-                                                            onClick={() =>
-                                                                handleProductClick(
-                                                                    p.id,
-                                                                )
-                                                            }
+                                                            // Only AI picks have real ASINs, so only they are clickable
                                                         />
                                                     </div>
                                                 ))}
@@ -907,11 +903,7 @@ export const PersonPage: React.FC = () => {
                                                             onRemove={
                                                                 handleProductRemove
                                                             }
-                                                            onClick={() =>
-                                                                handleProductClick(
-                                                                    p.id,
-                                                                )
-                                                            }
+                                                            // Only AI picks have real ASINs, so only they are clickable
                                                         />
                                                     </div>
                                                 ))}
@@ -943,27 +935,32 @@ export const PersonPage: React.FC = () => {
                                 <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
                                     {allProducts
                                         .filter((p) => favourites.has(p.id))
-                                        .map((p) => (
-                                            <div key={p.id} className="flex justify-center w-full">
-                                                <ProductCard
-                                                    id={p.id}
-                                                    image={p.image}
-                                                    name={p.name}
-                                                    price={p.price}
-                                                    rating={p.rating}
-                                                    numRatings={p.numRatings}
-                                                    isFavorite={true}
-                                                    onFavoriteToggle={() =>
-                                                        toggleFavourite(p.id)
-                                                    }
-                                                    hideActions={true}
-                                                    favouritesVariant={true}
-                                                    onClick={() =>
-                                                        handleProductClick(p.id)
-                                                    }
-                                                />
-                                            </div>
-                                        ))}
+                                        .map((p) => {
+                                            // Only AI picks have real ASINs, so only they are clickable
+                                            // Check if product is in aiPicks (has real ASIN)
+                                            const isAiPick = aiPicks.some(ap => ap.id === p.id);
+                                            return (
+                                                <div key={p.id} className="flex justify-center w-full">
+                                                    <ProductCard
+                                                        id={p.id}
+                                                        image={p.image}
+                                                        name={p.name}
+                                                        price={p.price}
+                                                        rating={p.rating}
+                                                        numRatings={p.numRatings}
+                                                        isFavorite={true}
+                                                        onFavoriteToggle={() =>
+                                                            toggleFavourite(p.id)
+                                                        }
+                                                        hideActions={true}
+                                                        favouritesVariant={true}
+                                                        onClick={isAiPick ? () =>
+                                                            handleProductClick(p.id)
+                                                        : undefined}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
                                 </div>
                             )}
                         </div>

@@ -18,6 +18,7 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
+import { getProductByAsin } from "../services/firebaseService";
 
 interface ProductDetail {
     id: string;
@@ -367,6 +368,8 @@ export const ProductPage: React.FC = () => {
     const { productId } = useParams<{ productId: string }>();
     const navigate = useNavigate();
     const [product, setProduct] = useState<ProductDetail | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [isFavorite, setIsFavorite] = useState(false);
     const [thumbsUp, setThumbsUp] = useState(false);
     const [thumbsDown, setThumbsDown] = useState(false);
@@ -384,12 +387,155 @@ export const ProductPage: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        if (productId && mockProducts[productId]) {
-            setProduct(mockProducts[productId]);
-        } else {
-            // If product not found, redirect back
-            navigate("/recommendations");
-        }
+        const fetchProduct = async () => {
+            if (!productId) {
+                console.error("❌ ProductPage: No productId provided");
+                navigate("/recommendations");
+                return;
+            }
+
+            console.log(`🔍 ProductPage: Starting fetch for productId: ${productId}`);
+            setIsLoading(true);
+            setError(null);
+            try {
+                console.log(`🔍 ProductPage: Fetching product with ID: ${productId}`);
+                // Fetch product data from Firebase using ASIN
+                const firebaseProduct = await getProductByAsin(productId);
+                
+                console.log(`🔍 ProductPage: Firebase response for ${productId}:`, firebaseProduct ? 'Found' : 'Not found');
+                if (firebaseProduct) {
+                    console.log(`📦 ProductPage: Firebase product data keys:`, Object.keys(firebaseProduct));
+                }
+                
+                if (!firebaseProduct) {
+                    const errorMsg = `Product ${productId} not found in Firebase`;
+                    console.warn(`⚠️ ProductPage: ${errorMsg}`);
+                    setError(errorMsg);
+                    setIsLoading(false);
+                    // Don't redirect immediately - let user see the error
+                    setTimeout(() => {
+                        navigate("/recommendations");
+                    }, 3000);
+                    return;
+                }
+
+                // Extract product data - handle nested 'data' field structure
+                const productData = firebaseProduct.data || firebaseProduct;
+                
+                // Extract name
+                const productName = productData?.name 
+                    || productData?.product_title 
+                    || productData?.title 
+                    || firebaseProduct.name
+                    || firebaseProduct.productTitle
+                    || `Product ${productId}`;
+                
+                // Extract description - try multiple fields
+                let productDescription: string = "No description available.";
+                
+                const descriptionValue = productData?.description 
+                    || productData?.product_description
+                    || productData?.about
+                    || productData?.product_about
+                    || productData?.details
+                    || productData?.product_details
+                    || productData?.product_info
+                    || productData?.info
+                    || firebaseProduct.description;
+                
+                // Ensure description is a string
+                if (descriptionValue) {
+                    if (typeof descriptionValue === 'string') {
+                        productDescription = descriptionValue;
+                    } else if (Array.isArray(descriptionValue)) {
+                        productDescription = descriptionValue.join(' ');
+                    } else if (typeof descriptionValue === 'object') {
+                        productDescription = JSON.stringify(descriptionValue);
+                    } else {
+                        productDescription = String(descriptionValue);
+                    }
+                }
+                
+                console.log("📝 ProductPage: Description extraction:", {
+                    productId,
+                    hasDescription: !!productDescription && productDescription !== "No description available.",
+                    description: typeof productDescription === 'string' ? productDescription.substring(0, 100) : String(productDescription).substring(0, 100),
+                    productDataKeys: Object.keys(productData || {}),
+                });
+                
+                // Extract price
+                let productPrice = 0;
+                const priceValue = productData?.product_price 
+                    || productData?.price 
+                    || productData?.price_amount 
+                    || productData?.current_price
+                    || firebaseProduct.price;
+                
+                if (priceValue !== undefined && priceValue !== null) {
+                    if (typeof priceValue === 'string') {
+                        productPrice = parseFloat(priceValue.replace(/[£$€,]/g, '')) || 0;
+                    } else if (typeof priceValue === 'number') {
+                        productPrice = priceValue;
+                    }
+                }
+                
+                // Extract rating and reviews
+                const rating = productData?.product_star_rating 
+                    || productData?.rating
+                    || firebaseProduct.rating
+                    || firebaseProduct.product_star_rating
+                    || 0;
+                const numRatings = productData?.product_num_ratings 
+                    || productData?.num_ratings
+                    || firebaseProduct.num_ratings
+                    || firebaseProduct.product_num_ratings
+                    || 0;
+                
+                // Use Google Cloud Storage URL for images
+                // Format: https://storage.googleapis.com/simplysent-product-images/{asin}/t_{asin}_1.png
+                const baseImageUrl = `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_1.png`;
+                const secondImageUrl = `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_2.png`;
+                const thirdImageUrl = `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_3.png`;
+                
+                // Use first 3 images
+                const productImages = [baseImageUrl, secondImageUrl, thirdImageUrl];
+                
+                // Transform to ProductDetail format
+                const transformedProduct: ProductDetail = {
+                    id: productId,
+                    name: productName,
+                    price: productPrice,
+                    image: baseImageUrl,
+                    images: productImages,
+                    description: productDescription,
+                    rating: typeof rating === 'number' ? rating : parseFloat(rating?.toString() || '0'),
+                    reviews: typeof numRatings === 'number' ? numRatings : parseInt(numRatings?.toString() || '0'),
+                    features: productData?.features || [],
+                    specifications: productData?.specifications || [],
+                    inStock: true,
+                    shipping: "Will arrive in time for delivery",
+                };
+                
+                console.log(`✅ ProductPage: Successfully loaded product ${productId}`);
+                console.log(`✅ ProductPage: Successfully loaded product ${productId}`);
+                setProduct(transformedProduct);
+                setError(null);
+            } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : String(error);
+                console.error(`❌ ProductPage: Error fetching product ${productId}:`, error);
+                console.error("Error details:", errorMsg);
+                setError(`Failed to load product: ${errorMsg}`);
+                setIsLoading(false);
+                // Don't redirect immediately - let user see the error
+                setTimeout(() => {
+                    navigate("/recommendations");
+                }, 3000);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProduct();
     }, [productId, navigate]);
 
     const handleThumbsUp = () => {
@@ -452,13 +598,37 @@ export const ProductPage: React.FC = () => {
         setTouchEnd(0);
     };
 
-    if (!product) {
+    if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-xl text-gray-600">Loading...</div>
             </div>
         );
     }
+
+    if (error || !product) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="text-center max-w-md px-4">
+                    <div className="text-xl font-semibold text-gray-900 mb-2">
+                        Product Not Found
+                    </div>
+                    <div className="text-gray-600 mb-4">
+                        {error || `Product ${productId} could not be loaded.`}
+                    </div>
+                    <button
+                        onClick={() => navigate("/recommendations")}
+                        className="px-6 py-2 bg-simplysent-purple text-white rounded-lg hover:bg-simplysent-purple-dark transition-colors"
+                    >
+                        Go Back to Recommendations
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Amazon link format
+    const amazonLink = `https://www.amazon.co.uk/dp/${productId}?tag=simplysent09-21`;
 
     return (
         <div className="min-h-screen bg-white overflow-x-hidden" style={{ marginTop: "-16px", backgroundColor: "white", minHeight: "100vh", position: "relative", zIndex: 1 }}>
@@ -561,7 +731,7 @@ export const ProductPage: React.FC = () => {
                         </div>
                         <div className="relative z-10 space-y-4">
                             {/* Product Name */}
-                            <h1 className="text-3xl font-bold text-gray-900">
+                            <h1 className="text-3xl font-bold text-gray-900 break-words line-clamp-3" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                                 {product.name}
                             </h1>
 
@@ -588,7 +758,7 @@ export const ProductPage: React.FC = () => {
                             {/* Price */}
                             <div>
                                 <span className="text-4xl font-bold text-simplysent-purple">
-                                    ${product.price.toFixed(2)}
+                                    £{product.price.toFixed(2)}
                                 </span>
                             </div>
 
@@ -597,8 +767,8 @@ export const ProductPage: React.FC = () => {
                                 <h2 className="text-lg font-bold text-gray-900 mb-2">
                                     About this item
                                 </h2>
-                                <p className="text-sm text-gray-600 leading-relaxed">
-                                    {product.description}
+                                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                    {product.description || "No description available."}
                                 </p>
                             </div>
 
@@ -635,15 +805,15 @@ export const ProductPage: React.FC = () => {
                                 </button>
 
                                 {/* Open on Amazon button */}
-                                <button
-                                    onClick={() =>
-                                        alert("Open on Amazon (Demo feature)")
-                                    }
+                                <a
+                                    href={amazonLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
                                     className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 text-gray-900 hover:from-yellow-500 hover:via-yellow-600 hover:to-amber-600 active:opacity-95 focus:ring-yellow-400/30 shadow-[0_8px_30px_rgba(251,191,36,0.3)] hover:shadow-[0_8px_30px_rgba(251,191,36,0.4)] active:shadow-[0_8px_30px_rgba(251,191,36,0.3)] font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95 w-full md:flex-1 flex items-center justify-center gap-2"
                                 >
                                     <ExternalLink size={20} />
                                     Open on Amazon
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -743,7 +913,7 @@ export const ProductPage: React.FC = () => {
                 <div className="px-4 space-y-6" style={{ marginTop: "-20px" }}>
                     {/* Product Name */}
                     <div className="flex items-start justify-between gap-4 relative px-4">
-                        <h1 className="text-2xl font-bold text-gray-900 flex-1">
+                        <h1 className="text-2xl font-bold text-gray-900 flex-1 break-words line-clamp-3" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                             {product.name}
                         </h1>
                         {/* Favorite Button */}
@@ -793,7 +963,7 @@ export const ProductPage: React.FC = () => {
                             </span>
                         </div>
                         <span className="text-3xl font-bold text-simplysent-purple">
-                            ${product.price.toFixed(2)}
+                            £{product.price.toFixed(2)}
                         </span>
                     </div>
 
@@ -802,21 +972,21 @@ export const ProductPage: React.FC = () => {
                         <h2 className="text-lg font-bold text-gray-900 mb-2">
                             About this item
                         </h2>
-                        <p className="text-sm text-gray-600 leading-relaxed">
-                            {product.description}
+                        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+                            {product.description || "No description available."}
                         </p>
                     </div>
 
                     {/* Open on Amazon button */}
-                    <button
-                        onClick={() =>
-                            alert("Open on Amazon (Demo feature)")
-                        }
+                    <a
+                        href={amazonLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="w-[95%] mx-auto block bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 text-gray-900 hover:from-yellow-500 hover:via-yellow-600 hover:to-amber-600 active:opacity-95 focus:ring-yellow-400/30 shadow-[0_8px_30px_rgba(251,191,36,0.3)] hover:shadow-[0_8px_30px_rgba(251,191,36,0.4)] active:shadow-[0_8px_30px_rgba(251,191,36,0.3)] font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                     >
                         <ExternalLink size={20} />
                         Open on Amazon
-                    </button>
+                    </a>
 
                 </div>
             </div>
