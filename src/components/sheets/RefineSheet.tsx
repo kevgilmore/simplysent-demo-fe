@@ -162,6 +162,7 @@ export const RefineSheet: React.FC<RefineSheetProps> = ({
 
                         {/* Interests - 50% scrollable at bottom */}
                         <div
+                            className="sheet-scrollable"
                             style={{
                                 flex: "1 1 auto",
                                 minHeight: 0,

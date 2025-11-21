@@ -416,3 +416,15 @@ body {
 body.product-page::before {
     background: #d1ccfb !important;
 }
+
+/* Hide scrollbars on sheet containers */
+.sheet-scrollable,
+[class*="overflow-y-auto"] {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.sheet-scrollable::-webkit-scrollbar,
+[class*="overflow-y-auto"]::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}

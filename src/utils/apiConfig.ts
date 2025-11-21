@@ -358,6 +358,13 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
     headers.set('X-User-Id', getApiUserId());
     headers.set('X-Request-Id', requestId);
     
+    // Inject cache-control headers when dev mode is enabled
+    if (devModeEnabled) {
+      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      headers.set('Pragma', 'no-cache');
+      headers.set('Expires', '0');
+    }
+    
     // Inject X-Sandbox header for both dev modes (dev local and dev sandbox)
     // Both dev modes use the same header, just different URLs
     if (isSandboxHeaderEnabled() || isLocalModeEnabled()) {

@@ -270,7 +270,7 @@ const AddPersonForm: React.FC<{
 
     return (
         <div className="flex flex-col py-4" style={{ height: "580px" }}>
-            <div className="flex-1 overflow-y-auto" style={{ overflowX: 'visible' }}>
+            <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ overflowX: 'visible' }}>
                 <div className="text-left mb-8">
                     <p className="text-gray-700 text-base font-semibold">
                         Who are we shopping for?
@@ -307,7 +307,7 @@ const AddPersonForm: React.FC<{
                 </div>
             </div>
 
-            <div className="flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible" }}>
+            <div className="flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible", padding: "0 4px" }}>
                 <Button fullWidth size="large" onClick={handleStep1Next}>
                     Next
                 </Button>

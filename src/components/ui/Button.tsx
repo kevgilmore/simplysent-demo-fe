@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
     type = "button",
 }) => {
     const baseStyles =
-        "font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative";
+        "font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative overflow-hidden";
 
     const variantStyles = {
         primary:
@@ -43,19 +43,19 @@ export const Button: React.FC<ButtonProps> = ({
 
     const widthStyle = fullWidth ? "w-full" : "";
 
-    const scaleStyles =
-        !disabled && variant !== "cta"
-            ? "hover:scale-105 active:scale-95"
-            : !disabled && variant === "cta"
-              ? "hover:scale-[1.03] hover:-translate-y-0.5 active:scale-[0.98] active:translate-y-0"
-              : "";
+    // Removed scale hover effects to prevent clipping in containers
+    // Use subtle opacity/shadow changes instead for better UX in constrained spaces
+    const scaleStyles = "";
 
+    // Remove any rounded classes from className prop to ensure rounded-full always applies
+    const cleanClassName = className.replace(/\brounded-\w+\b/g, '').trim();
+    
     return (
         <button
             type={type}
             onClick={onClick}
             disabled={disabled}
-            className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} ${scaleStyles} ${className}`}
+            className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} ${scaleStyles} ${cleanClassName} rounded-full`}
         >
             <span className="relative z-10">{children}</span>
         </button>

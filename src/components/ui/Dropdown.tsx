@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { ChevronDown } from "lucide-react";
 
 interface DropdownProps {
@@ -23,22 +24,69 @@ export const Dropdown: React.FC<DropdownProps> = ({
     className = "",
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Calculate menu position when opening
+    useEffect(() => {
+        if (isOpen && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setMenuPosition({
+                top: rect.bottom + window.scrollY + 8,
+                left: rect.left + window.scrollX,
+                width: rect.width,
+            });
+        } else {
+            setMenuPosition(null);
+        }
+    }, [isOpen]);
+
+    // Prevent scrolling when dropdown is open
+    useEffect(() => {
+        if (isOpen) {
+            // Find the scrollable parent container
+            let scrollableParent: HTMLElement | null = buttonRef.current?.closest('[style*="overflow-y"]') || null;
+            if (!scrollableParent) {
+                scrollableParent = buttonRef.current?.closest('.overflow-y-auto') || null;
+            }
+            
+            if (scrollableParent) {
+                const originalOverflow = scrollableParent.style.overflow;
+                scrollableParent.style.overflow = 'hidden';
+                return () => {
+                    scrollableParent!.style.overflow = originalOverflow;
+                };
+            }
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Node;
+            // Check if click is outside both the dropdown container and the portal menu
             if (
                 dropdownRef.current &&
-                !dropdownRef.current.contains(event.target as Node)
+                !dropdownRef.current.contains(target) &&
+                menuRef.current &&
+                !menuRef.current.contains(target)
             ) {
                 setIsOpen(false);
             }
         };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        return () =>
-            document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+        if (isOpen) {
+            // Use a small delay to avoid immediate closing when opening
+            const timeoutId = setTimeout(() => {
+                document.addEventListener("mousedown", handleClickOutside);
+            }, 0);
+            return () => {
+                clearTimeout(timeoutId);
+                document.removeEventListener("mousedown", handleClickOutside);
+            };
+        }
+    }, [isOpen]);
 
     const selectedOption = options.find((opt) => opt.value === value);
 
@@ -52,6 +100,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
             <div className="relative">
                 <button
+                    ref={buttonRef}
                     type="button"
                     onClick={() => !disabled && setIsOpen(!isOpen)}
                     disabled={disabled}
@@ -84,19 +133,19 @@ export const Dropdown: React.FC<DropdownProps> = ({
                     />
                 </button>
 
-                {isOpen && !disabled && (
+                {isOpen && !disabled && menuPosition && typeof document !== 'undefined' && createPortal(
                     <div 
-                        className="absolute z-[9999] w-full mt-2 bg-white border-2 border-gray-200 rounded-3xl shadow-lg overflow-hidden"
+                        ref={menuRef}
+                        className="fixed bg-white border-2 border-gray-200 rounded-3xl shadow-lg overflow-hidden z-[10000] sheet-scrollable"
                         style={{
+                            top: `${menuPosition.top}px`,
+                            left: `${menuPosition.left}px`,
+                            width: `${menuPosition.width}px`,
                             maxHeight: '280px',
                             overflowY: 'auto',
                             WebkitOverflowScrolling: 'touch',
-                            // Ensure dropdown appears above sheet content
-                            position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
                         }}
+                        onClick={(e) => e.stopPropagation()}
                     >
                         {options.map((option) => (
                             <button
@@ -117,7 +166,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
                                 {option.label}
                             </button>
                         ))}
-                    </div>
+                    </div>,
+                    document.body
                 )}
             </div>
 
