@@ -19,14 +19,14 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
     };
 
     return (
-        <div className="flex flex-col py-4" style={{ height: "calc(90vh - 100px)", minHeight: "650px", maxHeight: "800px" }}>
-            <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ overflowX: 'visible', minHeight: 0 }}>
-                <div className="text-left mb-3">
-                    <p className="text-gray-700 text-base font-semibold">
-                        What do they enjoy in their spare time?
-                    </p>
-                </div>
+        <div className="flex flex-col h-full py-4">
+            <div className="text-left mb-3 flex-shrink-0">
+                <p className="text-gray-700 text-base font-semibold">
+                    What do they enjoy in their spare time?
+                </p>
+            </div>
 
+            <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ overflowX: 'visible', minHeight: 0 }}>
                 <MultiSelectList
                     label="Select their interests"
                     options={interestOptions}
