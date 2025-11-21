@@ -261,32 +261,9 @@ export const PersonPage: React.FC = () => {
                                 || details?.productTitle 
                                 || `Product ${product.rank || index + 1}`;
                             
-                            // Extract image - try multiple possible fields
-                            // Check for image arrays first
-                            let productImage: string | undefined;
-                            
-                            if (productData?.images && Array.isArray(productData.images) && productData.images.length > 0) {
-                                productImage = productData.images[0];
-                            } else if (productData?.data?.images) {
-                                const images = productData.data.images;
-                                productImage = Array.isArray(images) ? images[0] : images;
-                            } else {
-                                // Try single image fields
-                                productImage = productData?.image_url 
-                                    || productData?.imageUrl 
-                                    || productData?.main_image
-                                    || productData?.primary_image
-                                    || productData?.product_image
-                                    || productData?.image
-                                    || details?.imageUrl 
-                                    || details?.image_url;
-                            }
-                            
-                            // Only use fallback if no image found - but log it
-                            if (!productImage) {
-                                console.warn(`⚠️ PersonPage: No image found for ${asin}, using placeholder`);
-                                productImage = getRandomProductImage();
-                            }
+                            // Use Google Cloud Storage URL for AI picks images
+                            // Format: https://storage.googleapis.com/simplysent-product-images/{asin}/t_{asin}_1.png
+                            const productImage = `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
                             
                             // Extract price - prioritize product_price from Firebase
                             let productPrice = 0;
@@ -340,12 +317,17 @@ export const PersonPage: React.FC = () => {
                     } catch (firebaseError) {
                         console.error("❌ PersonPage: Firebase error, using placeholder data:", firebaseError);
                         // Fallback to placeholder data if Firebase fails
-                        const transformedProducts: Product[] = data.products.map((product, index) => ({
-                            id: product.asin || `ai-${index + 1}`,
-                            image: getRandomProductImage(),
-                            name: `Product ${product.rank || index + 1}`,
-                            price: 0,
-                        }));
+                        const transformedProducts: Product[] = data.products.map((product, index) => {
+                            const asin = product.asin || `ai-${index + 1}`;
+                            // Use Google Cloud Storage URL for AI picks images
+                            const productImage = `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
+                            return {
+                                id: asin,
+                                image: productImage,
+                                name: `Product ${product.rank || index + 1}`,
+                                price: 0,
+                            };
+                        });
                         setAiPicks(transformedProducts);
                     }
                 } else {
