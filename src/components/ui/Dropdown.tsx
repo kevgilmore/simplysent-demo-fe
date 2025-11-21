@@ -32,11 +32,24 @@ export const Dropdown: React.FC<DropdownProps> = ({
     // Calculate menu position when opening
     useEffect(() => {
         if (isOpen && buttonRef.current) {
-            const rect = buttonRef.current.getBoundingClientRect();
-            setMenuPosition({
-                top: rect.bottom + window.scrollY + 8,
-                left: rect.left + window.scrollX,
-                width: rect.width,
+            // Use requestAnimationFrame to ensure layout is stable, especially on mobile
+            const updatePosition = () => {
+                if (buttonRef.current) {
+                    const rect = buttonRef.current.getBoundingClientRect();
+                    // Use button's exact position - getBoundingClientRect gives viewport coordinates
+                    // which work perfectly with fixed positioning
+                    // Subtract 2px to account for border alignment and move menu left to match input
+                    setMenuPosition({
+                        top: Math.round(rect.bottom) + 8,
+                        left: Math.round(rect.left) - 2,
+                        width: Math.round(rect.width),
+                    });
+                }
+            };
+            
+            // Double RAF for mobile to ensure layout is fully stable
+            requestAnimationFrame(() => {
+                requestAnimationFrame(updatePosition);
             });
         } else {
             setMenuPosition(null);
@@ -144,8 +157,10 @@ export const Dropdown: React.FC<DropdownProps> = ({
                             maxHeight: '280px',
                             overflowY: 'auto',
                             WebkitOverflowScrolling: 'touch',
+                            transform: 'translateZ(0)', // Force hardware acceleration and prevent subpixel rendering issues
                         }}
                         onClick={(e) => e.stopPropagation()}
+                        onMouseDown={(e) => e.stopPropagation()}
                     >
                         {options.map((option) => (
                             <button

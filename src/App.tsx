@@ -92,7 +92,7 @@ function AppShell() {
     console.log("Current route:", location.pathname);
 
     // Check if current route is a carousel page that needs full width
-    const isCarouselPage = location.pathname === "/recommendations";
+    const isCarouselPage = location.pathname === "/recommendations" || location.pathname === "/";
     // Check if current route is a product page that needs full width purple background
     const isProductPage = location.pathname.startsWith("/product/");
 
@@ -145,7 +145,7 @@ const router = createBrowserRouter([
         path: "/",
         element: <AppShell />,
         children: [
-            { index: true, element: <IntroPage /> },
+            { index: true, element: <PersonPage /> },
             { path: "results", element: <RecommenderForm /> },
             { path: "about-us", element: <AboutUsPage /> },
             { path: "privacy-policy", element: <PrivacyPolicyPage /> },
@@ -153,7 +153,7 @@ const router = createBrowserRouter([
             { path: "app-release-blog", element: <BlogPost1 /> },
             { path: "fathers-day-guide", element: <BlogPost2 /> },
             { path: "budget-gifts-guide", element: <BlogPost3 /> },
-            { path: "components", element: <UIKitPage /> },
+            { path: "ui", element: <UIKitPage /> },
             { path: "error", element: <ErrorPage /> },
             { path: "recommendations", element: <PersonPage /> },
             { path: "product/:productId", element: <ProductPage /> },

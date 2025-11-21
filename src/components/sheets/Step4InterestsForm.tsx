@@ -19,9 +19,9 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
     };
 
     return (
-        <div className="flex flex-col py-4" style={{ height: "580px" }}>
-            <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ overflowX: 'visible' }}>
-                <div className="text-left mb-2">
+        <div className="flex flex-col py-4" style={{ height: "calc(90vh - 100px)", minHeight: "650px", maxHeight: "800px" }}>
+            <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ overflowX: 'visible', minHeight: 0 }}>
+                <div className="text-left mb-3">
                     <p className="text-gray-700 text-base font-semibold">
                         What do they enjoy in their spare time?
                     </p>
@@ -35,7 +35,7 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
                 />
             </div>
 
-            <div className="flex flex-col gap-3 flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible", padding: "0 4px" }}>
+            <div className="flex flex-col gap-3 flex-shrink-0 mt-4 pb-3" style={{ overflow: "visible", padding: "0 4px" }}>
                 <Button
                     fullWidth
                     size="large"

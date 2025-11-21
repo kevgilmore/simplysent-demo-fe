@@ -72,7 +72,7 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
                     disabled={isLoading || isSuccess}
                     className={
                         isSuccess
-                            ? "!bg-gradient-to-r !from-emerald-500 !via-green-500 !to-teal-500 !animate-none"
+                            ? "!bg-gradient-to-r !from-[#4A4490] !via-[#5E57AC] !to-[#7C6FBE] !bg-[length:200%_auto] !animate-gradient-slide"
                             : ""
                     }
                 >

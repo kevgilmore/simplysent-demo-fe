@@ -23,18 +23,33 @@ if (isBrowser) {
   // Check URL parameter ?dev=1
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('dev') === '1') {
+    const wasDevModeEnabled = localStorage.getItem(DEV_MODE_KEY) === 'true';
     localStorage.setItem(DEV_MODE_KEY, 'true');
     // Also enable sandbox mode (dev sandbox) so API calls work
     // This allows ?dev=1 to work in production by using sandbox API mode
     if (!getPersistedMode()) {
       localStorage.setItem(STORAGE_KEY, 'sandbox');
     }
+    // When dev mode is first activated, enable sandbox with mock recs as default
+    if (!wasDevModeEnabled) {
+      localStorage.setItem(SANDBOX_HEADER_KEY, 'true');
+      localStorage.setItem(MOCK_RECOMMENDATIONS_KEY, 'true');
+    }
   }
   
   // Expose console command: dev=1
   (window as any).dev = (value: string | number) => {
     if (value === '1' || value === 1) {
+      const wasDevModeEnabled = localStorage.getItem(DEV_MODE_KEY) === 'true';
       localStorage.setItem(DEV_MODE_KEY, 'true');
+      // When dev mode is first activated, enable sandbox with mock recs as default
+      if (!wasDevModeEnabled) {
+        if (!getPersistedMode()) {
+          localStorage.setItem(STORAGE_KEY, 'sandbox');
+        }
+        localStorage.setItem(SANDBOX_HEADER_KEY, 'true');
+        localStorage.setItem(MOCK_RECOMMENDATIONS_KEY, 'true');
+      }
       console.log('✅ Dev mode enabled');
       window.location.reload();
     } else {

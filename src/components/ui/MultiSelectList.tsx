@@ -31,7 +31,7 @@ export const MultiSelectList: React.FC<MultiSelectListProps> = ({
                     {label}
                 </label>
             )}
-            <div className="flex flex-col gap-3 pb-1">
+            <div className="flex flex-col gap-2.5 pb-1">
                 {options.map((option) => {
                     const isSelected = selectedValues.includes(option.value);
                     return (

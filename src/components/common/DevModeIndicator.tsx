@@ -59,12 +59,12 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
 
   const getModeInfo = () => {
     if (localModeEnabled) {
-      return { color: 'bg-yellow-500', text: 'dev' };
+      return { color: 'bg-yellow-500', text: 'Dev' };
     }
     if (sandboxHeaderEnabled) {
-      return { color: 'bg-green-500', text: 'dev' };
+      return { color: 'bg-green-500', text: 'Dev' };
     }
-    return { color: 'bg-red-500', text: 'prod' };
+    return { color: 'bg-red-500', text: 'Prod' };
   };
 
   const modeInfo = getModeInfo();

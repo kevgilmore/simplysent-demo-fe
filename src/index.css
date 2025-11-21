@@ -221,6 +221,20 @@ body.sheet-open::after {
     }
 }
 
+/* Reversed gradient slide animation */
+@keyframes gradient-slide-reverse {
+    0% {
+        background-position: 200% center;
+    }
+    100% {
+        background-position: 0% center;
+    }
+}
+
+.animate-gradient-slide-reverse {
+    animation: gradient-slide-reverse 4s ease-in-out infinite;
+}
+
 @keyframes scale-up {
     0% {
         transform: scale(0.9);
