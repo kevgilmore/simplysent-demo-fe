@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   isDevModeEnabled, 
   isLocalModeEnabled, 
@@ -59,15 +59,23 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
 
   const getModeInfo = () => {
     if (localModeEnabled) {
-      return { color: 'bg-yellow-500', text: 'Local' };
+      return { color: 'bg-yellow-500', text: 'dev' };
     }
     if (sandboxHeaderEnabled) {
-      return { color: 'bg-green-500', text: 'Sandbox' };
+      return { color: 'bg-green-500', text: 'dev' };
     }
-    return { color: 'bg-red-500', text: 'Prod' };
+    return { color: 'bg-red-500', text: 'prod' };
   };
 
   const modeInfo = getModeInfo();
+
+  const handleClearLocalStorage = () => {
+    if (confirm('Are you sure you want to clear all local storage? This will reset all settings.')) {
+      localStorage.clear();
+      setIsOpen(false);
+      window.location.reload();
+    }
+  };
 
   const handleLocalSelect = () => {
     setLocalMode(true);
@@ -149,6 +157,13 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
                 </div>
               </div>
             </label>
+            <div className="border-t border-gray-200 my-1"></div>
+            <button
+              onClick={handleClearLocalStorage}
+              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center justify-between"
+            >
+              <span>Clear Local Storage</span>
+            </button>
           </div>
         </div>
       )}

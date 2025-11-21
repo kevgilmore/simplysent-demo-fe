@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
     type = "button",
 }) => {
     const baseStyles =
-        "font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative";
+        "font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative";
 
     const variantStyles = {
         primary:

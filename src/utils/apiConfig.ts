@@ -11,6 +11,8 @@ const MOCK_RECOMMENDATIONS_KEY = 'ss_mock_recommendations'; // 'true' | 'false' 
 
 // Import tracking utilities for anon ID
 import { getOrCreateAnonId } from './tracking';
+// Import toast service for error notifications
+import { showApiError } from '../services/toastService';
 
 type ApiMode = 'sandbox-local' | 'sandbox' | 'prod' | 'training';
 
@@ -390,6 +392,11 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
           const endpoint = urlString.replace(DEV_BASE, '').replace(PROD_BASE, '') || '/';
           const requestIdFromHeader = res.headers.get('X-Request-Id') || requestId;
           
+          // Show toast notification for failed API calls when dev mode is enabled
+          if (devModeEnabled && isOurApi) {
+            showApiError(endpoint, `${res.status} ${res.statusText}`, res.status);
+          }
+          
           const error = new Error(`API Error: ${res.status} ${res.statusText}`) as ApiError;
           error.apiMetadata = {
             endpoint,
@@ -421,6 +428,11 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
         // For network errors, create ApiError with available metadata
         const method = init?.method || 'GET';
         const endpoint = urlString.replace(DEV_BASE, '').replace(PROD_BASE, '') || '/';
+        
+        // Show toast notification for network errors when dev mode is enabled
+        if (devModeEnabled && isOurApi) {
+          showApiError(endpoint, err?.message || 'Network error', 0);
+        }
         
         const error = new Error(`Network Error: ${err?.message || 'Unknown network error'}`) as ApiError;
         error.apiMetadata = {

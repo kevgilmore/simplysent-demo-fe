@@ -21,29 +21,33 @@ export const Step3StyleForm: React.FC<Step3StyleFormProps> = ({
 
     return (
         <div className="flex flex-col py-4" style={{ height: "580px" }}>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto" style={{ overflowX: 'visible' }}>
                 <div className="text-left mb-8">
                     <p className="text-gray-700 text-base font-semibold">
                         We'll tailor some gift picks to their vibe and taste.
                     </p>
                 </div>
 
-                <div className="flex flex-col gap-6">
-                    <Dropdown
-                        label="Clothing Size"
-                        placeholder="Select size"
-                        value={clothingSize}
-                        options={clothingSizeOptions}
-                        onChange={setClothingSize}
-                    />
+                <div className="flex flex-col gap-6" style={{ position: 'relative', zIndex: 1 }}>
+                    <div style={{ position: 'relative', zIndex: 10 }}>
+                        <Dropdown
+                            label="Clothing Size"
+                            placeholder="Select size"
+                            value={clothingSize}
+                            options={clothingSizeOptions}
+                            onChange={setClothingSize}
+                        />
+                    </div>
 
-                    <Dropdown
-                        label="Favourite Drink"
-                        placeholder="Select drink"
-                        value={favouriteDrink}
-                        options={favouriteDrinkOptions}
-                        onChange={setFavouriteDrink}
-                    />
+                    <div style={{ position: 'relative', zIndex: 10 }}>
+                        <Dropdown
+                            label="Favourite Drink"
+                            placeholder="Select drink"
+                            value={favouriteDrink}
+                            options={favouriteDrinkOptions}
+                            onChange={setFavouriteDrink}
+                        />
+                    </div>
                 </div>
             </div>
 

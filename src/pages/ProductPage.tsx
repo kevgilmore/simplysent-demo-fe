@@ -634,14 +634,15 @@ export const ProductPage: React.FC = () => {
                                     />
                                 </button>
 
-                                {/* Add to cart button */}
+                                {/* Open on Amazon button */}
                                 <button
                                     onClick={() =>
-                                        alert("Add to cart (Demo feature)")
+                                        alert("Open on Amazon (Demo feature)")
                                     }
-                                    className="bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] active:shadow-[0_8px_30px_rgba(0,0,0,0.2)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95 w-full md:flex-1"
+                                    className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 text-gray-900 hover:from-yellow-500 hover:via-yellow-600 hover:to-amber-600 active:opacity-95 focus:ring-yellow-400/30 shadow-[0_8px_30px_rgba(251,191,36,0.3)] hover:shadow-[0_8px_30px_rgba(251,191,36,0.4)] active:shadow-[0_8px_30px_rgba(251,191,36,0.3)] font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95 w-full md:flex-1 flex items-center justify-center gap-2"
                                 >
-                                    Add to cart
+                                    <ExternalLink size={20} />
+                                    Open on Amazon
                                 </button>
                             </div>
                         </div>
@@ -806,14 +807,15 @@ export const ProductPage: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Add to cart button */}
+                    {/* Open on Amazon button */}
                     <button
                         onClick={() =>
-                            alert("Add to cart (Demo feature)")
+                            alert("Open on Amazon (Demo feature)")
                         }
-                        className="w-[95%] mx-auto block bg-[#5E57AC] text-white hover:bg-[#4e47a0] active:bg-[#463f8f] active:opacity-95 focus:ring-[#5E57AC]/30 shadow-[0_8px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] active:shadow-[0_8px_30px_rgba(0,0,0,0.2)] font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95"
+                        className="w-[95%] mx-auto block bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500 text-gray-900 hover:from-yellow-500 hover:via-yellow-600 hover:to-amber-600 active:opacity-95 focus:ring-yellow-400/30 shadow-[0_8px_30px_rgba(251,191,36,0.3)] hover:shadow-[0_8px_30px_rgba(251,191,36,0.4)] active:shadow-[0_8px_30px_rgba(251,191,36,0.3)] font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-4 px-9 py-4 text-lg hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                     >
-                        Add to cart
+                        <ExternalLink size={20} />
+                        Open on Amazon
                     </button>
 
                 </div>

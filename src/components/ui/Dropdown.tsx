@@ -85,7 +85,19 @@ export const Dropdown: React.FC<DropdownProps> = ({
                 </button>
 
                 {isOpen && !disabled && (
-                    <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-3xl shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+                    <div 
+                        className="absolute z-[9999] w-full mt-2 bg-white border-2 border-gray-200 rounded-3xl shadow-lg overflow-hidden"
+                        style={{
+                            maxHeight: '280px',
+                            overflowY: 'auto',
+                            WebkitOverflowScrolling: 'touch',
+                            // Ensure dropdown appears above sheet content
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                        }}
+                    >
                         {options.map((option) => (
                             <button
                                 key={option.value}

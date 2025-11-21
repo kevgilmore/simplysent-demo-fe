@@ -20,20 +20,22 @@ export const Step5VibeForm: React.FC<Step5VibeFormProps> = ({
 
     return (
         <div className="flex flex-col py-4" style={{ height: "580px" }}>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto" style={{ overflowX: 'visible' }}>
                 <div className="text-left mb-8">
                     <p className="text-gray-700 text-base font-semibold">
                         What kind of reaction do you want to get?
                     </p>
                 </div>
 
-                <Dropdown
-                    label="Sentiment"
-                    placeholder="Select vibe"
-                    value={sentiment}
-                    options={sentimentOptions}
-                    onChange={setSentiment}
-                />
+                <div style={{ position: 'relative', zIndex: 10 }}>
+                    <Dropdown
+                        label="Sentiment"
+                        placeholder="Select vibe"
+                        value={sentiment}
+                        options={sentimentOptions}
+                        onChange={setSentiment}
+                    />
+                </div>
             </div>
 
             <div className="flex flex-col gap-3 flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible" }}>
