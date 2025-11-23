@@ -9,8 +9,8 @@ const SANDBOX_HEADER_KEY = 'ss_sandbox_header'; // 'true' | 'false' - whether to
 const LOCAL_MODE_KEY = 'ss_local_mode'; // 'true' | 'false' - whether to use local API + X-Sandbox header
 const MOCK_RECOMMENDATIONS_KEY = 'ss_mock_recommendations'; // 'true' | 'false' - whether to send X-Mock-Recommendations header (only for /recommend)
 
-// Import tracking utilities for anon ID
-import { getOrCreateAnonId } from './tracking';
+// Import tracking utilities for anon ID and session ID
+import { getOrCreateAnonId, getOrCreateSessionId } from './tracking';
 // Import toast service for error notifications
 import { showApiError } from '../services/toastService';
 
@@ -389,6 +389,11 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
     // Inject mock recommendations header for /recommend endpoint if enabled
     if (isMockRecommendationsEnabled() && /\/recommend(\b|\?|$)/.test(urlString)) {
       headers.set('X-Mock-Recommendations', 'true');
+    }
+    
+    // Inject X-Session-Id header for /recommend endpoint (required by API)
+    if (/\/recommend(\b|\?|$)/.test(urlString)) {
+      headers.set('X-Session-Id', getOrCreateSessionId());
     }
     
     const startTime = Date.now();

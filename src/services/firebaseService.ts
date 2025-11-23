@@ -116,8 +116,8 @@ export const getProductByAsin = async (asin: string): Promise<ProductDetails | n
     const db = getProductCatalogFirestore();
     const { doc, getDoc } = await import('firebase/firestore');
     
-    // Reference to the document in 'poc' collection with ASIN as document ID
-    const productRef = doc(db, 'poc', asin);
+    // Reference to the document in 'amazon' collection with ASIN as document ID
+    const productRef = doc(db, 'amazon', asin);
     const productSnap = await getDoc(productRef);
     
     if (productSnap.exists()) {
@@ -161,7 +161,7 @@ export const getProductsByAsins = async (asins: string[]): Promise<(ProductDetai
       // Query products where ASIN is in the batch
       // Note: Using 'in' operator - if ASIN is stored as a field in documents
       const q = query(
-        collection(db, 'poc'),
+        collection(db, 'amazon'),
         where('asin', 'in', batch)
       );
       
@@ -203,11 +203,11 @@ export const getProductsByDocumentIds = async (asins: string[]): Promise<(Produc
     
     const { doc, getDoc } = await import('firebase/firestore');
     
-    console.log(`🔥 Firebase: Fetching ${asins.length} products from collection 'poc'`);
+    console.log(`🔥 Firebase: Fetching ${asins.length} products from collection 'amazon'`);
     
     const promises = asins.map(async (asin) => {
       try {
-        const productRef = doc(db, 'poc', asin);
+        const productRef = doc(db, 'amazon', asin);
         console.log(`🔥 Firebase: Fetching document for ASIN: ${asin}`);
         const productSnap = await getDoc(productRef);
         
@@ -327,7 +327,7 @@ export const getProductsByDocumentIds = async (asins: string[]): Promise<(Produc
             ...productData,
           } as ProductDetails;
         } else {
-          console.warn(`⚠️ Firebase: Product ${asin} not found in collection 'poc'`);
+          console.warn(`⚠️ Firebase: Product ${asin} not found in collection 'amazon'`);
         }
         
         return null;

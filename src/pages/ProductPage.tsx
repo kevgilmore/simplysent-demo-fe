@@ -491,14 +491,30 @@ export const ProductPage: React.FC = () => {
                     || firebaseProduct.product_num_ratings
                     || 0;
                 
-                // Use Google Cloud Storage URL for images
+                // Use Google Cloud Storage URL for images, with Firebase fallback
                 // Format: https://storage.googleapis.com/simplysent-product-images/{asin}/t_{asin}_1.png
-                const baseImageUrl = `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_1.png`;
-                const secondImageUrl = `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_2.png`;
-                const thirdImageUrl = `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_3.png`;
+                // Fallback to Firebase product_photos if GCP images not available
+                const firebaseProductPhotos = productData?.product_photos 
+                    || productData?.data?.product_photos
+                    || firebaseProduct?.product_photos
+                    || firebaseProduct?.imageUrl
+                    || (firebaseProduct?.image_url ? [firebaseProduct.image_url] : null);
+                
+                const getImageUrl = (imageNumber: number): string => {
+                    // If Firebase has product_photos array, use it
+                    if (Array.isArray(firebaseProductPhotos) && firebaseProductPhotos.length >= imageNumber) {
+                        return firebaseProductPhotos[imageNumber - 1];
+                    }
+                    // Fallback to GCP URL
+                    return `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_${imageNumber}.png`;
+                };
+                
+                const baseImageUrl = getImageUrl(1);
+                const secondImageUrl = getImageUrl(2);
+                const thirdImageUrl = getImageUrl(3);
                 
                 // Use first 3 images
-                const productImages = [baseImageUrl, secondImageUrl, thirdImageUrl];
+                const productImages = [baseImageUrl, secondImageUrl, thirdImageUrl].filter(Boolean);
                 
                 // Transform to ProductDetail format
                 const transformedProduct: ProductDetail = {

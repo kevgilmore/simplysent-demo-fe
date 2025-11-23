@@ -325,19 +325,18 @@ const AddPersonForm: React.FC<{
                 : ["General"];
             
             const requestData = {
-                session_id: getOrCreateSessionId(),
                 context: {
                     name: finalData.name || "Friend",
-                    relationship: (finalData.relationship || "friend").toLowerCase(),
-                    occasion: "birthday", // Default to birthday
+                    relationship: finalData.relationship ? finalData.relationship.charAt(0).toUpperCase() + finalData.relationship.slice(1).toLowerCase() : "Friend",
                     gender: (finalData.gender || "male").toLowerCase(),
                     dob: dob,
                     interests: interests,
-                    favourite_drink: (finalData.favouriteDrink || "beer").toLowerCase(),
-                    size: normalizeSize(finalData.clothingSize || "medium"),
-                    sentiment: "happy", // Default to happy
                     budget_min: finalData.minBudget || 10,
                     budget_max: finalData.maxBudget || 110,
+                    other: {
+                        clothing_size: normalizeSize(finalData.clothingSize || "medium"),
+                        favourite_drink: (finalData.favouriteDrink || "beer").toLowerCase(),
+                    },
                 },
             };
             

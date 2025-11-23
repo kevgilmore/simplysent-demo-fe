@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, { useMemo, useState, useRef, useEffect, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -11,6 +11,7 @@ import {
     faHeart,
     faShareNodes,
     faSliders,
+    faRotateRight,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
@@ -69,6 +70,14 @@ export const PersonPage: React.FC = () => {
     const [aiPicks, setAiPicks] = useState<Product[]>([]);
     const [isLoadingAiPicks, setIsLoadingAiPicks] = useState(true);
     const [aiPicksError, setAiPicksError] = useState<string | null>(null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    
+    const CACHE_KEY = 'person_page_ai_picks_cache';
+    const SCROLL_POSITION_KEY = 'person_page_carousel_scroll';
+    const NAVIGATION_FLAG_KEY = 'person_page_navigated_from_product';
+    const aiPicksCarouselRef = useRef<HTMLDivElement>(null);
+    const hasRestoredScroll = useRef(false);
+    const isUsingCache = useRef(false);
 
     const interestOptions = [
         "Tech",
@@ -94,6 +103,42 @@ export const PersonPage: React.FC = () => {
     
     // Fetch AI picks from API on component mount
     useEffect(() => {
+        // Check if this is a page refresh (no navigation flag) - clear scroll position
+        const navigatedFromProduct = sessionStorage.getItem(NAVIGATION_FLAG_KEY) === 'true';
+        if (!navigatedFromProduct) {
+            // Page refresh - clear scroll position
+            try {
+                localStorage.removeItem(SCROLL_POSITION_KEY);
+            } catch (error) {
+                // Ignore errors
+            }
+        }
+        
+        // Check cache synchronously first - if cache exists, use it immediately and skip API call
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                const cachedData = JSON.parse(cached);
+                // Check if cache is less than 1 hour old (optional: you can adjust this)
+                const cacheAge = Date.now() - (cachedData.timestamp || 0);
+                const oneHour = 60 * 60 * 1000;
+                if (cacheAge < oneHour && cachedData.products && cachedData.products.length > 0) {
+                    console.log("📦 PersonPage: Using cached recommendations (navigating back from ProductPage)");
+                    isUsingCache.current = true;
+                    setAiPicks(cachedData.products);
+                    setIsLoadingAiPicks(false);
+                    setAiPicksError(null);
+                    return; // Exit early, don't make API call
+                }
+            }
+        } catch (error) {
+            console.warn("⚠️ PersonPage: Error reading cache, fetching fresh data:", error);
+        }
+        
+        // If we get here, it's a fresh fetch (not using cache)
+        isUsingCache.current = false;
+        
+        // Only proceed with API call if cache doesn't exist or is expired
         const fetchAiPicks = async () => {
             setIsLoadingAiPicks(true);
             setAiPicksError(null);
@@ -145,16 +190,16 @@ export const PersonPage: React.FC = () => {
                 if (devModeEnabled) {
                     // Use default values for dev mode
                     formData = {
-                        personAge: "30",
+                        personAge: "55",
                         gender: "male",
-                        relationship: "friend",
+                        relationship: "father",
                         occasion: "birthday",
-                        sentiment: "happy",
-                        interests: ["Tech"], // Must have at least 1 interest
-                        favoritedrink: "beer",
-                        clothesSize: "medium",
+                        sentiment: "practical",
+                        interests: ["tech gadgets"], // Must have at least 1 interest
+                        favoritedrink: "coffee",
+                        clothesSize: "large",
                         minBudget: 10,
-                        maxBudget: 110,
+                        maxBudget: 50,
                         name: "Kevin", // Add name for new API
                     };
                 } else {
@@ -183,19 +228,18 @@ export const PersonPage: React.FC = () => {
                 const dob = ageToDob(age);
                 
                 const requestData = {
-                    session_id: getOrCreateSessionId(),
                     context: {
                         name: formData.name || "Friend",
-                        relationship: (formData.relationship || "friend").toLowerCase(),
-                        occasion: (formData.occasion || "birthday").toLowerCase(),
+                        relationship: formData.relationship ? formData.relationship.charAt(0).toUpperCase() + formData.relationship.slice(1).toLowerCase() : "Friend",
                         gender: (formData.gender || "male").toLowerCase(),
                         dob: dob,
                         interests: interests,
-                        favourite_drink: (formData.favoritedrink || "beer").toLowerCase(),
-                        size: normalizeSize(formData.clothesSize || "medium"),
-                        sentiment: (formData.sentiment || "happy").toLowerCase(),
                         budget_min: formData.minBudget || 10,
-                        budget_max: formData.maxBudget || 110,
+                        budget_max: formData.maxBudget || 50,
+                        other: {
+                            clothing_size: normalizeSize(formData.clothesSize || "medium"),
+                            favourite_drink: (formData.favoritedrink || "beer").toLowerCase(),
+                        },
                     },
                 };
                 
@@ -261,9 +305,20 @@ export const PersonPage: React.FC = () => {
                                 || details?.productTitle 
                                 || `Product ${product.rank || index + 1}`;
                             
-                            // Use Google Cloud Storage URL for AI picks images
+                            // Use Google Cloud Storage URL for AI picks images, with Firebase fallback
                             // Format: https://storage.googleapis.com/simplysent-product-images/{asin}/t_{asin}_1.png
-                            const productImage = `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
+                            // Fallback to Firebase product_photos if GCP image not available
+                            const firebaseProductPhotos = productData?.product_photos 
+                                || productData?.data?.product_photos
+                                || details?.product_photos
+                                || details?.imageUrl;
+                            const productImage = firebaseProductPhotos && (
+                                Array.isArray(firebaseProductPhotos) && firebaseProductPhotos.length > 0
+                                    ? firebaseProductPhotos[0]
+                                    : typeof firebaseProductPhotos === 'string' 
+                                        ? firebaseProductPhotos 
+                                        : null
+                            ) || `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
                             
                             // Extract price - prioritize product_price from Firebase
                             let productPrice = 0;
@@ -314,6 +369,18 @@ export const PersonPage: React.FC = () => {
                         
                         console.log("✅ PersonPage: Transformed products:", transformedProducts);
                         setAiPicks(transformedProducts);
+                        
+                        // Save to cache
+                        try {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                                products: transformedProducts,
+                                timestamp: Date.now(),
+                                recommendationId: data.recommendation_id,
+                            }));
+                            console.log("💾 PersonPage: Saved recommendations to cache");
+                        } catch (error) {
+                            console.warn("⚠️ PersonPage: Error saving to cache:", error);
+                        }
                     } catch (firebaseError) {
                         console.error("❌ PersonPage: Firebase error, using placeholder data:", firebaseError);
                         // Fallback to placeholder data if Firebase fails
@@ -340,11 +407,256 @@ export const PersonPage: React.FC = () => {
                 setAiPicks([]);
             } finally {
                 setIsLoadingAiPicks(false);
+                setIsRefreshing(false);
+            }
+        };
+        
+        // Only fetch if we didn't use cache
+        fetchAiPicks();
+    }, []);
+    
+    // Handle refresh button click
+    const handleRefresh = () => {
+        setIsRefreshing(true);
+        // Clear cache and fetch fresh data
+        try {
+            localStorage.removeItem(CACHE_KEY);
+        } catch (error) {
+            console.warn("⚠️ PersonPage: Error clearing cache:", error);
+        }
+        
+        // Re-run fetch with force refresh
+        const fetchAiPicks = async () => {
+            setIsLoadingAiPicks(true);
+            setAiPicksError(null);
+            
+            // Check if dev mode is enabled
+            const devModeEnabled = isAnyDevModeEnabled();
+            
+            // If not in dev mode, require form data from history
+            if (!devModeEnabled) {
+                const history = getRecommendationHistory();
+                if (history.length === 0) {
+                    setIsLoadingAiPicks(false);
+                    setAiPicksError("Please fill out the onboarding form or add a person to get recommendations.");
+                    setAiPicks([]);
+                    setIsRefreshing(false);
+                    return;
+                }
+            }
+            
+            try {
+                let formData: any = null;
+                
+                // Helper function to convert age to DOB (DD/MM/YYYY format)
+                const ageToDob = (age: number): string => {
+                    const today = new Date();
+                    const birthYear = today.getFullYear() - age;
+                    return `15/03/${birthYear}`;
+                };
+                
+                // Helper function to normalize size to enum format
+                const normalizeSize = (size: string): string => {
+                    const sizeMap: Record<string, string> = {
+                        'small': 'S', 'medium': 'M', 'large': 'L',
+                        'xlarge': 'XL', 'xxlarge': 'XXL',
+                        's': 'S', 'm': 'M', 'l': 'L', 'xl': 'XL', 'xxl': 'XXL',
+                    };
+                    const normalized = size.toLowerCase().trim();
+                    return sizeMap[normalized] || 'M';
+                };
+                
+                // In dev mode, use defaults. Otherwise, try to get from history
+                if (devModeEnabled) {
+                    formData = {
+                        personAge: "55",
+                        gender: "male",
+                        relationship: "father",
+                        occasion: "birthday",
+                        sentiment: "practical",
+                        interests: ["tech gadgets"],
+                        favoritedrink: "coffee",
+                        clothesSize: "large",
+                        minBudget: 10,
+                        maxBudget: 50,
+                        name: "Kevin",
+                    };
+                } else {
+                    const history = getRecommendationHistory();
+                    if (history.length > 0) {
+                        const mostRecent = history[0];
+                        if (mostRecent.formData) {
+                            formData = mostRecent.formData;
+                        }
+                    }
+                    
+                    if (!formData) {
+                        throw new Error("No recommendation history found. Please fill out the onboarding form or add a person.");
+                    }
+                }
+                
+                const interests = formData.interests && formData.interests.length > 0 
+                    ? formData.interests 
+                    : ["General"];
+                
+                const age = parseInt(formData.personAge || "30");
+                const dob = ageToDob(age);
+                
+                const requestData = {
+                    context: {
+                        name: formData.name || "Friend",
+                        relationship: formData.relationship ? formData.relationship.charAt(0).toUpperCase() + formData.relationship.slice(1).toLowerCase() : "Friend",
+                        gender: (formData.gender || "male").toLowerCase(),
+                        dob: dob,
+                        interests: interests,
+                        budget_min: formData.minBudget || 10,
+                        budget_max: formData.maxBudget || 50,
+                        other: {
+                            clothing_size: normalizeSize(formData.clothesSize || "medium"),
+                            favourite_drink: (formData.favoritedrink || "beer").toLowerCase(),
+                        },
+                    },
+                };
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const origin = urlParams.get("client_origin");
+                
+                const queryParams = new URLSearchParams();
+                if (origin) {
+                    queryParams.append("client_origin", origin);
+                }
+                
+                const mode = getCurrentMode();
+                const apiUrl = buildApiUrl("/recommend", queryParams);
+                const headers = getApiHeaders(mode || undefined);
+                
+                const response = await apiFetch(
+                    apiUrl,
+                    {
+                        method: "POST",
+                        headers,
+                        body: JSON.stringify(requestData),
+                    },
+                    "POST /recommend",
+                );
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data: ApiResponse = await response.json();
+                
+                if (data.products && data.products.length > 0) {
+                    const asins = data.products.map(p => p.asin).filter(Boolean);
+                    
+                    if (asins.length === 0) {
+                        throw new Error("No valid ASINs in recommendations");
+                    }
+                    
+                    try {
+                        const productDetails = await getProductsByDocumentIds(asins);
+                        
+                        const transformedProducts: Product[] = data.products.map((product, index) => {
+                            const details = productDetails[index];
+                            const asin = product.asin || `ai-${index + 1}`;
+                            const productData = details?.data || details;
+                            
+                            const productName = productData?.name 
+                                || productData?.product_title 
+                                || productData?.title 
+                                || details?.name 
+                                || details?.productTitle 
+                                || `Product ${product.rank || index + 1}`;
+                            
+                            const firebaseProductPhotos = productData?.product_photos 
+                                || productData?.data?.product_photos
+                                || details?.product_photos
+                                || details?.imageUrl;
+                            const productImage = firebaseProductPhotos && (
+                                Array.isArray(firebaseProductPhotos) && firebaseProductPhotos.length > 0
+                                    ? firebaseProductPhotos[0]
+                                    : typeof firebaseProductPhotos === 'string' 
+                                        ? firebaseProductPhotos 
+                                        : null
+                            ) || `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
+                            
+                            let productPrice = 0;
+                            const priceValue = productData?.product_price 
+                                || productData?.price 
+                                || productData?.price_amount 
+                                || productData?.current_price
+                                || details?.product_price
+                                || details?.price;
+                            
+                            if (priceValue !== undefined && priceValue !== null) {
+                                if (typeof priceValue === 'string') {
+                                    productPrice = parseFloat(priceValue.replace(/[£$€,]/g, '')) || 0;
+                                } else if (typeof priceValue === 'number') {
+                                    productPrice = priceValue;
+                                }
+                            }
+                            
+                            const rating = productData?.product_star_rating 
+                                || productData?.rating
+                                || details?.product_star_rating
+                                || details?.rating;
+                            const numRatings = productData?.product_num_ratings 
+                                || productData?.num_ratings
+                                || details?.product_num_ratings
+                                || details?.num_ratings
+                                || 0;
+                            
+                            return {
+                                id: asin,
+                                image: productImage,
+                                name: productName,
+                                price: productPrice,
+                                rating: rating ? parseFloat(rating.toString()) : undefined,
+                                numRatings: numRatings,
+                            };
+                        });
+                        
+                        setAiPicks(transformedProducts);
+                        
+                        // Save to cache
+                        try {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({
+                                products: transformedProducts,
+                                timestamp: Date.now(),
+                                recommendationId: data.recommendation_id,
+                            }));
+                        } catch (error) {
+                            console.warn("⚠️ PersonPage: Error saving to cache:", error);
+                        }
+                    } catch (firebaseError) {
+                        console.error("❌ PersonPage: Firebase error:", firebaseError);
+                        const transformedProducts: Product[] = data.products.map((product, index) => {
+                            const asin = product.asin || `ai-${index + 1}`;
+                            const productImage = `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
+                            return {
+                                id: asin,
+                                image: productImage,
+                                name: `Product ${product.rank || index + 1}`,
+                                price: 0,
+                            };
+                        });
+                        setAiPicks(transformedProducts);
+                    }
+                } else {
+                    throw new Error("No product recommendations received");
+                }
+            } catch (error) {
+                console.error("Error fetching AI picks:", error);
+                setAiPicksError(error instanceof Error ? error.message : "Failed to load recommendations");
+                setAiPicks([]);
+            } finally {
+                setIsLoadingAiPicks(false);
+                setIsRefreshing(false);
             }
         };
         
         fetchAiPicks();
-    }, []);
+    };
     
     const productsByTab: Record<string, Product[]> = useMemo(
         () => ({
@@ -439,6 +751,29 @@ export const PersonPage: React.FC = () => {
     };
 
     const handleProductClick = (productId: string) => {
+        // Save scroll position before navigating
+        const carouselElement = aiPicksCarouselRef.current || 
+            (document.querySelector('[data-carousel="ai-picks"]') as HTMLDivElement);
+        
+        if (carouselElement) {
+            const scrollPosition = carouselElement.scrollLeft;
+            console.log(`💾 PersonPage: Saving scroll position: ${scrollPosition}`, {
+                element: carouselElement,
+                scrollLeft: carouselElement.scrollLeft,
+                scrollWidth: carouselElement.scrollWidth,
+                clientWidth: carouselElement.clientWidth
+            });
+            try {
+                localStorage.setItem(SCROLL_POSITION_KEY, scrollPosition.toString());
+                // Set flag to indicate we're navigating to ProductPage (not refreshing)
+                sessionStorage.setItem(NAVIGATION_FLAG_KEY, 'true');
+                console.log(`✅ PersonPage: Saved carousel scroll position: ${scrollPosition}`);
+            } catch (error) {
+                console.warn("⚠️ PersonPage: Error saving scroll position:", error);
+            }
+        } else {
+            console.warn("⚠️ PersonPage: Could not find carousel element to save scroll position");
+        }
         navigate(`/product/${productId}`); // Navigate to product page with actual ASIN
     };
 
@@ -498,6 +833,89 @@ export const PersonPage: React.FC = () => {
             });
         }
     }, [allProducts]);
+    
+    // Restore scroll position synchronously before browser paints
+    useLayoutEffect(() => {
+        if (aiPicks.length === 0 || isLoadingAiPicks || hasRestoredScroll.current) return;
+        
+        const navigatedFromProduct = sessionStorage.getItem(NAVIGATION_FLAG_KEY) === 'true';
+        
+        if (!navigatedFromProduct) {
+            // Page refresh - clear scroll position
+            try {
+                localStorage.removeItem(SCROLL_POSITION_KEY);
+                sessionStorage.removeItem(NAVIGATION_FLAG_KEY);
+            } catch (error) {
+                // Ignore errors
+            }
+            hasRestoredScroll.current = false;
+            return;
+        }
+        
+        const carouselElement = aiPicksCarouselRef.current;
+        if (!carouselElement) return;
+        
+        try {
+            const savedScrollPosition = localStorage.getItem(SCROLL_POSITION_KEY);
+            if (savedScrollPosition) {
+                const scrollPosition = parseInt(savedScrollPosition, 10);
+                if (!isNaN(scrollPosition) && scrollPosition > 0) {
+                    // Hide visually but keep layout (allows scroll to work)
+                    const originalVisibility = carouselElement.style.visibility;
+                    const originalOpacity = carouselElement.style.opacity;
+                    carouselElement.style.visibility = 'hidden';
+                    carouselElement.style.opacity = '0';
+                    
+                    // Disable all transitions on carousel and children
+                    const transitionElements = carouselElement.querySelectorAll('*');
+                    const originalTransitions: Array<{ element: HTMLElement; transition: string }> = [];
+                    transitionElements.forEach((el) => {
+                        if (el instanceof HTMLElement) {
+                            originalTransitions.push({
+                                element: el,
+                                transition: el.style.transition
+                            });
+                            el.style.transition = 'none';
+                        }
+                    });
+                    
+                    // Also disable transition on carousel itself
+                    const carouselTransition = carouselElement.style.transition;
+                    carouselElement.style.transition = 'none';
+                    
+                    // Set scroll position synchronously
+                    carouselElement.scrollLeft = scrollPosition;
+                    
+                    // Force reflow to ensure scroll is applied
+                    void carouselElement.offsetHeight;
+                    
+                    // Restore visibility and transitions in next frame
+                    requestAnimationFrame(() => {
+                        carouselElement.style.visibility = originalVisibility || '';
+                        carouselElement.style.opacity = originalOpacity || '';
+                        carouselElement.style.transition = carouselTransition || '';
+                        
+                        originalTransitions.forEach(({ element, transition }) => {
+                            element.style.transition = transition || '';
+                        });
+                        
+                        sessionStorage.removeItem(NAVIGATION_FLAG_KEY);
+                        hasRestoredScroll.current = true;
+                    });
+                }
+            }
+        } catch (error) {
+            console.warn("⚠️ PersonPage: Error restoring scroll:", error);
+        }
+    }, [aiPicks, isLoadingAiPicks]);
+    
+    // Reset scroll restoration flag when products change (new fetch)
+    useEffect(() => {
+        // Only reset if we're not using cache (new fetch happened)
+        if (!isUsingCache.current) {
+            hasRestoredScroll.current = false;
+        }
+    }, [aiPicks.length]);
 
 
     return (
@@ -639,17 +1057,31 @@ export const PersonPage: React.FC = () => {
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                         AI Picks For Kevin
                                     </h2>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsRefineOpen(true)}
-                                        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
-                                        aria-label="Open refine panel"
-                                    >
-                                        <FontAwesomeIcon
-                                            icon={faSliders}
-                                            className="w-5 h-5 text-gray-500"
-                                        />
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleRefresh}
+                                            disabled={isRefreshing || isLoadingAiPicks}
+                                            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            aria-label="Refresh recommendations"
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faRotateRight}
+                                                className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
+                                            />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsRefineOpen(true)}
+                                            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+                                            aria-label="Open refine panel"
+                                        >
+                                            <FontAwesomeIcon
+                                                icon={faSliders}
+                                                className="w-5 h-5 text-gray-500"
+                                            />
+                                        </button>
+                                    </div>
                                 </div>
                                 {isLoadingAiPicks ? (
                                     <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
@@ -735,7 +1167,11 @@ export const PersonPage: React.FC = () => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12 mt-[10px]">
+                                    <div 
+                                        ref={aiPicksCarouselRef}
+                                        data-carousel="ai-picks"
+                                        className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12 mt-[10px]"
+                                    >
                                         <div className="flex gap-4 transition-all duration-700 ease-out">
                                             {productsByTab["ai-picks"]
                                                 ?.filter(

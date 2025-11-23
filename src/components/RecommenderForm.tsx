@@ -493,18 +493,18 @@ export function RecommenderForm() {
     // Fill form and submit (testing) - now uses real API without artificial delay
     const fillFormAndSubmit = async () => {
         const newFormData = {
-            personAge: "65",
-            gender: "male", // Will be auto-set by relationship
+            personAge: "55",
+            gender: "male",
             relationship: "Father",
             occasion: "Birthday",
-            sentiment: "Funny",
-            interests: ["Reading", "Cooking"],
-            favoritedrink: "Beer",
-            clothesSize: "M",
+            sentiment: "Practical",
+            interests: ["tech gadgets"],
+            favoritedrink: "Coffee",
+            clothesSize: "L",
             minBudget: 10,
-            maxBudget: 110,
+            maxBudget: 50,
         };
-        setBudgetRange([10, 110]);
+        setBudgetRange([10, 50]);
         setFormData(newFormData);
         setIsLoading(true);
         try {
@@ -523,19 +523,38 @@ export function RecommenderForm() {
 
                 window.fbq("track", "FormCompletion", eventData);
             }
+            // Convert age to DOB (DD/MM/YYYY format)
+            const ageToDob = (age: number): string => {
+                const today = new Date();
+                const birthYear = today.getFullYear() - age;
+                return `15/03/${birthYear}`;
+            };
+            const dob = ageToDob(parseInt(newFormData.personAge));
+            
+            // Normalize size to enum format
+            const normalizeSize = (size: string): string => {
+                const sizeMap: Record<string, string> = {
+                    'small': 'S', 'medium': 'M', 'large': 'L',
+                    'xlarge': 'XL', 'xxlarge': 'XXL',
+                    's': 'S', 'm': 'M', 'l': 'L', 'xl': 'XL', 'xxl': 'XXL',
+                };
+                const normalized = size.toLowerCase().trim();
+                return sizeMap[normalized] || 'M';
+            };
+            
             const requestData = {
-                session_id: getOrCreateSessionId(),
                 context: {
-                    age: parseInt(newFormData.personAge),
-                    gender: newFormData.gender,
-                    relationship: newFormData.relationship.toLowerCase(),
-                    occasion: newFormData.occasion.toLowerCase(),
-                    sentiment: newFormData.sentiment.toLowerCase(),
+                    name: "Friend",
+                    relationship: newFormData.relationship.charAt(0).toUpperCase() + newFormData.relationship.slice(1).toLowerCase(),
+                    gender: newFormData.gender.toLowerCase(),
+                    dob: dob,
                     interests: newFormData.interests,
-                    favourite_drink: newFormData.favoritedrink.toLowerCase(),
-                    size: newFormData.clothesSize,
                     budget_min: newFormData.minBudget,
                     budget_max: newFormData.maxBudget,
+                    other: {
+                        clothing_size: normalizeSize(newFormData.clothesSize),
+                        favourite_drink: newFormData.favoritedrink.toLowerCase(),
+                    },
                 },
             };
             const urlParams = new URLSearchParams(window.location.search);
@@ -745,19 +764,38 @@ export function RecommenderForm() {
         if (!validateForm()) return;
         setIsLoading(true);
         try {
+            // Convert age to DOB (DD/MM/YYYY format)
+            const ageToDob = (age: number): string => {
+                const today = new Date();
+                const birthYear = today.getFullYear() - age;
+                return `15/03/${birthYear}`;
+            };
+            const dob = ageToDob(parseInt(formData.personAge));
+            
+            // Normalize size to enum format
+            const normalizeSize = (size: string): string => {
+                const sizeMap: Record<string, string> = {
+                    'small': 'S', 'medium': 'M', 'large': 'L',
+                    'xlarge': 'XL', 'xxlarge': 'XXL',
+                    's': 'S', 'm': 'M', 'l': 'L', 'xl': 'XL', 'xxl': 'XXL',
+                };
+                const normalized = size.toLowerCase().trim();
+                return sizeMap[normalized] || 'M';
+            };
+            
             const requestData = {
-                session_id: getOrCreateSessionId(),
                 context: {
-                    age: parseInt(formData.personAge),
-                    gender: formData.gender,
-                    relationship: formData.relationship.toLowerCase(),
-                    occasion: formData.occasion.toLowerCase(),
-                    sentiment: formData.sentiment.toLowerCase(),
+                    name: "Friend",
+                    relationship: formData.relationship ? formData.relationship.charAt(0).toUpperCase() + formData.relationship.slice(1).toLowerCase() : "Friend",
+                    gender: formData.gender.toLowerCase(),
+                    dob: dob,
                     interests: formData.interests,
-                    favourite_drink: formData.favoritedrink.toLowerCase(),
-                    size: formData.clothesSize,
                     budget_min: formData.minBudget,
                     budget_max: formData.maxBudget,
+                    other: {
+                        clothing_size: normalizeSize(formData.clothesSize),
+                        favourite_drink: formData.favoritedrink.toLowerCase(),
+                    },
                 },
             };
             // Track form submission with Meta Pixel

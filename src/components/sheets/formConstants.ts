@@ -64,7 +64,7 @@ export const menInterests = [
     { value: "motorcycle", label: "Motorcycle Riding", emoji: "🏍️" },
     { value: "gaming", label: "PC and Console Gaming", emoji: "🎮" },
     { value: "sci-fi-fantasy", label: "Reading Sci-Fi and Fantasy", emoji: "📚" },
-    { value: "tech-gadgets", label: "Tech Gadgets and Drones", emoji: "📱" },
+    { value: "tech gadgets", label: "Tech Gadgets and Drones", emoji: "📱" },
     { value: "smart-home", label: "Smart Home Automation", emoji: "🏠" },
     { value: "whiskey-beer", label: "Whiskey and Craft Beer", emoji: "🍺" },
     { value: "grilling", label: "Grilling and BBQ", emoji: "🍖" },
