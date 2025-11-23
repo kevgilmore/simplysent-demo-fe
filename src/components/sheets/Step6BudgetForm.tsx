@@ -1,21 +1,21 @@
 import React, { useState } from "react";
 import { Button } from "../ui/Button";
 import { RangeSlider } from "../ui/RangeSlider";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface Step6BudgetFormProps {
     onBack: () => void;
     onNext: (data: { minBudget: number; maxBudget: number }) => void;
+    isSubmitting?: boolean;
 }
 
 export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
     onBack,
     onNext,
+    isSubmitting = false,
 }) => {
-    const [minBudget, setMinBudget] = useState(20);
-    const [maxBudget, setMaxBudget] = useState(100);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
+    const [minBudget, setMinBudget] = useState(50);
+    const [maxBudget, setMaxBudget] = useState(300);
 
     const handleBudgetChange = (min: number, max: number) => {
         setMinBudget(min);
@@ -23,27 +23,18 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
     };
 
     const handleNext = () => {
-        setIsLoading(true);
-        // Simulate API call with delay, then show success animation
-        setTimeout(() => {
-            setIsLoading(false);
-            setIsSuccess(true);
-            // Close sheet after success animation
-            setTimeout(() => {
-                onNext({ minBudget, maxBudget });
-            }, 1000);
-        }, 2000);
+        onNext({ minBudget, maxBudget });
     };
 
     return (
-        <div className="flex flex-col py-4" style={{ height: "580px" }}>
-            <div className="flex-1 overflow-y-auto sheet-scrollable">
-                <div className="text-left mb-8">
-                    <p className="text-gray-700 text-base font-semibold">
-                        Finally, what's your spending range?
-                    </p>
-                </div>
+        <div className="flex flex-col h-full py-4">
+            <div className="text-left mb-3 flex-shrink-0">
+                <p className="text-gray-700 text-base font-semibold">
+                    Step 6
+                </p>
+            </div>
 
+            <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ minHeight: 0 }}>
                 <RangeSlider
                     label="Budget Range"
                     min={10}
@@ -54,13 +45,13 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
                 />
             </div>
 
-            <div className="flex flex-col gap-3 flex-shrink-0 mt-6 pb-3" style={{ overflow: "visible", padding: "0 4px" }}>
+            <div className="flex flex-col gap-3 flex-shrink-0 mt-4 pb-3" style={{ overflow: "visible", padding: "0 4px" }}>
                 <Button
                     fullWidth
                     size="large"
                     variant="secondary"
                     onClick={onBack}
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                 >
                     Back
                 </Button>
@@ -69,22 +60,12 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
                     size="large"
                     variant="cta"
                     onClick={handleNext}
-                    disabled={isLoading || isSuccess}
-                    className={
-                        isSuccess
-                            ? "!bg-gradient-to-r !from-[#4A4490] !via-[#5E57AC] !to-[#7C6FBE] !bg-[length:200%_auto] !animate-gradient-slide"
-                            : ""
-                    }
+                    disabled={isSubmitting}
                 >
-                    {isLoading ? (
+                    {isSubmitting ? (
                         <span className="flex items-center justify-center gap-2">
                             <Loader2 className="animate-spin" size={20} />
                             Finding perfect gifts...
-                        </span>
-                    ) : isSuccess ? (
-                        <span className="flex items-center justify-center gap-2 animate-[scale-up_0.6s_ease-out]">
-                            <Sparkles size={22} className="animate-pulse" />
-                            Perfect! Opening...
                         </span>
                     ) : (
                         "✨ Show Gift Ideas ✨"

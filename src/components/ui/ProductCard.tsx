@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ThumbsDown, ThumbsUp, Star, Heart } from "lucide-react";
 
 interface ProductCardProps {
@@ -52,6 +52,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const handleBadClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        // Can't thumbs down if thumbs up is active - must undo thumbs up first
+        if (isThumbsUp) {
+            return;
+        }
         if (!isBad) {
             setIsRemoving(true);
             setIsThumbsUp(false);
@@ -63,8 +67,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     const handleThumbsUpClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setIsThumbsUp(!isThumbsUp);
+        // Can't thumbs up if thumbs down is active - must undo thumbs down first
         if (isBad) {
+            return;
+        }
+        setIsThumbsUp(!isThumbsUp);
+        // If thumbs up is being activated, ensure thumbs down is off
+        if (!isThumbsUp) {
             setIsBad(false);
             setIsRemoving(false);
         }
@@ -179,37 +188,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     : { aspectRatio: "1 / 1" }
                             }
                         >
+                            <div className="relative w-full h-full flex items-center justify-center">
+                                <div className="relative w-full h-full" style={{ transform: "scale(1.1)" }}>
                             <img
                                 src={image}
                                 alt={name}
-                                className="w-full h-full object-contain scale-110 relative z-10"
-                                style={{ pointerEvents: "none" }}
+                                        className="w-full h-full object-contain relative"
+                                        style={{ pointerEvents: "none", zIndex: 10 }}
                             />
-                            {isAiPick && (
-                                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl z-10">
-                                    <div
-                                        className="absolute inset-0"
-                                        style={{
-                                            maskImage: `url(${image})`,
-                                            WebkitMaskImage: `url(${image})`,
-                                            maskSize: "contain",
-                                            WebkitMaskSize: "contain",
-                                            maskRepeat: "no-repeat",
-                                            WebkitMaskRepeat: "no-repeat",
-                                            maskPosition: "center",
-                                            WebkitMaskPosition: "center",
-                                            background: "linear-gradient(105deg, transparent 0%, transparent 30%, rgba(255, 255, 255, 0.7) 45%, rgba(255, 255, 255, 0.95) 50%, rgba(255, 255, 255, 0.7) 55%, transparent 70%, transparent 100%)",
-                                            backgroundSize: "200% 200%",
-                                            width: "200%",
-                                            height: "200%",
-                                            left: "-50%",
-                                            top: "-50%",
-                                            animation: "shimmer-shine 3s ease-in-out infinite",
-                                            mixBlendMode: "screen",
-                                        }}
-                                    />
                                 </div>
-                            )}
+                            </div>
                         </div>
                     </div>
 
@@ -230,15 +218,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     style={{
                                         background: "radial-gradient(circle at center, rgba(122, 117, 186, 0.25) 0%, rgba(95, 89, 166, 0.15) 40%, rgba(122, 117, 186, 0.08) 70%, transparent 100%)",
                                         animation: "purple-inner-glow 3s ease-in-out infinite",
-                                        zIndex: 1,
-                                    }}
-                                />
-                                {/* Secondary shimmer overlay */}
-                                <div
-                                    className="absolute inset-0 pointer-events-none rounded-3xl"
-                                    style={{
-                                        background: "linear-gradient(135deg, rgba(122, 117, 186, 0.1) 0%, transparent 50%, rgba(95, 89, 166, 0.1) 100%)",
-                                        animation: "purple-shimmer-overlay 4s ease-in-out infinite",
                                         zIndex: 1,
                                     }}
                                 />

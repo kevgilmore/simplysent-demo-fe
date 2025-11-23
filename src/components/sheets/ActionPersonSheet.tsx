@@ -1,12 +1,20 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Sheet, SheetRef } from "react-modal-sheet";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Step1Form } from "./Step1Form";
 import { Step2AboutForm } from "./Step2AboutForm";
-import { Step3StyleForm } from "./Step3StyleForm";
+import { Step3Form } from "./Step3Form";
 import { Step4InterestsForm } from "./Step4InterestsForm";
-import { Step5VibeForm } from "./Step5VibeForm";
+import { Step3StyleForm } from "./Step3StyleForm";
 import { Step6BudgetForm } from "./Step6BudgetForm";
+import {
+    buildApiUrl,
+    apiFetch,
+    getApiHeaders,
+    getCurrentMode,
+} from "../../utils/apiConfig";
+import { getOrCreateSessionId } from "../../utils/tracking";
 
 /**
  * ActionPersonSheet
@@ -142,6 +150,11 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
                             padding: "0 24px 24px 24px",
                             paddingBottom:
                                 "calc(36px + env(safe-area-inset-bottom))",
+                            display: "flex",
+                            flexDirection: "column",
+                            flex: 1,
+                            minHeight: 0,
+                            overflow: "hidden",
                         }}
                     >
                         {children ?? (
@@ -173,57 +186,216 @@ export const ActionPersonSheet: React.FC<ActionPersonSheetProps> = ({
     );
 };
 
+interface ApiResponse {
+    recommendation_id: string;
+    products: Array<{
+        asin: string;
+        rank: number;
+    }>;
+}
+
 // Default form component for Add Person
 const AddPersonForm: React.FC<{
     onClose: () => void;
     onComplete?: () => void;
 }> = ({ onClose, onComplete }) => {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState<{
+        relationship?: string;
+        name?: string;
+        gender?: string;
+        dob?: string;
+        age?: number;
+        ageMonth?: string;
+        ageDay?: string;
+        interests?: string[];
+        clothingSize?: string;
+        favouriteDrink?: string;
+        notes?: string;
+        minBudget?: number;
+        maxBudget?: number;
+    }>({});
 
-    const handleStep1Next = (data: { relationship: string; name: string; occasion: string }) => {
-        console.log("Step 1:", data);
-        setStep(2);
+    const handleStep1Next = (data: { relationship: string }) => {
+        const newData = { ...formData, relationship: data.relationship };
+        // Pre-fill name for Mother/Father
+        if (data.relationship === "mother") {
+            newData.name = "Mum";
+        } else if (data.relationship === "father") {
+            newData.name = "Dad";
+        }
+        setFormData(newData);
+        // Skip step 2 for Mother and Father
+        if (data.relationship === "mother" || data.relationship === "father") {
+            setStep(3);
+        } else {
+            setStep(2);
+        }
     };
 
     const handleStep2Back = () => setStep(1);
-    const handleStep2Next = (data: { age: string; gender: string }) => {
-        console.log("Step 2:", data);
+    const handleStep2Next = (data: { name?: string; gender?: string }) => {
+        setFormData({ ...formData, ...data });
         setStep(3);
     };
 
-    const handleStep3Back = () => setStep(2);
-    const handleStep3Next = (data: {
-        clothingSize: string;
-        favouriteDrink: string;
-    }) => {
-        console.log("Step 3:", data);
+    const handleStep3Back = () => {
+        // If relationship is mother or father, go back to step 1, otherwise step 2
+        if (formData.relationship === "mother" || formData.relationship === "father") {
+            setStep(1);
+        } else {
+            setStep(2);
+        }
+    };
+    const handleStep3Next = (data: { dob?: string; age?: number; ageMonth?: string; ageDay?: string }) => {
+        setFormData({ ...formData, ...data });
         setStep(4);
     };
 
     const handleStep4Back = () => setStep(3);
     const handleStep4Next = (data: { interests: string[] }) => {
-        console.log("Step 4:", data);
+        setFormData({ ...formData, interests: data.interests });
         setStep(5);
     };
 
     const handleStep5Back = () => setStep(4);
-    const handleStep5Next = (data: { sentiment: string }) => {
-        console.log("Step 5:", data);
+    const handleStep5Next = (data: {
+        clothingSize: string;
+        favouriteDrink: string;
+    }) => {
+        setFormData({ ...formData, ...data });
         setStep(6);
     };
 
     const handleStep6Back = () => setStep(5);
-    const handleStep6Next = (data: {
+    const handleStep6Next = async (data: {
         minBudget: number;
         maxBudget: number;
     }) => {
-        console.log("Step 6:", data);
-        console.log("All data collected!");
-        if (onComplete) {
-            onComplete();
-        } else {
+        const finalData = { ...formData, ...data };
+        console.log("All data collected:", finalData);
+        
+        setIsSubmitting(true);
+        
+        try {
+            // Helper function to convert age to DOB (DD/MM/YYYY format)
+            const ageToDob = (age: number): string => {
+                const today = new Date();
+                const birthYear = today.getFullYear() - age;
+                // Use 15th of March as default date
+                return `15/03/${birthYear}`;
+            };
+            
+            // Helper function to normalize size to enum format
+            const normalizeSize = (size: string): string => {
+                const sizeMap: Record<string, string> = {
+                    'xs': 'XS',
+                    'small': 'S',
+                    's': 'S',
+                    'medium': 'M',
+                    'm': 'M',
+                    'large': 'L',
+                    'l': 'L',
+                    'xlarge': 'XL',
+                    'xl': 'XL',
+                    'xxlarge': 'XXL',
+                    'xxl': 'XXL',
+                    'not-sure': 'M',
+                };
+                const normalized = size.toLowerCase().trim();
+                return sizeMap[normalized] || 'M'; // Default to M if not found
+            };
+            
+            // Determine DOB
+            let dob: string;
+            if (finalData.dob) {
+                dob = finalData.dob;
+            } else if (finalData.age !== undefined) {
+                dob = ageToDob(finalData.age);
+            } else {
+                // Default to age 30 if neither provided
+                dob = ageToDob(30);
+            }
+            
+            // Ensure interests has at least 1 item (required by API)
+            const interests = finalData.interests && finalData.interests.length > 0 
+                ? finalData.interests 
+                : ["General"];
+            
+            const requestData = {
+                session_id: getOrCreateSessionId(),
+                context: {
+                    name: finalData.name || "Friend",
+                    relationship: (finalData.relationship || "friend").toLowerCase(),
+                    occasion: "birthday", // Default to birthday
+                    gender: (finalData.gender || "male").toLowerCase(),
+                    dob: dob,
+                    interests: interests,
+                    favourite_drink: (finalData.favouriteDrink || "beer").toLowerCase(),
+                    size: normalizeSize(finalData.clothingSize || "medium"),
+                    sentiment: "happy", // Default to happy
+                    budget_min: finalData.minBudget || 10,
+                    budget_max: finalData.maxBudget || 110,
+                },
+            };
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const origin = urlParams.get("client_origin");
+            
+            const queryParams = new URLSearchParams();
+            if (origin) {
+                queryParams.append("client_origin", origin);
+            }
+            
+            const mode = getCurrentMode();
+            const apiUrl = buildApiUrl("/recommend", queryParams);
+            const headers = getApiHeaders(mode || undefined);
+            console.log("Making API call to:", apiUrl);
+            console.log("Request headers:", headers);
+            console.log("Request body:", requestData);
+            console.log("Mode:", mode);
+            
+            const response = await apiFetch(
+                apiUrl,
+                {
+                    method: "POST",
+                    headers,
+                    body: JSON.stringify(requestData),
+                },
+                "POST /recommend",
+            );
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const apiResponse: ApiResponse = await response.json();
+            console.log("API Response:", apiResponse);
+            
+            // Close the sheet
             onClose();
+            
+            // Navigate to person page or call onComplete
+            if (onComplete) {
+                onComplete();
+            } else {
+                // Navigate to person page - it will fetch recommendations on load
+                navigate("/person");
+            }
+        } catch (error) {
+            console.error("Error calling /recommend:", error);
+            alert("Failed to get recommendations. Please try again.");
+            setIsSubmitting(false);
         }
+    };
+
+    // Get initial name for Step 2 (pre-filled from relationship)
+    const getInitialName = () => {
+        if (formData.relationship === "mother") return "Mum";
+        if (formData.relationship === "father") return "Dad";
+        return formData.name || "";
     };
 
     if (step === 1) {
@@ -232,28 +404,65 @@ const AddPersonForm: React.FC<{
 
     if (step === 2) {
         return (
-            <Step2AboutForm onBack={handleStep2Back} onNext={handleStep2Next} />
+            <Step2AboutForm
+                onBack={handleStep2Back}
+                onNext={handleStep2Next}
+                relationship={formData.relationship}
+                initialName={getInitialName()}
+            />
         );
     }
 
     if (step === 3) {
         return (
-            <Step3StyleForm onBack={handleStep3Back} onNext={handleStep3Next} />
+            <Step3Form onBack={handleStep3Back} onNext={handleStep3Next} />
         );
     }
+
+    // Calculate age from DOB if age is not directly provided
+    const getAgeForInterests = (): number | undefined => {
+        if (formData.age !== undefined) {
+            return formData.age;
+        }
+        if (formData.dob) {
+            // Parse DD/MM/YYYY format
+            const parts = formData.dob.split('/');
+            if (parts.length === 3) {
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1; // Month is 0-indexed
+                const year = parseInt(parts[2]);
+                try {
+                    const birthDate = new Date(year, month, day);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+                    return age >= 0 && age <= 120 ? age : undefined;
+                } catch (e) {
+                    return undefined;
+                }
+            }
+        }
+        return undefined;
+    };
 
     if (step === 4) {
         return (
             <Step4InterestsForm
                 onBack={handleStep4Back}
                 onNext={handleStep4Next}
+                relationship={formData.relationship}
+                age={getAgeForInterests()}
+                gender={formData.gender}
             />
         );
     }
 
     if (step === 5) {
         return (
-            <Step5VibeForm onBack={handleStep5Back} onNext={handleStep5Next} />
+            <Step3StyleForm onBack={handleStep5Back} onNext={handleStep5Next} />
         );
     }
 
@@ -262,6 +471,7 @@ const AddPersonForm: React.FC<{
             <Step6BudgetForm
                 onBack={handleStep6Back}
                 onNext={handleStep6Next}
+                isSubmitting={isSubmitting}
             />
         );
     }

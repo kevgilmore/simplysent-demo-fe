@@ -324,8 +324,8 @@ export const PersonPage: React.FC = () => {
                             return {
                                 id: asin,
                                 image: productImage,
-                                name: `Product ${product.rank || index + 1}`,
-                                price: 0,
+                            name: `Product ${product.rank || index + 1}`,
+                            price: 0,
                             };
                         });
                         setAiPicks(transformedProducts);
@@ -716,9 +716,9 @@ export const PersonPage: React.FC = () => {
                                 ).length === 0 ? (
                                     <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
                                         <div className="text-center px-4">
-                                            {/* Shimmer graphic circle */}
+                                            {/* Empty state graphic circle */}
                                             <div className="relative mx-auto mb-6 w-20 h-20">
-                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 shimmer-placeholder" />
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50" />
                                                 <div className="absolute inset-2 rounded-full bg-white" />
                                                 <div className="absolute inset-0 flex items-center justify-center">
                                                     <svg className="w-8 h-8 text-simplysent-purple" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -940,25 +940,25 @@ export const PersonPage: React.FC = () => {
                                             // Check if product is in aiPicks (has real ASIN)
                                             const isAiPick = aiPicks.some(ap => ap.id === p.id);
                                             return (
-                                                <div key={p.id} className="flex justify-center w-full">
-                                                    <ProductCard
-                                                        id={p.id}
-                                                        image={p.image}
-                                                        name={p.name}
-                                                        price={p.price}
-                                                        rating={p.rating}
-                                                        numRatings={p.numRatings}
-                                                        isFavorite={true}
-                                                        onFavoriteToggle={() =>
-                                                            toggleFavourite(p.id)
-                                                        }
-                                                        hideActions={true}
-                                                        favouritesVariant={true}
+                                            <div key={p.id} className="flex justify-center w-full">
+                                                <ProductCard
+                                                    id={p.id}
+                                                    image={p.image}
+                                                    name={p.name}
+                                                    price={p.price}
+                                                    rating={p.rating}
+                                                    numRatings={p.numRatings}
+                                                    isFavorite={true}
+                                                    onFavoriteToggle={() =>
+                                                        toggleFavourite(p.id)
+                                                    }
+                                                    hideActions={true}
+                                                    favouritesVariant={true}
                                                         onClick={isAiPick ? () =>
-                                                            handleProductClick(p.id)
+                                                        handleProductClick(p.id)
                                                         : undefined}
-                                                    />
-                                                </div>
+                                                />
+                                            </div>
                                             );
                                         })}
                                 </div>

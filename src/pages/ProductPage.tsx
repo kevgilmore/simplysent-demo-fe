@@ -374,8 +374,8 @@ export const ProductPage: React.FC = () => {
     const [thumbsUp, setThumbsUp] = useState(false);
     const [thumbsDown, setThumbsDown] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [touchStart, setTouchStart] = useState(0);
-    const [touchEnd, setTouchEnd] = useState(0);
+    const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
     // Set html background to purple for safe area (same approach as PersonPage but with purple)
     useEffect(() => {
@@ -451,7 +451,7 @@ export const ProductPage: React.FC = () => {
                         productDescription = descriptionValue.join(' ');
                     } else if (typeof descriptionValue === 'object') {
                         productDescription = JSON.stringify(descriptionValue);
-                    } else {
+        } else {
                         productDescription = String(descriptionValue);
                     }
                 }
@@ -528,24 +528,38 @@ export const ProductPage: React.FC = () => {
                 setIsLoading(false);
                 // Don't redirect immediately - let user see the error
                 setTimeout(() => {
-                    navigate("/recommendations");
+            navigate("/recommendations");
                 }, 3000);
             } finally {
                 setIsLoading(false);
-            }
+        }
         };
 
         fetchProduct();
     }, [productId, navigate]);
 
     const handleThumbsUp = () => {
+        if (thumbsDown) {
+            // Can't thumbs up if thumbs down is active - must undo thumbs down first
+            return;
+        }
         setThumbsUp(!thumbsUp);
-        if (thumbsDown) setThumbsDown(false);
+        // If thumbs up is being activated, ensure thumbs down is off
+        if (!thumbsUp) {
+            setThumbsDown(false);
+        }
     };
 
     const handleThumbsDown = () => {
+        if (thumbsUp) {
+            // Can't thumbs down if thumbs up is active - must undo thumbs up first
+            return;
+        }
         setThumbsDown(!thumbsDown);
-        if (thumbsUp) setThumbsUp(false);
+        // If thumbs down is being activated, ensure thumbs up is off
+        if (!thumbsDown) {
+            setThumbsUp(false);
+        }
     };
 
     const handleFavorite = () => {
@@ -574,16 +588,30 @@ export const ProductPage: React.FC = () => {
     };
 
     const handleTouchStart = (e: React.TouchEvent) => {
-        setTouchStart(e.targetTouches[0].clientX);
+        setTouchStart({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY,
+        });
     };
 
     const handleTouchMove = (e: React.TouchEvent) => {
-        setTouchEnd(e.targetTouches[0].clientX);
+        if (!touchStart) return;
+        const currentX = e.targetTouches[0].clientX;
+        const currentY = e.targetTouches[0].clientY;
+        const deltaX = Math.abs(currentX - touchStart.x);
+        const deltaY = Math.abs(currentY - touchStart.y);
+        
+        // Only prevent default if it's a horizontal swipe (more horizontal than vertical)
+        if (deltaX > deltaY && deltaX > 10) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        setTouchEnd(currentX);
     };
 
     const handleTouchEnd = () => {
         if (!touchStart || !touchEnd) return;
-        const distance = touchStart - touchEnd;
+        const distance = touchStart.x - touchEnd;
         const isLeftSwipe = distance > 50;
         const isRightSwipe = distance < -50;
 
@@ -594,7 +622,7 @@ export const ProductPage: React.FC = () => {
             handlePrevImage();
         }
 
-        setTouchStart(0);
+        setTouchStart(null);
         setTouchEnd(0);
     };
 
@@ -666,6 +694,7 @@ export const ProductPage: React.FC = () => {
                                     onTouchStart={handleTouchStart}
                                     onTouchMove={handleTouchMove}
                                     onTouchEnd={handleTouchEnd}
+                                    style={{ touchAction: 'pan-y' }}
                                 >
                                     {/* Product Image - Transparent PNG like person page */}
                                     <AnimatePresence mode="wait">
@@ -821,7 +850,12 @@ export const ProductPage: React.FC = () => {
             </div>
 
             {/* Mobile: Purple Section - Full Width */}
-            <div className="md:hidden relative" style={{ height: "50vh", minHeight: "400px", marginTop: "calc(-1 * env(safe-area-inset-top))" }}>
+            <div className="md:hidden relative" style={{ 
+                height: "60vh", 
+                minHeight: "500px",
+                maxHeight: "700px",
+                marginTop: "calc(-1 * env(safe-area-inset-top))" 
+            }}>
                 <div className="bg-simplysent-purple-alt h-full relative overflow-hidden">
                     {/* Header buttons */}
                     <div className="absolute top-0 left-0 right-0 z-20 px-4 pt-8 pb-4" style={{ paddingTop: "calc(env(safe-area-inset-top) + 32px)" }}>
@@ -845,19 +879,20 @@ export const ProductPage: React.FC = () => {
                     </div>
 
                     {/* Mobile: Single Column Layout */}
-                    <div className="md:hidden absolute inset-0 top-[10%] bottom-0 flex flex-col items-center justify-start px-4 pb-20">
-                        <div className="w-full max-w-md">
+                    <div className="md:hidden absolute inset-0 top-[8%] bottom-0 flex flex-col items-center justify-center px-4 pb-8">
+                        <div className="w-full max-w-md flex flex-col items-center">
                             <div
-                                className="aspect-square relative bg-transparent"
+                                className="w-full aspect-square relative bg-transparent max-w-[85vw]"
                                 onTouchStart={handleTouchStart}
                                 onTouchMove={handleTouchMove}
                                 onTouchEnd={handleTouchEnd}
+                                style={{ touchAction: 'pan-y' }}
                             >
                                 {/* Product Image - Transparent PNG like person page */}
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={currentImageIndex}
-                                        className="absolute inset-0 flex items-center justify-center p-8 bg-transparent"
+                                        className="absolute inset-0 flex items-center justify-center p-6 sm:p-8 bg-transparent"
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
@@ -866,24 +901,25 @@ export const ProductPage: React.FC = () => {
                                         <img
                                             src={product.images[currentImageIndex]}
                                             alt={`${product.name} - Image ${currentImageIndex + 1}`}
-                                            className="w-full h-full object-contain scale-110"
-                                            style={{ mixBlendMode: "normal" }}
+                                            className="w-full h-full object-contain"
+                                            style={{ mixBlendMode: "normal", maxWidth: "100%", maxHeight: "100%" }}
                                         />
                                     </motion.div>
                                 </AnimatePresence>
                             </div>
                             
-                            {/* Carousel Dots - Inside purple area below image */}
-                            <div className="flex items-center justify-center gap-2 relative z-30" style={{ marginTop: "-60px" }}>
+                            {/* Carousel Dots - Below image, not overlapping */}
+                            <div className="flex items-center justify-center gap-2 mt-4 relative z-30">
                                 {product.images.map((_, index) => (
                                     <button
                                         key={index}
                                         onClick={() => setCurrentImageIndex(index)}
-                                        className={`h-3 w-3 rounded-full transition-all ${
+                                        className={`h-3 rounded-full transition-all ${
                                             index === currentImageIndex
-                                                ? "bg-simplysent-purple"
-                                                : "bg-white"
+                                                ? "bg-white w-8"
+                                                : "bg-white/60 w-3"
                                         }`}
+                                        style={{ minWidth: index === currentImageIndex ? "32px" : "12px" }}
                                     />
                                 ))}
                             </div>
