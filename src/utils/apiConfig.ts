@@ -421,7 +421,25 @@ export const apiFetch = (input: RequestInfo | URL, init?: RequestInit, label?: s
           
           // Show toast notification for failed API calls when dev mode is enabled
           if (devModeEnabled && isOurApi) {
-            showApiError(endpoint, `${res.status} ${res.statusText}`, res.status);
+            // Try to extract error message from response payload
+            let errorMessage = `${res.status} ${res.statusText}`;
+            if (responseText) {
+              try {
+                const parsed = JSON.parse(responseText);
+                if (parsed.error && typeof parsed.error === 'string') {
+                  errorMessage = parsed.error;
+                } else if (parsed.message && typeof parsed.message === 'string') {
+                  errorMessage = parsed.message;
+                }
+              } catch {
+                // If not JSON, use response text if it's not HTML
+                const trimmed = responseText.trim();
+                if (trimmed && !trimmed.startsWith('<!')) {
+                  errorMessage = trimmed;
+                }
+              }
+            }
+            showApiError(endpoint, errorMessage, res.status);
           }
           
           const error = new Error(`API Error: ${res.status} ${res.statusText}`) as ApiError;

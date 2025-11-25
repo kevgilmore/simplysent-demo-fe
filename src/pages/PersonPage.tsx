@@ -24,12 +24,42 @@ import {
     getApiHeaders,
     getCurrentMode,
     isAnyDevModeEnabled,
+    ApiError,
 } from "../utils/apiConfig";
 import {
     getRecommendationHistory,
 } from "../utils/recommendationHistory";
 import { getOrCreateSessionId } from "../utils/tracking";
 import { getProductsByDocumentIds } from "../services/firebaseService";
+
+// Helper function to extract user-friendly error message from API errors
+const getUserFriendlyErrorMessage = (error: unknown): string => {
+    if (error instanceof Error) {
+        // Check if it's an ApiError with metadata
+        const apiError = error as ApiError;
+        if (apiError.apiMetadata?.response_text) {
+            try {
+                // Try to parse JSON response
+                const parsed = JSON.parse(apiError.apiMetadata.response_text);
+                if (parsed.error && typeof parsed.error === 'string') {
+                    return parsed.error;
+                }
+                if (parsed.message && typeof parsed.message === 'string') {
+                    return parsed.message;
+                }
+            } catch {
+                // If not JSON, check if response_text is a simple string message
+                const responseText = apiError.apiMetadata.response_text.trim();
+                if (responseText && !responseText.startsWith('<!')) {
+                    return responseText;
+                }
+            }
+        }
+        // Fallback to generic message
+        return "Unable to load recommendations. Please try again later.";
+    }
+    return "Unable to load recommendations. Please try again later.";
+};
 
 // Available product images
 const PRODUCT_IMAGES = [
@@ -402,7 +432,7 @@ export const PersonPage: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Error fetching AI picks:", error);
-                setAiPicksError(error instanceof Error ? error.message : "Failed to load recommendations");
+                setAiPicksError(getUserFriendlyErrorMessage(error));
                 // Never use fallback fake products for AI picks - leave empty
                 setAiPicks([]);
             } finally {
@@ -647,7 +677,7 @@ export const PersonPage: React.FC = () => {
                 }
             } catch (error) {
                 console.error("Error fetching AI picks:", error);
-                setAiPicksError(error instanceof Error ? error.message : "Failed to load recommendations");
+                setAiPicksError(getUserFriendlyErrorMessage(error));
                 setAiPicks([]);
             } finally {
                 setIsLoadingAiPicks(false);
@@ -1118,29 +1148,11 @@ export const PersonPage: React.FC = () => {
                                                 </div>
                                             </div>
                                             <p className="text-red-600 font-semibold text-lg mb-2">
-                                                Failed to load recommendations
+                                                Unable to load recommendations
                                             </p>
-                                            <p className="text-gray-500 text-sm mb-4">
+                                            <p className="text-gray-500 text-sm">
                                                 {aiPicksError}
                                             </p>
-                                            {!isAnyDevModeEnabled() && (
-                                                <div className="flex flex-col gap-2 items-center">
-                                                    <Button
-                                                        onClick={() => navigate("/")}
-                                                        variant="primary"
-                                                        size="medium"
-                                                    >
-                                                        Fill Out Onboarding Form
-                                                    </Button>
-                                                    <Button
-                                                        onClick={() => setIsAddPersonOpen(true)}
-                                                        variant="secondary"
-                                                        size="medium"
-                                                    >
-                                                        Add Person
-                                                    </Button>
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 ) : productsByTab["ai-picks"]?.filter(
