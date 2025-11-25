@@ -12,6 +12,8 @@ import {
     faShareNodes,
     faSliders,
     faRotateRight,
+    faArrowUp,
+    faArrowDown,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
@@ -101,6 +103,12 @@ export const PersonPage: React.FC = () => {
     const [isLoadingAiPicks, setIsLoadingAiPicks] = useState(true);
     const [aiPicksError, setAiPicksError] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [rapidApiProducts, setRapidApiProducts] = useState<Product[]>([]);
+    const [rapidApiSortOrder, setRapidApiSortOrder] = useState<'highest' | 'lowest' | null>(null);
+    const [techProducts, setTechProducts] = useState<Product[]>([]);
+    const [isLoadingTechProducts, setIsLoadingTechProducts] = useState(true);
+    const [techProductsError, setTechProductsError] = useState<string | null>(null);
+    const [techSortOrder, setTechSortOrder] = useState<'highest' | 'lowest' | null>(null);
     
     const CACHE_KEY = 'person_page_ai_picks_cache';
     const SCROLL_POSITION_KEY = 'person_page_carousel_scroll';
@@ -688,41 +696,152 @@ export const PersonPage: React.FC = () => {
         fetchAiPicks();
     };
     
+    // Load RapidAPI products from localStorage
+    useEffect(() => {
+        const loadRapidApiProducts = () => {
+            try {
+                const stored = localStorage.getItem('rapidapi_products');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    if (data.products && Array.isArray(data.products)) {
+                        setRapidApiProducts(data.products);
+                    }
+                }
+            } catch (error) {
+                console.warn('Error loading RapidAPI products:', error);
+            }
+        };
+
+        loadRapidApiProducts();
+
+        // Listen for updates from DevModeIndicator
+        const handleUpdate = () => {
+            loadRapidApiProducts();
+        };
+        window.addEventListener('rapidapi-products-updated', handleUpdate);
+        return () => {
+            window.removeEventListener('rapidapi-products-updated', handleUpdate);
+        };
+    }, []);
+
+    // Fetch tech products from /products endpoint
+    useEffect(() => {
+        const fetchTechProducts = async () => {
+            setIsLoadingTechProducts(true);
+            setTechProductsError(null);
+
+            try {
+                const queryParams = new URLSearchParams();
+                queryParams.append('interest', 'tech');
+                queryParams.append('limit', '50');
+                queryParams.append('offset', '0');
+                queryParams.append('collection', 'amazon');
+
+                const mode = getCurrentMode();
+                const apiUrl = buildApiUrl('/products', queryParams);
+                const headers = getApiHeaders(mode || undefined);
+
+                console.log('Fetching tech products from:', apiUrl);
+
+                const response = await apiFetch(
+                    apiUrl,
+                    {
+                        method: 'GET',
+                        headers,
+                    },
+                    'GET /products',
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data: any[] = await response.json();
+
+                if (Array.isArray(data) && data.length > 0) {
+                    // Transform API response to Product format
+                    const transformedProducts: Product[] = data.map((product) => {
+                        // Extract price - prefer price_numeric, fallback to parsing product_price string
+                        let price = 0;
+                        if (product.price_numeric !== undefined && product.price_numeric !== null) {
+                            price = typeof product.price_numeric === 'number' ? product.price_numeric : parseFloat(product.price_numeric.toString()) || 0;
+                        } else if (product.product_price) {
+                            const priceStr = product.product_price.toString().replace(/[£$€,]/g, '');
+                            price = parseFloat(priceStr) || 0;
+                        }
+
+                        // Extract rating - prefer rating_numeric, fallback to product_star_rating
+                        let rating: number | undefined = undefined;
+                        if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
+                            rating = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(product.rating_numeric.toString());
+                        } else if (product.product_star_rating) {
+                            rating = parseFloat(product.product_star_rating.toString());
+                        }
+
+                        // Extract num ratings - prefer num_ratings_numeric, fallback to product_num_ratings
+                        const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
+                            ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(product.num_ratings_numeric.toString()) || 0)
+                            : (product.product_num_ratings || 0);
+
+                        return {
+                            id: product.asin || `tech-${Math.random().toString(36).substr(2, 9)}`,
+                            image: product.product_photo || '',
+                            name: product.product_title || 'Unknown Product',
+                            price: price,
+                            rating: rating,
+                            numRatings: numRatings,
+                        };
+                    });
+
+                    console.log('✅ Tech products loaded:', transformedProducts.length);
+                    setTechProducts(transformedProducts);
+                } else {
+                    throw new Error('No products received from API');
+                }
+            } catch (error) {
+                console.error('Error fetching tech products:', error);
+                setTechProductsError(getUserFriendlyErrorMessage(error));
+                // Fallback to empty array on error
+                setTechProducts([]);
+            } finally {
+                setIsLoadingTechProducts(false);
+            }
+        };
+
+        fetchTechProducts();
+    }, []);
+
+    // Sort RapidAPI products based on sort order
+    const sortedRapidApiProducts = useMemo(() => {
+        if (!rapidApiSortOrder) {
+            return rapidApiProducts;
+        }
+        const sorted = [...rapidApiProducts];
+        if (rapidApiSortOrder === 'highest') {
+            return sorted.sort((a, b) => b.price - a.price);
+        } else {
+            return sorted.sort((a, b) => a.price - b.price);
+        }
+    }, [rapidApiProducts, rapidApiSortOrder]);
+
+    // Sort tech products based on sort order
+    const sortedTechProducts = useMemo(() => {
+        if (!techSortOrder) {
+            return techProducts;
+        }
+        const sorted = [...techProducts];
+        if (techSortOrder === 'highest') {
+            return sorted.sort((a, b) => b.price - a.price);
+        } else {
+            return sorted.sort((a, b) => a.price - b.price);
+        }
+    }, [techProducts, techSortOrder]);
+
     const productsByTab: Record<string, Product[]> = useMemo(
         () => ({
             "ai-picks": aiPicks, // Use real API data, never fallback to fake products
-            tech: [
-                {
-                    id: "tech-1",
-                    image: getRandomProductImage(),
-                    name: "Wireless Headphones Pro Max",
-                    price: 199.99,
-                },
-                {
-                    id: "tech-2",
-                    image: getRandomProductImage(),
-                    name: "Smart Home Hub",
-                    price: 129.99,
-                },
-                {
-                    id: "tech-3",
-                    image: getRandomProductImage(),
-                    name: "Portable Bluetooth Speaker",
-                    price: 59.99,
-                },
-                {
-                    id: "tech-4",
-                    image: getRandomProductImage(),
-                    name: "4K Action Camera",
-                    price: 279.99,
-                },
-                {
-                    id: "tech-5",
-                    image: getRandomProductImage(),
-                    name: "Mechanical Gaming Keyboard",
-                    price: 149.99,
-                },
-            ],
+            "rapidapi": sortedRapidApiProducts, // Products from RapidAPI JSON import (sorted)
+            tech: sortedTechProducts, // Products from /products endpoint (sorted)
             golf: [
                 {
                     id: "golf-1",
@@ -756,7 +875,7 @@ export const PersonPage: React.FC = () => {
                 },
             ],
         }),
-        [aiPicks],
+        [aiPicks, sortedRapidApiProducts, sortedTechProducts],
     );
 
     const allProducts: Product[] = useMemo(() => {
@@ -1232,14 +1351,176 @@ export const PersonPage: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* RapidAPI Carousel */}
+                            {rapidApiProducts.length > 0 && (
+                                <div className="mt-[10px]">
+                                    <div className="flex items-center justify-between gap-3 mb-0">
+                                        <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
+                                            From RapidAPI
+                                        </h2>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setRapidApiSortOrder('highest')}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                                    rapidApiSortOrder === 'highest'
+                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                                                }`}
+                                                aria-label="Sort by highest price"
+                                            >
+                                                <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3" />
+                                                <span>Highest</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setRapidApiSortOrder('lowest')}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                                    rapidApiSortOrder === 'lowest'
+                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                                                }`}
+                                                aria-label="Sort by lowest price"
+                                            >
+                                                <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
+                                                <span>Lowest</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {productsByTab["rapidapi"]?.filter(
+                                        (p) => !removedProducts.has(p.id),
+                                    ).length === 0 ? (
+                                        <div className="flex items-center justify-center py-12 px-4">
+                                            <div className="text-center max-w-md">
+                                                <p className="text-gray-400 text-lg font-medium">
+                                                    No more recommendations here.
+                                                </p>
+                                                <p className="text-gray-400 text-sm mt-2">
+                                                    Check back later for new picks!
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
+                                            <div className="flex gap-4 transition-all duration-1000">
+                                                {productsByTab["rapidapi"]
+                                                    ?.filter(
+                                                        (p) =>
+                                                            !removedProducts.has(
+                                                                p.id,
+                                                            ),
+                                                    )
+                                                    .map((p) => (
+                                                        <div
+                                                            key={p.id}
+                                                            className="flex-shrink-0 w-[260px]"
+                                                        >
+                                                            <ProductCard
+                                                                id={p.id}
+                                                                image={p.image}
+                                                                name={p.name}
+                                                                price={p.price}
+                                                                rating={p.rating}
+                                                                numRatings={p.numRatings}
+                                                                compact
+                                                                className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
+                                                                isFavorite={favourites.has(
+                                                                    p.id,
+                                                                )}
+                                                                onFavoriteToggle={() =>
+                                                                    toggleFavourite(
+                                                                        p.id,
+                                                                    )
+                                                                }
+                                                                onRemove={
+                                                                    handleProductRemove
+                                                                }
+                                                            />
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
                             {/* Tech Carousel */}
                             <div className="mt-[10px]">
-                                <div className="flex items-center gap-3 mb-0">
+                                <div className="flex items-center justify-between gap-3 mb-0">
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                         Tech
                                     </h2>
+                                    {!isLoadingTechProducts && !techProductsError && techProducts.length > 0 && (
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setTechSortOrder('highest')}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                                    techSortOrder === 'highest'
+                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                                                }`}
+                                                aria-label="Sort by highest price"
+                                            >
+                                                <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3" />
+                                                <span>Highest</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setTechSortOrder('lowest')}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                                    techSortOrder === 'lowest'
+                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
+                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
+                                                }`}
+                                                aria-label="Sort by lowest price"
+                                            >
+                                                <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
+                                                <span>Lowest</span>
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                {productsByTab["tech"]?.filter(
+                                {isLoadingTechProducts ? (
+                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
+                                        <div className="text-center px-4">
+                                            {/* Loading spinner */}
+                                            <div className="relative mx-auto mb-6 w-20 h-20">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 animate-pulse" />
+                                                <div className="absolute inset-2 rounded-full bg-white" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-simplysent-purple animate-spin" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <p className="text-simplysent-purple font-semibold text-lg mb-2">
+                                                Loading tech products...
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : techProductsError ? (
+                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
+                                        <div className="text-center px-4 max-w-md">
+                                            <div className="relative mx-auto mb-6 w-20 h-20">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-100 to-red-50" />
+                                                <div className="absolute inset-2 rounded-full bg-white" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <p className="text-red-600 font-semibold text-lg mb-2">
+                                                Unable to load tech products
+                                            </p>
+                                            <p className="text-gray-500 text-sm">
+                                                {techProductsError}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : productsByTab["tech"]?.filter(
                                     (p) => !removedProducts.has(p.id),
                                 ).length === 0 ? (
                                     <div className="flex items-center justify-center py-12 px-4">

@@ -17,11 +17,14 @@ interface DevModeIndicatorProps {
 
 export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isRapidApiDialogOpen, setIsRapidApiDialogOpen] = useState(false);
+  const [rapidApiJson, setRapidApiJson] = useState('');
   const [devModeEnabled, setDevModeEnabledState] = useState(false);
   const [localModeEnabled, setLocalModeEnabledState] = useState(false);
   const [sandboxHeaderEnabled, setSandboxHeaderEnabledState] = useState(false);
   const [mockRecommendationsEnabled, setMockRecommendationsEnabledState] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   // Update state when localStorage changes
   useEffect(() => {
@@ -43,13 +46,16 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
+      if (dialogRef.current && !dialogRef.current.contains(event.target as Node) && isRapidApiDialogOpen) {
+        // Don't close if clicking outside dialog - let user explicitly close
+      }
     };
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [isOpen]);
+  }, [isOpen, isRapidApiDialogOpen]);
 
   if (!devModeEnabled) {
     return null; // Only show if dev mode is enabled
@@ -97,6 +103,57 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
 
   const handleMockRecommendationsToggle = (enabled: boolean) => {
     setMockRecommendations(enabled);
+  };
+
+  const handleRapidApiImport = () => {
+    setIsOpen(false);
+    setIsRapidApiDialogOpen(true);
+  };
+
+  const handleRapidApiSubmit = () => {
+    try {
+      const parsed = JSON.parse(rapidApiJson);
+      
+      // Validate structure
+      if (!parsed.data || !parsed.data.products || !Array.isArray(parsed.data.products)) {
+        alert('Invalid JSON format. Expected structure: { data: { products: [...] } }');
+        return;
+      }
+
+      // Transform products to match PersonPage format
+      const transformedProducts = parsed.data.products.map((product: any) => {
+        // Extract price - remove currency symbols
+        let price = 0;
+        if (product.product_price) {
+          const priceStr = product.product_price.toString().replace(/[£$€,]/g, '');
+          price = parseFloat(priceStr) || 0;
+        }
+
+        return {
+          id: product.asin || `rapidapi-${Math.random().toString(36).substr(2, 9)}`,
+          image: product.product_photo || '',
+          name: product.product_title || 'Unknown Product',
+          price: price,
+          rating: product.product_star_rating ? parseFloat(product.product_star_rating.toString()) : undefined,
+          numRatings: product.product_num_ratings || 0,
+        };
+      });
+
+      // Store in localStorage
+      localStorage.setItem('rapidapi_products', JSON.stringify({
+        products: transformedProducts,
+        timestamp: Date.now(),
+      }));
+
+      // Dispatch custom event to notify PersonPage
+      window.dispatchEvent(new CustomEvent('rapidapi-products-updated'));
+
+      setIsRapidApiDialogOpen(false);
+      setRapidApiJson('');
+      alert(`Successfully imported ${transformedProducts.length} products!`);
+    } catch (error) {
+      alert(`Error parsing JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   return (
@@ -159,11 +216,59 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
             </label>
             <div className="border-t border-gray-200 my-1"></div>
             <button
+              onClick={handleRapidApiImport}
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+            >
+              <span>Import RapidAPI JSON</span>
+            </button>
+            <div className="border-t border-gray-200 my-1"></div>
+            <button
               onClick={handleClearLocalStorage}
               className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center justify-between"
             >
               <span>Clear Local Storage</span>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* RapidAPI JSON Import Dialog */}
+      {isRapidApiDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+          <div 
+            ref={dialogRef}
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col"
+          >
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Import RapidAPI JSON</h3>
+              <p className="text-sm text-gray-500 mt-1">Paste the JSON response from RapidAPI</p>
+            </div>
+            <div className="flex-1 overflow-hidden flex flex-col p-6">
+              <textarea
+                value={rapidApiJson}
+                onChange={(e) => setRapidApiJson(e.target.value)}
+                placeholder="Paste JSON here..."
+                className="flex-1 w-full p-4 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                style={{ minHeight: '300px' }}
+              />
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setIsRapidApiDialogOpen(false);
+                  setRapidApiJson('');
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRapidApiSubmit}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Import
+              </button>
+            </div>
           </div>
         </div>
       )}
