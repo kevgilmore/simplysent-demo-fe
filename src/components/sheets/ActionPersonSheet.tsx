@@ -203,23 +203,6 @@ const AddPersonForm: React.FC<{
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     
-    // Check for auto-fill data
-    const getAutoFillData = () => {
-        try {
-            const stored = localStorage.getItem('onboarding_autofill');
-            if (stored) {
-                const data = JSON.parse(stored);
-                // Clear after reading
-                localStorage.removeItem('onboarding_autofill');
-                return data;
-            }
-        } catch (error) {
-            console.warn('Error reading auto-fill data:', error);
-        }
-        return null;
-    };
-
-    const autoFillData = getAutoFillData();
     
     // Calculate age from DOB if provided
     const calculateAgeFromDob = (dob: string): number => {
@@ -252,25 +235,7 @@ const AddPersonForm: React.FC<{
         notes?: string;
         minBudget?: number;
         maxBudget?: number;
-    }>(() => {
-        // Auto-fill from localStorage if available
-        if (autoFillData) {
-            const age = autoFillData.dob ? calculateAgeFromDob(autoFillData.dob) : undefined;
-            return {
-                relationship: autoFillData.relationship?.toLowerCase() || undefined,
-                name: autoFillData.name || undefined,
-                gender: autoFillData.gender || undefined,
-                dob: autoFillData.dob || undefined,
-                age: age,
-                interests: autoFillData.interests || [],
-                clothingSize: autoFillData.other?.clothing_size || undefined,
-                favouriteDrink: autoFillData.other?.favourite_drink || undefined,
-                minBudget: autoFillData.budget_min || undefined,
-                maxBudget: autoFillData.budget_max || undefined,
-            };
-        }
-        return {};
-    });
+    }>({});
 
     const handleStep1Next = (data: { relationship: string }) => {
         const newData = { ...formData, relationship: data.relationship };
@@ -291,19 +256,6 @@ const AddPersonForm: React.FC<{
         }
     };
     
-    // Auto-advance if auto-fill data is present
-    useEffect(() => {
-        if (autoFillData && step === 1 && formData.relationship) {
-            // Skip to step 3 if relationship is mother/father, otherwise step 2
-            if (formData.relationship === "mother" || formData.relationship === "father") {
-                setStep(3);
-            } else if (formData.name && formData.gender) {
-                setStep(3);
-            } else if (formData.name) {
-                setStep(2);
-            }
-        }
-    }, [autoFillData, step, formData.relationship, formData.name, formData.gender]);
 
     const handleStep2Back = () => setStep(1);
     const handleStep2Next = (data: { name?: string; gender?: string }) => {
@@ -492,7 +444,11 @@ const AddPersonForm: React.FC<{
     };
 
     if (step === 1) {
-        return <Step1Form onNext={handleStep1Next} />;
+        return (
+            <Step1Form 
+                onNext={handleStep1Next} 
+            />
+        );
     }
 
     if (step === 2) {
@@ -501,14 +457,16 @@ const AddPersonForm: React.FC<{
                 onBack={handleStep2Back}
                 onNext={handleStep2Next}
                 relationship={formData.relationship}
-                initialName={getInitialName()}
             />
         );
     }
 
     if (step === 3) {
         return (
-            <Step3Form onBack={handleStep3Back} onNext={handleStep3Next} />
+            <Step3Form 
+                onBack={handleStep3Back} 
+                onNext={handleStep3Next}
+            />
         );
     }
 
@@ -555,7 +513,10 @@ const AddPersonForm: React.FC<{
 
     if (step === 5) {
         return (
-            <Step3StyleForm onBack={handleStep5Back} onNext={handleStep5Next} />
+            <Step3StyleForm 
+                onBack={handleStep5Back} 
+                onNext={handleStep5Next}
+            />
         );
     }
 

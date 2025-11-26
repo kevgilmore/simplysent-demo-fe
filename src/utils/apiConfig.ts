@@ -8,6 +8,8 @@ const DEV_MODE_KEY = 'ss_dev_mode'; // 'true' | 'false' - whether dev mode is en
 const SANDBOX_HEADER_KEY = 'ss_sandbox_header'; // 'true' | 'false' - whether to send X-Sandbox header with prod API
 const LOCAL_MODE_KEY = 'ss_local_mode'; // 'true' | 'false' - whether to use local API + X-Sandbox header
 const MOCK_RECOMMENDATIONS_KEY = 'ss_mock_recommendations'; // 'true' | 'false' - whether to send X-Mock-Recommendations header (only for /recommend)
+const WELCOME_TRAINING_KEY = 'ss_welcome_training'; // 'true' | 'false' - whether welcome training is enabled
+const WELCOME_TRAINING_COMPLETED_KEY = 'ss_welcome_training_completed'; // 'true' | 'false' - whether welcome training has been completed
 
 // Import tracking utilities for anon ID and session ID
 import { getOrCreateAnonId, getOrCreateSessionId } from './tracking';
@@ -199,6 +201,48 @@ export const setMockRecommendations = (enabled: boolean): void => {
     localStorage.setItem(MOCK_RECOMMENDATIONS_KEY, 'true');
   } else {
     localStorage.removeItem(MOCK_RECOMMENDATIONS_KEY);
+  }
+};
+
+/**
+ * Check if welcome training is enabled
+ */
+export const isWelcomeTrainingEnabled = (): boolean => {
+  if (!isBrowser) return false;
+  return localStorage.getItem(WELCOME_TRAINING_KEY) === 'true';
+};
+
+/**
+ * Enable or disable welcome training
+ */
+export const setWelcomeTraining = (enabled: boolean): void => {
+  if (!isBrowser) return;
+  if (enabled) {
+    localStorage.setItem(WELCOME_TRAINING_KEY, 'true');
+    localStorage.removeItem(WELCOME_TRAINING_COMPLETED_KEY); // Reset completion when enabling
+  } else {
+    localStorage.removeItem(WELCOME_TRAINING_KEY);
+  }
+};
+
+/**
+ * Check if welcome training has been completed
+ */
+export const isWelcomeTrainingCompleted = (): boolean => {
+  if (!isBrowser) return false;
+  return localStorage.getItem(WELCOME_TRAINING_COMPLETED_KEY) === 'true';
+};
+
+/**
+ * Mark welcome training as completed
+ */
+export const setWelcomeTrainingCompleted = (completed: boolean): void => {
+  if (!isBrowser) return;
+  if (completed) {
+    localStorage.setItem(WELCOME_TRAINING_COMPLETED_KEY, 'true');
+    localStorage.removeItem(WELCOME_TRAINING_KEY); // Disable when completed
+  } else {
+    localStorage.removeItem(WELCOME_TRAINING_COMPLETED_KEY);
   }
 };
 

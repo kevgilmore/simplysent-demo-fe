@@ -12,6 +12,7 @@ import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
 import { PersonPage } from "./pages/PersonPage";
 import { ProductPage } from "./pages/ProductPage";
+import { UIKitPage } from "./pages/UIKitPage";
 import { AnimatePresence } from "framer-motion";
 import { ErrorPage } from "./pages/ErrorPage";
 import { ErrorBoundary } from "./components/common/ErrorBoundary";
@@ -23,30 +24,141 @@ import { setToastFunctions } from "./services/toastService";
 import { DevModeIndicator } from "./components/common/DevModeIndicator";
 const GA_MEASUREMENT_ID = "G-JRT058C4VQ";
 const META_PIXEL_ID = "907664617393399";
-// Import Google Fonts in the head section
-function addGoogleFonts() {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href =
-        "https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&family=Baloo+2:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap";
-    document.head.appendChild(link);
-    // Add global styles
+// Load StackSans fonts
+function addStackSansFonts() {
     const style = document.createElement("style");
     style.textContent = `
-    html {
-      font-family: 'Comfortaa', cursive;
-      font-weight: 500;
+    /* StackSansText Font Faces */
+    @font-face {
+      font-family: 'StackSansText';
+      src: url('/fonts/StackSansText-ExtraLight.ttf') format('truetype');
+      font-weight: 200;
+      font-style: normal;
     }
-    h1, h2, h3, h4, h5, h6, .font-heading {
-      font-family: 'Baloo 2', cursive;
+    @font-face {
+      font-family: 'StackSansText';
+      src: url('/fonts/StackSansText-Light.ttf') format('truetype');
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansText';
+      src: url('/fonts/StackSansText-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansText';
+      src: url('/fonts/StackSansText-Medium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansText';
+      src: url('/fonts/StackSansText-SemiBold.ttf') format('truetype');
       font-weight: 600;
+      font-style: normal;
     }
-    p, li, span, div {
+    @font-face {
+      font-family: 'StackSansText';
+      src: url('/fonts/StackSansText-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* StackSansHeadline Font Faces */
+    @font-face {
+      font-family: 'StackSansHeadline';
+      src: url('/fonts/StackSansHeadline-ExtraLight.ttf') format('truetype');
+      font-weight: 200;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansHeadline';
+      src: url('/fonts/StackSansHeadline-Light.ttf') format('truetype');
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansHeadline';
+      src: url('/fonts/StackSansHeadline-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansHeadline';
+      src: url('/fonts/StackSansHeadline-Medium.ttf') format('truetype');
       font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansHeadline';
+      src: url('/fonts/StackSansHeadline-SemiBold.ttf') format('truetype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansHeadline';
+      src: url('/fonts/StackSansHeadline-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* StackSansNotch Font Faces - Only for logo */
+    @font-face {
+      font-family: 'StackSansNotch';
+      src: url('/fonts/StackSansNotch-ExtraLight.ttf') format('truetype');
+      font-weight: 200;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansNotch';
+      src: url('/fonts/StackSansNotch-Light.ttf') format('truetype');
+      font-weight: 300;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansNotch';
+      src: url('/fonts/StackSansNotch-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansNotch';
+      src: url('/fonts/StackSansNotch-Medium.ttf') format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansNotch';
+      src: url('/fonts/StackSansNotch-SemiBold.ttf') format('truetype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'StackSansNotch';
+      src: url('/fonts/StackSansNotch-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* Global styles */
+    html {
+      font-family: 'StackSansText', sans-serif;
+      font-weight: 400;
+    }
+    h1, h2, h3, h4, h5, h6, .font-headline {
+      font-family: 'StackSansHeadline', sans-serif;
+      font-weight: 500;
+    }
+    .font-notch {
+      font-family: 'StackSansNotch', sans-serif;
+    }
+    p, li, span, div, body {
+      font-family: 'StackSansText', sans-serif;
     }
     button, a {
-      font-family: 'Outfit', sans-serif;
-      font-weight: 600;
+      font-family: 'StackSansText', sans-serif;
     }
     /* Disable hover effects on touch devices */
     @media (hover: none) {
@@ -74,7 +186,7 @@ function AppShell() {
     const { toasts, removeToast, showError } = useToastContext();
 
     useEffect(() => {
-        addGoogleFonts();
+        addStackSansFonts();
         // Register toast functions for use in non-React contexts
         setToastFunctions({ showError });
     }, [showError]);
@@ -146,6 +258,7 @@ const router = createBrowserRouter([
             { path: "about", element: <AboutUsPage /> },
             { path: "privacy", element: <PrivacyPolicyPage /> },
             { path: "terms", element: <TermsOfServicePage /> },
+            { path: "ui", element: <UIKitPage /> },
             { path: "error", element: <ErrorPage /> },
             { path: ":recId", element: <SharePage /> }, // Share page - must be last to avoid conflicts
         ],

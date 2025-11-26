@@ -39,6 +39,7 @@ export const Step3Form: React.FC<Step3FormProps> = ({
     onNext,
 }) => {
     const [useAge, setUseAge] = useState(false);
+    
     const [day, setDay] = useState("");
     const [month, setMonth] = useState("");
     const [year, setYear] = useState("");
@@ -87,6 +88,17 @@ export const Step3Form: React.FC<Step3FormProps> = ({
             setCalculatedAge(null);
         }
     }, [day, month, year, useAge]);
+    
+    // Ensure useAge is set correctly based on initial values
+    useEffect(() => {
+        if (initialDob && useAge) {
+            // If we have DOB, switch to DOB mode
+            setUseAge(false);
+        } else if (!initialDob && initialAge && !useAge) {
+            // If we only have age, switch to age mode
+            setUseAge(true);
+        }
+    }, [initialDob, initialAge, useAge]);
 
     const handleNext = () => {
         if (useAge && age && age.trim() !== "") {
@@ -105,7 +117,7 @@ export const Step3Form: React.FC<Step3FormProps> = ({
     };
 
     const canProceed = useAge 
-        ? (age && age.trim() !== "" && calculatedYear !== null)
+        ? (age && age.trim() !== "" && !isNaN(parseInt(age.trim())) && parseInt(age.trim()) > 0 && parseInt(age.trim()) <= 120)
         : (day && month && year);
 
     return (

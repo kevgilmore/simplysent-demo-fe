@@ -5,11 +5,19 @@ import {
   isSandboxHeaderEnabled, 
   isProdMode,
   isMockRecommendationsEnabled,
+  isWelcomeTrainingEnabled,
   setLocalMode,
   setSandboxHeader,
   setProdMode,
-  setMockRecommendations
+  setMockRecommendations,
+  setWelcomeTraining,
+  setWelcomeTrainingCompleted,
+  buildApiUrl,
+  apiFetch,
+  getApiHeaders,
+  getCurrentMode
 } from '../../utils/apiConfig';
+import { womenInterests } from '../../components/sheets/formConstants';
 
 interface DevModeIndicatorProps {
   className?: string;
@@ -123,6 +131,18 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
     setMockRecommendations(enabled);
   };
 
+  const handleResetTraining = () => {
+    // Reset training state: clear completion flag and enable training
+    setWelcomeTrainingCompleted(false);
+    setWelcomeTraining(true);
+    setIsOpen(false);
+    // Small delay to ensure localStorage is updated
+    setTimeout(() => {
+      // Dispatch event to notify PersonPage to reset training state
+      window.dispatchEvent(new CustomEvent('reset-welcome-training'));
+    }, 50);
+  };
+
   const handleRapidApiImport = () => {
     setIsOpen(false);
     setIsRapidApiDialogOpen(true);
@@ -174,13 +194,19 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
     }
   };
 
-  const handleAutoFillOnboarding = () => {
-    const autoFillData = {
-      name: "Dad",
-      relationship: "father",
-      gender: "male",
+  const handleAddRandomPerson = async () => {
+    setIsOpen(false);
+    
+    // Get random interests from womenInterests (max 2)
+    const shuffled = [...womenInterests].sort(() => 0.5 - Math.random());
+    const selectedInterests = shuffled.slice(0, 2).map(i => i.value);
+    
+    const personData = {
+      name: "Mum",
+      relationship: "mother",
+      gender: "female",
       dob: "15/03/1975",
-      interests: ["tech", "golf"],
+      interests: selectedInterests,
       budget_min: 10,
       budget_max: 200,
       other: {
@@ -189,14 +215,68 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
       }
     };
 
-    // Store auto-fill data in localStorage
-    localStorage.setItem('onboarding_autofill', JSON.stringify(autoFillData));
-    
-    // Dispatch event to notify OnboardingPage/ActionPersonSheet
-    window.dispatchEvent(new CustomEvent('onboarding-autofill', { detail: autoFillData }));
-    
-    setIsOpen(false);
-    alert('Auto-fill data set! Open the onboarding form to see it pre-filled.');
+    try {
+      // Call /recommend API
+      const requestData = {
+        context: {
+          name: personData.name,
+          relationship: personData.relationship.charAt(0).toUpperCase() + personData.relationship.slice(1).toLowerCase(),
+          gender: personData.gender.toLowerCase(),
+          dob: personData.dob,
+          interests: personData.interests,
+          budget_min: personData.budget_min,
+          budget_max: personData.budget_max,
+          other: personData.other,
+        },
+      };
+
+      const queryParams = new URLSearchParams();
+      const mode = getCurrentMode();
+      const apiUrl = buildApiUrl("/recommend", queryParams);
+      const headers = getApiHeaders(mode || undefined);
+
+      const response = await apiFetch(
+        apiUrl,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify(requestData),
+        },
+        "POST /recommend",
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse = await response.json();
+
+      // Create person data with recommendation ID
+      const savedPersonData = {
+        id: apiResponse.recommendation_id || `person-${Date.now()}`,
+        name: personData.name,
+        relationship: personData.relationship,
+        gender: personData.gender,
+        interests: personData.interests,
+        minBudget: personData.budget_min,
+        maxBudget: personData.budget_max,
+        createdAt: Date.now(),
+      };
+
+      // Save person to localStorage
+      const storedPersons = localStorage.getItem('saved_persons');
+      const persons = storedPersons ? JSON.parse(storedPersons) : [];
+      persons.push(savedPersonData);
+      localStorage.setItem('saved_persons', JSON.stringify(persons));
+
+      // Dispatch event to notify PersonPage
+      window.dispatchEvent(new CustomEvent('person-added', { detail: savedPersonData }));
+
+      alert(`Added "${personData.name}" with interests: ${selectedInterests.join(', ')}`);
+    } catch (error) {
+      console.error("Error adding random person:", error);
+      alert(`Failed to add person: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   return (
@@ -214,10 +294,10 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
         <div className="absolute left-0 bottom-full mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
           <div className="py-1">
             <button
-              onClick={handleAutoFillOnboarding}
+              onClick={handleAddRandomPerson}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
             >
-              <span>Auto-fill Onboarding</span>
+              <span>Add Person</span>
             </button>
             <div className="border-t border-gray-200 my-1"></div>
             <button
@@ -240,6 +320,13 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
             >
               <span>Prod</span>
               {prodModeActive && <span className="text-green-600">✓</span>}
+            </button>
+            <div className="border-t border-gray-200 my-1"></div>
+            <button
+              onClick={handleResetTraining}
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+            >
+              <span>Reset Training</span>
             </button>
             <div className="border-t border-gray-200 my-1"></div>
             <label className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between cursor-pointer">

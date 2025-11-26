@@ -30,7 +30,7 @@ export const Button: React.FC<ButtonProps> = ({
         secondary:
             "bg-gray-200 text-gray-800 hover:bg-gray-300 active:bg-gray-300 active:opacity-95 focus:ring-gray-300/50 disabled:hover:bg-gray-200",
         outline:
-            "bg-transparent border-2 border-[#5E57AC] text-[#5E57AC] hover:bg-[#5E57AC] hover:text-white active:bg-[#5E57AC] active:text-white active:opacity-95 focus:ring-[#5E57AC]/30 disabled:hover:bg-transparent disabled:hover:text-[#5E57AC]",
+            "bg-transparent border-2 border-gray-300 text-[#5E57AC] hover:bg-[#5E57AC] hover:text-white hover:border-[#5E57AC] active:bg-[#5E57AC] active:text-white active:border-[#5E57AC] active:opacity-95 focus:ring-[#5E57AC]/30 disabled:hover:bg-transparent disabled:hover:text-[#5E57AC] disabled:hover:border-gray-300",
         ghost: "bg-transparent text-[#5E57AC] hover:bg-[#5E57AC]/10 active:bg-[#5E57AC]/20 active:opacity-95 focus:ring-[#5E57AC]/20 disabled:hover:bg-transparent",
         cta: "bg-gradient-to-r from-[#4A4490] via-[#5E57AC] to-[#7C6FBE] bg-[length:200%_auto] text-white font-bold focus:ring-[#5E57AC]/40 animate-gradient-slide overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-[1500ms] disabled:animate-none disabled:opacity-60",
     };

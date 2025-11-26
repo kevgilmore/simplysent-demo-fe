@@ -14,11 +14,14 @@ import {
     faRotateRight,
     faArrowUp,
     faArrowDown,
+    faDollarSign,
+    faTags,
 } from "@fortawesome/free-solid-svg-icons";
 import { ProductCard } from "../components/ui/ProductCard";
 import { Button } from "../components/ui/Button";
 import { RangeSlider } from "../components/ui/RangeSlider";
-import { RefineSheet } from "../components/sheets/RefineSheet";
+import { BudgetSheet } from "../components/sheets/BudgetSheet";
+import { InterestsSheet } from "../components/sheets/InterestsSheet";
 import { ActionPersonSheet } from "../components/sheets/ActionPersonSheet";
 import {
     buildApiUrl,
@@ -26,13 +29,17 @@ import {
     getApiHeaders,
     getCurrentMode,
     isAnyDevModeEnabled,
+    isWelcomeTrainingEnabled,
+    isWelcomeTrainingCompleted,
+    setWelcomeTrainingCompleted,
+    setWelcomeTraining,
     ApiError,
 } from "../utils/apiConfig";
 import {
     getRecommendationHistory,
 } from "../utils/recommendationHistory";
 import { getOrCreateSessionId } from "../utils/tracking";
-import { getProductsByDocumentIds } from "../services/firebaseService";
+// Firebase removed - all data now comes from /recommend and /products endpoints
 import { menInterests, womenInterests, boysInterests, girlsInterests } from "../components/sheets/formConstants";
 
     // Helper function to get interest label from value
@@ -85,11 +92,22 @@ const getRandomProductImage = () => {
     return PRODUCT_IMAGES[Math.floor(Math.random() * PRODUCT_IMAGES.length)];
 };
 
+// Lorem ipsum description (200 words) - always the same
+const PRODUCT_DESCRIPTION = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.";
+
 interface ApiResponse {
     recommendation_id: string;
     products: Array<{
         asin: string;
         rank: number;
+        product_title?: string;
+        product_price?: string;
+        price_numeric?: number;
+        product_photo?: string;
+        rating_numeric?: number;
+        num_ratings_numeric?: number;
+        product_num_ratings?: number;
+        [key: string]: any; // Allow additional fields from API
     }>;
 }
 
@@ -102,10 +120,9 @@ export const PersonPage: React.FC = () => {
         new Set(),
     );
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [isRefineOpen, setIsRefineOpen] = useState(false);
-    const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-    const [minBudget, setMinBudget] = useState(50);
-    const [maxBudget, setMaxBudget] = useState(300);
+    const [isBudgetSheetOpen, setIsBudgetSheetOpen] = useState(false);
+    const [isInterestsSheetOpen, setIsInterestsSheetOpen] = useState(false);
+    const [sortOrder, setSortOrder] = useState<'highest' | 'lowest' | null>(null);
     const [isAddPersonOpen, setIsAddPersonOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const [aiPicks, setAiPicks] = useState<Product[]>([]);
@@ -114,10 +131,6 @@ export const PersonPage: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [rapidApiProducts, setRapidApiProducts] = useState<Product[]>([]);
     const [rapidApiSortOrder, setRapidApiSortOrder] = useState<'highest' | 'lowest' | null>(null);
-    const [techProducts, setTechProducts] = useState<Product[]>([]);
-    const [isLoadingTechProducts, setIsLoadingTechProducts] = useState(true);
-    const [techProductsError, setTechProductsError] = useState<string | null>(null);
-    const [techSortOrder, setTechSortOrder] = useState<'highest' | 'lowest' | null>(null);
     const [savedPersons, setSavedPersons] = useState<Array<{
         id: string;
         name: string;
@@ -131,13 +144,59 @@ export const PersonPage: React.FC = () => {
     const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
     const [interestProducts, setInterestProducts] = useState<Record<string, Product[]>>({});
     const [loadingInterests, setLoadingInterests] = useState<Record<string, boolean>>({});
+    const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger to force refetch of interest products
+    const [welcomeTrainingProducts, setWelcomeTrainingProducts] = useState<Product[]>([]);
+    const [welcomeTrainingInteractions, setWelcomeTrainingInteractions] = useState<number>(0);
+    const [isLoadingWelcomeTraining, setIsLoadingWelcomeTraining] = useState(false);
+    const [interactedProductIds, setInteractedProductIds] = useState<Set<string>>(new Set());
+    const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
+    const [trainingResetTrigger, setTrainingResetTrigger] = useState(0);
+    
+    // Check if welcome training should be shown - check localStorage directly each time
+    const shouldShowWelcomeTraining = useMemo(() => {
+        const enabled = isWelcomeTrainingEnabled();
+        const completed = isWelcomeTrainingCompleted();
+        const result = enabled && !completed;
+        console.log("🎯 PersonPage: shouldShowWelcomeTraining - enabled:", enabled, "completed:", completed, "result:", result);
+        return result;
+    }, [trainingResetTrigger]);
+    
+    // Reset training state when welcome training is enabled again
+    useEffect(() => {
+        if (shouldShowWelcomeTraining && !isCompletingTrainingRef.current) {
+            setWelcomeTrainingInteractions(0);
+            setInteractedProductIds(new Set());
+            setIsLoadingRecommendations(false);
+        }
+    }, [shouldShowWelcomeTraining, trainingResetTrigger]);
+    
+    // Listen for reset training event from dev menu
+    useEffect(() => {
+        const handleResetTraining = () => {
+            isCompletingTrainingRef.current = false;
+            setWelcomeTrainingInteractions(0);
+            setInteractedProductIds(new Set());
+            setIsLoadingRecommendations(false);
+            setWelcomeTrainingProducts([]);
+            setTrainingResetTrigger(prev => prev + 1);
+        };
+        
+        window.addEventListener('reset-welcome-training', handleResetTraining);
+        return () => {
+            window.removeEventListener('reset-welcome-training', handleResetTraining);
+        };
+    }, []);
     
     const CACHE_KEY = 'person_page_ai_picks_cache';
+    const INTEREST_PRODUCTS_CACHE_KEY = 'person_page_interest_products_cache';
     const SCROLL_POSITION_KEY = 'person_page_carousel_scroll';
     const NAVIGATION_FLAG_KEY = 'person_page_navigated_from_product';
     const aiPicksCarouselRef = useRef<HTMLDivElement>(null);
     const hasRestoredScroll = useRef(false);
     const isUsingCache = useRef(false);
+    const isFetchingRef = useRef(false);
+    const lastFetchedPersonIdRef = useRef<string | null>(null);
+    const isCompletingTrainingRef = useRef(false);
 
     const interestOptions = [
         "Tech",
@@ -159,6 +218,130 @@ export const PersonPage: React.FC = () => {
         price: number;
         rating?: number;
         numRatings?: number;
+        description?: string; // Added for consistency
+    };
+    
+    // Get training products from interestProducts state (products beyond the first 40)
+    useEffect(() => {
+        // Check training state
+        const enabled = isWelcomeTrainingEnabled();
+        const completed = isWelcomeTrainingCompleted();
+        
+        if (!enabled || completed || !shouldShowWelcomeTraining) {
+            setWelcomeTrainingProducts([]);
+            setIsLoadingWelcomeTraining(false);
+            return;
+        }
+
+        // Wait for at least one interest to have products
+        const hasInterestProducts = Object.keys(interestProducts).length > 0 && 
+            Object.values(interestProducts).some(products => products.length > 0);
+        
+        if (!hasInterestProducts) {
+            // Still loading interest products
+            setIsLoadingWelcomeTraining(true);
+            return;
+        }
+
+        // Collect products from all interests beyond the first 40 displayed
+        const allExtraProducts: Product[] = [];
+        Object.values(interestProducts).forEach(products => {
+            // Take products beyond the first 40 (index 40 onwards)
+            if (products.length > 40) {
+                allExtraProducts.push(...products.slice(40));
+            }
+        });
+
+        if (allExtraProducts.length === 0) {
+            // Not enough extra products yet, keep loading
+            setIsLoadingWelcomeTraining(true);
+            return;
+        }
+
+        // Shuffle and select 5 random products
+        const shuffled = [...allExtraProducts].sort(() => Math.random() - 0.5);
+        const selectedProducts = shuffled.slice(0, 5);
+
+        console.log("🎯 PersonPage: Selected training products from interest fetches:", selectedProducts.length);
+        setWelcomeTrainingProducts(selectedProducts);
+        setIsLoadingWelcomeTraining(false);
+    }, [interestProducts, shouldShowWelcomeTraining, trainingResetTrigger]);
+
+    // Handle welcome training interaction (thumbs up/down)
+    const handleWelcomeTrainingInteraction = (productId: string, isThumbsUp: boolean) => {
+        // Mark this product as interacted with
+        setInteractedProductIds(prev => new Set(prev).add(productId));
+        
+        const newCount = welcomeTrainingInteractions + 1;
+        setWelcomeTrainingInteractions(newCount);
+
+        if (newCount >= 5) {
+            // Prevent multiple completions
+            if (isCompletingTrainingRef.current) {
+                return;
+            }
+            
+            isCompletingTrainingRef.current = true;
+            
+            console.log("🎯 PersonPage: Training completed! Marking as completed and loading AI picks...");
+            
+            // Mark training as completed IMMEDIATELY
+            setWelcomeTrainingCompleted(true);
+            setWelcomeTraining(false);
+            // Trigger re-evaluation
+            setTrainingResetTrigger(prev => prev + 1);
+            
+            // Show loading state briefly
+            setIsLoadingRecommendations(true);
+            
+            // Check cache immediately (no delay)
+            const checkForCache = () => {
+                try {
+                    const cached = localStorage.getItem(CACHE_KEY);
+                    if (cached) {
+                        const cachedData = JSON.parse(cached);
+                        // Check if cache is for current person
+                        if (cachedData.personId === selectedPersonId && cachedData.products && cachedData.products.length > 0) {
+                            console.log("🎯 PersonPage: Found cached AI picks, setting them immediately");
+                            // Set AI picks immediately - animation will trigger on render
+                            setAiPicks(cachedData.products);
+                            setIsLoadingRecommendations(false);
+                            
+                            // Scroll carousel to start after products are rendered
+                            setTimeout(() => {
+                                if (aiPicksCarouselRef.current) {
+                                    aiPicksCarouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+                                }
+                            }, 200);
+                            return true;
+                        }
+                    }
+                    return false;
+                } catch (error) {
+                    console.error("Error loading cached recommendations after training:", error);
+                    return false;
+                }
+            };
+            
+            // Try to get from cache immediately
+            if (!checkForCache()) {
+                console.log("🎯 PersonPage: Cache not ready yet, polling...");
+                // If cache not ready yet, poll for it (max 10 seconds)
+                let attempts = 0;
+                const maxAttempts = 20; // 20 attempts * 500ms = 10 seconds max
+                const pollInterval = setInterval(() => {
+                    attempts++;
+                    if (checkForCache() || attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        if (attempts >= maxAttempts) {
+                            // Timeout - clear loading state anyway
+                            console.warn("⚠️ PersonPage: Cache not available after training");
+                            setIsLoadingRecommendations(false);
+                        }
+                    }
+                }, 500);
+            }
+        }
     };
     
     // Fetch AI picks when a person is selected (not on page load)
@@ -166,8 +349,25 @@ export const PersonPage: React.FC = () => {
         if (!selectedPersonId) {
             // No person selected, don't fetch
             setIsLoadingAiPicks(false);
+            lastFetchedPersonIdRef.current = null; // Reset when no person selected
             return;
         }
+
+        // Prevent multiple simultaneous calls or fetching for the same person
+        if (isFetchingRef.current) {
+            console.log("⏸️ PersonPage: Already fetching, skipping duplicate call");
+            return;
+        }
+        
+        // Don't fetch again if we already fetched for this person (check immediately)
+        if (lastFetchedPersonIdRef.current === selectedPersonId) {
+            console.log("⏸️ PersonPage: Already fetched for this person, skipping duplicate call");
+            return;
+        }
+        
+        // Mark as fetching immediately to prevent duplicate calls
+        isFetchingRef.current = true;
+        lastFetchedPersonIdRef.current = selectedPersonId;
 
         // Check if this is a page refresh (no navigation flag) - clear scroll position
         const navigatedFromProduct = sessionStorage.getItem(NAVIGATION_FLAG_KEY) === 'true';
@@ -180,22 +380,37 @@ export const PersonPage: React.FC = () => {
             }
         }
         
-        // Check cache synchronously first - if cache exists, use it immediately and skip API call
+        // Check if training is active - if so, always fetch in background (don't use cache for display)
+        const trainingEnabled = isWelcomeTrainingEnabled();
+        const trainingCompleted = isWelcomeTrainingCompleted();
+        const isTrainingActive = trainingEnabled && !trainingCompleted;
+        
+        // Check cache synchronously first - if cache exists and matches current person, use it immediately
+        // BUT: During training, we still fetch in background but don't display cached results
         try {
             const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
+            if (cached && !isTrainingActive) {
                 const cachedData = JSON.parse(cached);
-                // Check if cache is less than 1 hour old (optional: you can adjust this)
+                // Check if cache is for the same person and less than 1 hour old
                 const cacheAge = Date.now() - (cachedData.timestamp || 0);
                 const oneHour = 60 * 60 * 1000;
-                if (cacheAge < oneHour && cachedData.products && cachedData.products.length > 0) {
-                    console.log("📦 PersonPage: Using cached recommendations (navigating back from ProductPage)");
+                const cacheMatchesPerson = cachedData.personId === selectedPersonId;
+                
+                if (cacheMatchesPerson && cacheAge < oneHour && cachedData.products && cachedData.products.length > 0) {
+                    console.log("📦 PersonPage: Using cached AI picks (browser refresh or navigation back)");
                     isUsingCache.current = true;
+                    lastFetchedPersonIdRef.current = selectedPersonId; // Mark as fetched even when using cache
                     setAiPicks(cachedData.products);
                     setIsLoadingAiPicks(false);
                     setAiPicksError(null);
                     return; // Exit early, don't make API call
+                } else if (!cacheMatchesPerson) {
+                    console.log("📦 PersonPage: Cache is for different person, will fetch fresh data");
+                } else if (cacheAge >= oneHour) {
+                    console.log("📦 PersonPage: Cache expired, will fetch fresh data");
                 }
+            } else if (isTrainingActive) {
+                console.log("🎯 PersonPage: Training active - will fetch /recommend in background");
             }
         } catch (error) {
             console.warn("⚠️ PersonPage: Error reading cache, fetching fresh data:", error);
@@ -334,84 +549,45 @@ export const PersonPage: React.FC = () => {
                 const data: ApiResponse = await response.json();
                 
                 if (data.products && data.products.length > 0) {
-                    // Extract ASINs from API response
-                    const asins = data.products.map(p => p.asin).filter(Boolean);
-                    
-                    if (asins.length === 0) {
-                        throw new Error("No valid ASINs in recommendations");
-                    }
-                    
-                    // Fetch product details from Firebase
-                    console.log("🔥 PersonPage: Fetching product details from Firebase for ASINs:", asins);
-                    try {
-                        const productDetails = await getProductsByDocumentIds(asins);
-                        console.log("✅ PersonPage: Received product details from Firebase:", productDetails);
-                    
-                        // Transform to Product format, using Firebase data when available
-                        const transformedProducts: Product[] = data.products.map((product, index) => {
-                            const details = productDetails[index];
-                            const asin = product.asin || `ai-${index + 1}`;
-                            
-                            // Extract product data - handle nested 'data' field structure
-                            const productData = details?.data || details;
-                            
-                            // Extract name - try multiple possible fields
-                            const productName = productData?.name 
-                                || productData?.product_title 
-                                || productData?.title 
-                                || details?.name 
-                                || details?.productTitle 
-                                || `Product ${product.rank || index + 1}`;
-                            
-                            // Use Google Cloud Storage URL for AI picks images, with Firebase fallback
-                            // Format: https://storage.googleapis.com/simplysent-product-images/{asin}/t_{asin}_1.png
-                            // Fallback to Firebase product_photos if GCP image not available
-                            const firebaseProductPhotos = productData?.product_photos 
-                                || productData?.data?.product_photos
-                                || details?.product_photos
-                                || details?.imageUrl;
-                            const productImage = firebaseProductPhotos && (
-                                Array.isArray(firebaseProductPhotos) && firebaseProductPhotos.length > 0
-                                    ? firebaseProductPhotos[0]
-                                    : typeof firebaseProductPhotos === 'string' 
-                                        ? firebaseProductPhotos 
-                                        : null
-                            ) || `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
-                            
-                            // Extract price - prioritize product_price from Firebase
+                    // Transform products directly from API response (no Firebase needed)
+                    const transformedProducts: Product[] = data.products.map((product) => {
+                        const asin = product.asin || `ai-${product.rank || Math.random().toString(36).substr(2, 9)}`;
+                        
+                        // Extract name from API response
+                        const productName = product.product_title || `Product ${product.rank || 'Unknown'}`;
+                        
+                        // Extract image from API response
+                        const productImage = product.product_photo 
+                            || `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
+                        
+                        // Extract price - prefer price_numeric, fallback to parsing product_price string
                             let productPrice = 0;
-                            const priceValue = productData?.product_price 
-                                || productData?.price 
-                                || productData?.price_amount 
-                                || productData?.current_price
-                                || details?.product_price
-                                || details?.price;
-                            
-                            if (priceValue !== undefined && priceValue !== null) {
-                                if (typeof priceValue === 'string') {
-                                    // Remove currency symbols and parse
-                                    productPrice = parseFloat(priceValue.replace(/[£$€,]/g, '')) || 0;
-                                } else if (typeof priceValue === 'number') {
-                                    productPrice = priceValue;
-                                }
+                        if (product.price_numeric !== undefined && product.price_numeric !== null) {
+                            productPrice = typeof product.price_numeric === 'number' ? product.price_numeric : parseFloat(String(product.price_numeric)) || 0;
+                        } else if (product.product_price) {
+                            const priceStr = String(product.product_price).replace(/[£$€,]/g, '');
+                            productPrice = parseFloat(priceStr) || 0;
+                        }
+                        
+                        // Extract rating - use rating_numeric from API
+                        let parsedRating: number | undefined = undefined;
+                        if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
+                            const ratingNum = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(String(product.rating_numeric));
+                            if (!isNaN(ratingNum) && ratingNum > 0 && ratingNum <= 5) {
+                                parsedRating = ratingNum;
                             }
-                            
-                            // Extract rating and reviews
-                            const rating = productData?.product_star_rating 
-                                || productData?.rating
-                                || details?.product_star_rating
-                                || details?.rating;
-                            const numRatings = productData?.product_num_ratings 
-                                || productData?.num_ratings
-                                || details?.product_num_ratings
-                                || details?.num_ratings
-                                || 0;
+                        }
+                        
+                        // Extract num ratings - prefer num_ratings_numeric
+                        const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
+                            ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(String(product.num_ratings_numeric)) || 0)
+                            : (product.product_num_ratings || 0);
                             
                             console.log(`📦 Product ${asin}:`, { 
                                 name: productName, 
                                 image: productImage, 
                                 price: productPrice,
-                                rating: rating,
+                            rating: parsedRating,
                                 numRatings: numRatings
                             });
                             
@@ -420,40 +596,36 @@ export const PersonPage: React.FC = () => {
                                 image: productImage,
                                 name: productName,
                                 price: productPrice,
-                                rating: rating ? parseFloat(rating.toString()) : undefined,
+                            rating: parsedRating,
                                 numRatings: numRatings,
+                            description: PRODUCT_DESCRIPTION,
                             };
                         });
                         
-                        console.log("✅ PersonPage: Transformed products:", transformedProducts);
+                    console.log("✅ PersonPage: Transformed products from API:", transformedProducts);
+                    
+                    // Mark this person as fetched
+                    lastFetchedPersonIdRef.current = selectedPersonId;
+                    
+                    // Save to cache with person ID (always save, even during training)
+                    try {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify({
+                            products: transformedProducts,
+                            timestamp: Date.now(),
+                            recommendationId: data.recommendation_id,
+                            personId: selectedPersonId,
+                        }));
+                        console.log("💾 PersonPage: Saved AI picks to cache");
+                    } catch (error) {
+                        console.warn("⚠️ PersonPage: Error saving to cache:", error);
+                    }
+                    
+                    // Only set aiPicks state if training is not active (or if training just completed)
+                    // During training, results are cached but not displayed until training completes
+                    if (!isTrainingActive) {
                         setAiPicks(transformedProducts);
-                        
-                        // Save to cache
-                        try {
-                            localStorage.setItem(CACHE_KEY, JSON.stringify({
-                                products: transformedProducts,
-                                timestamp: Date.now(),
-                                recommendationId: data.recommendation_id,
-                            }));
-                            console.log("💾 PersonPage: Saved recommendations to cache");
-                        } catch (error) {
-                            console.warn("⚠️ PersonPage: Error saving to cache:", error);
-                        }
-                    } catch (firebaseError) {
-                        console.error("❌ PersonPage: Firebase error, using placeholder data:", firebaseError);
-                        // Fallback to placeholder data if Firebase fails
-                        const transformedProducts: Product[] = data.products.map((product, index) => {
-                            const asin = product.asin || `ai-${index + 1}`;
-                            // Use Google Cloud Storage URL for AI picks images
-                            const productImage = `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
-                            return {
-                                id: asin,
-                                image: productImage,
-                            name: `Product ${product.rank || index + 1}`,
-                            price: 0,
-                            };
-                        });
-                        setAiPicks(transformedProducts);
+                    } else {
+                        console.log("🎯 PersonPage: Training active - results cached but not displayed yet");
                     }
                 } else {
                     throw new Error("No product recommendations received");
@@ -466,22 +638,39 @@ export const PersonPage: React.FC = () => {
             } finally {
                 setIsLoadingAiPicks(false);
                 setIsRefreshing(false);
+                isFetchingRef.current = false;
             }
         };
         
         // Only fetch if we didn't use cache
         fetchAiPicks();
-    }, [selectedPersonId, savedPersons]);
+    }, [selectedPersonId]); // Removed savedPersons - we access it inside the effect, only need to refetch when selectedPersonId changes
     
     // Handle refresh button click
     const handleRefresh = () => {
         setIsRefreshing(true);
-        // Clear cache and fetch fresh data
+        // Clear both caches and reset fetch tracking
         try {
             localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(INTEREST_PRODUCTS_CACHE_KEY);
+            console.log("🔄 PersonPage: Cleared all caches for refresh");
         } catch (error) {
             console.warn("⚠️ PersonPage: Error clearing cache:", error);
         }
+        
+        // Reset fetch tracking to allow new fetch
+        isFetchingRef.current = false;
+        lastFetchedPersonIdRef.current = null;
+        
+        // Clear interest products state to trigger refetch
+        setInterestProducts({});
+        fetchingInterestsRef.current.clear();
+        
+        // Force refetch AI picks by clearing the cache check
+        isUsingCache.current = false;
+        
+        // Trigger interest products refetch by incrementing refresh trigger
+        setRefreshTrigger(prev => prev + 1);
         
         // Re-run fetch with force refresh
         const fetchAiPicks = async () => {
@@ -601,100 +790,64 @@ export const PersonPage: React.FC = () => {
                 const data: ApiResponse = await response.json();
                 
                 if (data.products && data.products.length > 0) {
-                    const asins = data.products.map(p => p.asin).filter(Boolean);
-                    
-                    if (asins.length === 0) {
-                        throw new Error("No valid ASINs in recommendations");
-                    }
-                    
-                    try {
-                        const productDetails = await getProductsByDocumentIds(asins);
+                    // Transform products directly from API response (no Firebase needed)
+                    const transformedProducts: Product[] = data.products.map((product) => {
+                        const asin = product.asin || `ai-${product.rank || Math.random().toString(36).substr(2, 9)}`;
                         
-                        const transformedProducts: Product[] = data.products.map((product, index) => {
-                            const details = productDetails[index];
-                            const asin = product.asin || `ai-${index + 1}`;
-                            const productData = details?.data || details;
-                            
-                            const productName = productData?.name 
-                                || productData?.product_title 
-                                || productData?.title 
-                                || details?.name 
-                                || details?.productTitle 
-                                || `Product ${product.rank || index + 1}`;
-                            
-                            const firebaseProductPhotos = productData?.product_photos 
-                                || productData?.data?.product_photos
-                                || details?.product_photos
-                                || details?.imageUrl;
-                            const productImage = firebaseProductPhotos && (
-                                Array.isArray(firebaseProductPhotos) && firebaseProductPhotos.length > 0
-                                    ? firebaseProductPhotos[0]
-                                    : typeof firebaseProductPhotos === 'string' 
-                                        ? firebaseProductPhotos 
-                                        : null
-                            ) || `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
-                            
-                            let productPrice = 0;
-                            const priceValue = productData?.product_price 
-                                || productData?.price 
-                                || productData?.price_amount 
-                                || productData?.current_price
-                                || details?.product_price
-                                || details?.price;
-                            
-                            if (priceValue !== undefined && priceValue !== null) {
-                                if (typeof priceValue === 'string') {
-                                    productPrice = parseFloat(priceValue.replace(/[£$€,]/g, '')) || 0;
-                                } else if (typeof priceValue === 'number') {
-                                    productPrice = priceValue;
-                                }
-                            }
-                            
-                            const rating = productData?.product_star_rating 
-                                || productData?.rating
-                                || details?.product_star_rating
-                                || details?.rating;
-                            const numRatings = productData?.product_num_ratings 
-                                || productData?.num_ratings
-                                || details?.product_num_ratings
-                                || details?.num_ratings
-                                || 0;
-                            
-                            return {
-                                id: asin,
-                                image: productImage,
-                                name: productName,
-                                price: productPrice,
-                                rating: rating ? parseFloat(rating.toString()) : undefined,
-                                numRatings: numRatings,
-                            };
-                        });
+                        // Extract name from API response
+                        const productName = product.product_title || `Product ${product.rank || 'Unknown'}`;
                         
-                        setAiPicks(transformedProducts);
+                        // Extract image from API response
+                        const productImage = product.product_photo 
+                            || `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
                         
-                        // Save to cache
-                        try {
-                            localStorage.setItem(CACHE_KEY, JSON.stringify({
-                                products: transformedProducts,
-                                timestamp: Date.now(),
-                                recommendationId: data.recommendation_id,
-                            }));
-                        } catch (error) {
-                            console.warn("⚠️ PersonPage: Error saving to cache:", error);
+                        // Extract price - prefer price_numeric, fallback to parsing product_price string
+                        let productPrice = 0;
+                        if (product.price_numeric !== undefined && product.price_numeric !== null) {
+                            productPrice = typeof product.price_numeric === 'number' ? product.price_numeric : parseFloat(String(product.price_numeric)) || 0;
+                        } else if (product.product_price) {
+                            const priceStr = String(product.product_price).replace(/[£$€,]/g, '');
+                            productPrice = parseFloat(priceStr) || 0;
                         }
-                    } catch (firebaseError) {
-                        console.error("❌ PersonPage: Firebase error:", firebaseError);
-                        const transformedProducts: Product[] = data.products.map((product, index) => {
-                            const asin = product.asin || `ai-${index + 1}`;
-                            const productImage = `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
+                        
+                        // Extract rating - use rating_numeric from API
+                        let parsedRating: number | undefined = undefined;
+                        if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
+                            const ratingNum = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(String(product.rating_numeric));
+                            if (!isNaN(ratingNum) && ratingNum > 0 && ratingNum <= 5) {
+                                parsedRating = ratingNum;
+                            }
+                        }
+                        
+                        // Extract num ratings - prefer num_ratings_numeric
+                        const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
+                            ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(String(product.num_ratings_numeric)) || 0)
+                            : (product.product_num_ratings || 0);
+                        
                             return {
                                 id: asin,
                                 image: productImage,
-                                name: `Product ${product.rank || index + 1}`,
-                                price: 0,
+                            name: productName,
+                            price: productPrice,
+                            rating: parsedRating,
+                            numRatings: numRatings,
+                            description: PRODUCT_DESCRIPTION,
                             };
                         });
+                    
                         setAiPicks(transformedProducts);
+                    
+                    // Save to cache with person ID
+                    try {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify({
+                            products: transformedProducts,
+                            timestamp: Date.now(),
+                            recommendationId: data.recommendation_id,
+                            personId: selectedPersonId,
+                        }));
+                        console.log("💾 PersonPage: Saved AI picks to cache (refresh)");
+                    } catch (error) {
+                        console.warn("⚠️ PersonPage: Error saving to cache:", error);
                     }
                 } else {
                     throw new Error("No product recommendations received");
@@ -723,6 +876,9 @@ export const PersonPage: React.FC = () => {
             try {
                 localStorage.removeItem('saved_persons');
                 sessionStorage.setItem('persons_cleared_on_app_load', 'true');
+                // Enable welcome training on first load
+                setWelcomeTrainingCompleted(false);
+                setWelcomeTraining(true);
             } catch (error) {
                 console.warn('Error clearing saved persons:', error);
             }
@@ -763,6 +919,11 @@ export const PersonPage: React.FC = () => {
         // Listen for new person added FIRST (before checking)
         const handlePersonAdded = () => {
             console.log('Person added event received');
+            // Enable welcome training when a person is added
+            setWelcomeTrainingCompleted(false);
+            setWelcomeTraining(true);
+            // Trigger training products fetch
+            setTrainingResetTrigger(prev => prev + 1);
             loadPersons();
         };
         window.addEventListener('person-added', handlePersonAdded);
@@ -822,27 +983,83 @@ export const PersonPage: React.FC = () => {
             window.removeEventListener('rapidapi-products-updated', handleUpdate);
         };
     }, []);
+    
+    // Track which interests are currently being fetched to prevent duplicates
+    const fetchingInterestsRef = useRef<Set<string>>(new Set());
+
+    // Get selected person's interests as a memoized value
+    const selectedPersonInterests = useMemo(() => {
+        if (!selectedPersonId) return [];
+        const selectedPerson = savedPersons.find(p => p.id === selectedPersonId);
+        return selectedPerson?.interests || [];
+    }, [selectedPersonId, savedPersons]);
 
     // Fetch products for each interest when a person is selected
     useEffect(() => {
-        if (!selectedPersonId) return;
-        
-        const selectedPerson = savedPersons.find(p => p.id === selectedPersonId);
-        if (!selectedPerson || !selectedPerson.interests || selectedPerson.interests.length === 0) return;
+        if (!selectedPersonId || selectedPersonInterests.length === 0) return;
 
         const fetchInterestProducts = async (interest: string) => {
+            // Prevent duplicate calls for the same interest
+            if (fetchingInterestsRef.current.has(interest)) {
+                console.log(`⏸️ PersonPage: Already fetching products for interest "${interest}", skipping duplicate call`);
+                return;
+            }
+            
+            // Get current AI picks product IDs for filtering
+            const currentAiPicksIds = new Set(aiPicks.map(p => p.id));
+            
+            // Check cache first for this interest
+            try {
+                const cached = localStorage.getItem(INTEREST_PRODUCTS_CACHE_KEY);
+                if (cached) {
+                    const cachedData = JSON.parse(cached);
+                    const cacheKey = `${selectedPersonId}_${interest}`;
+                    const cachedInterestData = cachedData[cacheKey];
+                    
+                    if (cachedInterestData) {
+                        const cacheAge = Date.now() - (cachedInterestData.timestamp || 0);
+                        const oneHour = 60 * 60 * 1000;
+                        
+                        if (cacheAge < oneHour && cachedInterestData.products && cachedInterestData.products.length > 0) {
+                            // Filter cached products against current AI picks
+                            const filteredCachedProducts = cachedInterestData.products.filter((p: Product) => !currentAiPicksIds.has(p.id));
+                            
+                            // If we have less than 40 after filtering, don't use cache - fetch fresh
+                            if (filteredCachedProducts.length < 40) {
+                                console.log(`📦 PersonPage: Cached products for "${interest}" have ${filteredCachedProducts.length} after filtering, fetching fresh`);
+                                // Continue to fetch fresh products
+                            } else {
+                                console.log(`📦 PersonPage: Using cached products for interest "${interest}"`);
+                                // Store ALL cached products (not just 40) - sortedInterestProducts will display only first 40
+                                setInterestProducts(prev => ({ ...prev, [interest]: filteredCachedProducts }));
+                                setLoadingInterests(prev => ({ ...prev, [interest]: false }));
+                                return; // Use cache, skip API call
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn(`⚠️ PersonPage: Error reading cache for interest "${interest}", fetching fresh data:`, error);
+            }
+            
+            // Mark as fetching
+            fetchingInterestsRef.current.add(interest);
             setLoadingInterests(prev => ({ ...prev, [interest]: true }));
             
             try {
                 const queryParams = new URLSearchParams();
-                queryParams.append('interest', interest);
-                queryParams.append('limit', '20');
+                // Normalize interest to lowercase for API (API is case-insensitive but be consistent)
+                queryParams.append('interest', interest.toLowerCase());
+                // Fetch more products initially to account for filtering (we want 40 visible, so fetch 60-80 to be safe)
+                queryParams.append('limit', '80');
                 queryParams.append('offset', '0');
                 queryParams.append('collection', 'amazon');
 
                 const mode = getCurrentMode();
                 const apiUrl = buildApiUrl('/products', queryParams);
                 const headers = getApiHeaders(mode || undefined);
+
+                console.log(`📦 PersonPage: Fetching products for interest "${interest}" from:`, apiUrl);
 
                 const response = await apiFetch(
                     apiUrl,
@@ -854,10 +1071,15 @@ export const PersonPage: React.FC = () => {
                 );
 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`❌ PersonPage: API error for interest "${interest}":`, response.status, errorText);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data: any[] = await response.json();
+                const responseData: { products?: any[] } = await response.json();
+                const data = responseData.products || [];
+                
+                console.log(`📦 PersonPage: Received ${Array.isArray(data) ? data.length : 0} products for interest "${interest}"`);
 
                 if (Array.isArray(data) && data.length > 0) {
                     const transformedProducts: Product[] = data.map((product) => {
@@ -869,16 +1091,19 @@ export const PersonPage: React.FC = () => {
                             price = parseFloat(priceStr) || 0;
                         }
 
+                        // Use rating_numeric (new API spec) - deprecated product_star_rating is no longer used
                         let rating: number | undefined = undefined;
                         if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
-                            rating = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(product.rating_numeric.toString());
-                        } else if (product.product_star_rating) {
-                            rating = parseFloat(product.product_star_rating.toString());
+                            const ratingNum = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(product.rating_numeric.toString());
+                            if (!isNaN(ratingNum) && ratingNum > 0 && ratingNum <= 5) {
+                                rating = ratingNum;
+                            }
                         }
 
+                        // Use num_ratings_numeric (new API spec) - deprecated product_num_ratings is no longer used
                         const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
                             ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(product.num_ratings_numeric.toString()) || 0)
-                            : (product.product_num_ratings || 0);
+                            : 0;
 
                         return {
                             id: product.asin || `${interest}-${Math.random().toString(36).substr(2, 9)}`,
@@ -887,115 +1112,148 @@ export const PersonPage: React.FC = () => {
                             price: price,
                             rating: rating,
                             numRatings: numRatings,
+                            description: PRODUCT_DESCRIPTION,
                         };
                     });
 
-                    setInterestProducts(prev => ({ ...prev, [interest]: transformedProducts }));
+                    // Filter out products that are in AI picks
+                    let allProducts = transformedProducts.filter(p => !currentAiPicksIds.has(p.id));
+                    
+                    // Keep fetching until we have 40 products (or run out of products)
+                    let offset = 80;
+                    while (allProducts.length < 40 && offset < 500) {
+                        const additionalQueryParams = new URLSearchParams();
+                        additionalQueryParams.append('interest', interest.toLowerCase());
+                        additionalQueryParams.append('limit', '80');
+                        additionalQueryParams.append('offset', String(offset));
+                        additionalQueryParams.append('collection', 'amazon');
+                        
+                        try {
+                            const additionalApiUrl = buildApiUrl('/products', additionalQueryParams);
+                            const additionalResponse = await apiFetch(
+                                additionalApiUrl,
+                                { method: 'GET', headers },
+                                `GET /products?interest=${interest}&offset=${offset}`,
+                            );
+                            
+                            if (!additionalResponse.ok) break;
+                            
+                            const additionalResponseData: { products?: any[] } = await additionalResponse.json();
+                            const additionalData = additionalResponseData.products || [];
+                            
+                            if (additionalData.length === 0) break; // No more products
+                            
+                            const additionalTransformedProducts: Product[] = additionalData.map((product: any) => {
+                                let price = 0;
+                                if (product.price_numeric !== undefined && product.price_numeric !== null) {
+                                    price = typeof product.price_numeric === 'number' ? product.price_numeric : parseFloat(String(product.price_numeric)) || 0;
+                                } else if (product.product_price) {
+                                    const priceStr = String(product.product_price).replace(/[£$€,]/g, '');
+                                    price = parseFloat(priceStr) || 0;
+                                }
+
+                                let rating: number | undefined = undefined;
+                                if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
+                                    const ratingNum = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(String(product.rating_numeric));
+                                    if (!isNaN(ratingNum) && ratingNum > 0 && ratingNum <= 5) {
+                                        rating = ratingNum;
+                                    }
+                                }
+
+                                const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
+                                    ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(String(product.num_ratings_numeric)) || 0)
+                                    : 0;
+
+                                return {
+                                    id: product.asin || `${interest}-${Math.random().toString(36).substr(2, 9)}`,
+                                    image: product.product_photo || '',
+                                    name: product.product_title || 'Unknown Product',
+                                    price: price,
+                                    rating: rating,
+                                    numRatings: numRatings,
+                                    description: PRODUCT_DESCRIPTION,
+                                };
+                            });
+                            
+                            const additionalFiltered = additionalTransformedProducts.filter(p => !currentAiPicksIds.has(p.id));
+                            allProducts = [...allProducts, ...additionalFiltered];
+                            
+                            if (allProducts.length >= 40) break;
+                            offset += 80;
+                        } catch (error) {
+                            console.warn(`⚠️ PersonPage: Error fetching additional products for "${interest}":`, error);
+                            break;
+                        }
+                    }
+                    
+                    // Store ALL products (not just 40) so we can use extras for training
+                    // We'll display 40 in the UI, but keep the rest available
+                    console.log(`✅ PersonPage: Fetched ${allProducts.length} products for interest "${interest}"`);
+                    setInterestProducts(prev => ({ ...prev, [interest]: allProducts }));
+                    
+                    // Save to cache
+                    try {
+                        const cached = localStorage.getItem(INTEREST_PRODUCTS_CACHE_KEY);
+                        const cachedData = cached ? JSON.parse(cached) : {};
+                        const cacheKey = `${selectedPersonId}_${interest}`;
+                        cachedData[cacheKey] = {
+                            products: allProducts,
+                            timestamp: Date.now(),
+                        };
+                        localStorage.setItem(INTEREST_PRODUCTS_CACHE_KEY, JSON.stringify(cachedData));
+                        console.log(`💾 PersonPage: Saved products for interest "${interest}" to cache`);
+                    } catch (error) {
+                        console.warn(`⚠️ PersonPage: Error saving to cache for interest "${interest}":`, error);
+                    }
                 } else {
+                    console.log(`⚠️ PersonPage: No products returned for interest "${interest}"`);
                     setInterestProducts(prev => ({ ...prev, [interest]: [] }));
                 }
             } catch (error) {
-                console.error(`Error fetching products for interest ${interest}:`, error);
+                console.error(`❌ PersonPage: Error fetching products for interest "${interest}":`, error);
                 setInterestProducts(prev => ({ ...prev, [interest]: [] }));
             } finally {
                 setLoadingInterests(prev => ({ ...prev, [interest]: false }));
+                fetchingInterestsRef.current.delete(interest);
             }
         };
 
-        // Fetch products for all interests
-        selectedPerson.interests.forEach(interest => {
-            if (!interestProducts[interest] && !loadingInterests[interest]) {
+        // Fetch products for all interests (only if not already fetched or fetching)
+        // Note: We check if products exist, but we might need to refetch if AI picks changed and we don't have 40 products
+        selectedPersonInterests.forEach(interest => {
+            const currentProducts = interestProducts[interest] || [];
+            const currentAiPicksIds = new Set(aiPicks.map(p => p.id));
+            const filteredCount = currentProducts.filter(p => !currentAiPicksIds.has(p.id)).length;
+            
+            // Always refetch if we have less than 40 products after filtering AI picks
+            // This ensures we always have 40 products per interest row
+            if ((!currentProducts.length || filteredCount < 40) && !loadingInterests[interest] && !fetchingInterestsRef.current.has(interest)) {
+                console.log(`🔄 PersonPage: Refetching "${interest}" - current: ${currentProducts.length}, filtered: ${filteredCount}, need: 40`);
+                // Clear the cached products for this interest to force a fresh fetch
+                setInterestProducts(prev => {
+                    const updated = { ...prev };
+                    delete updated[interest];
+                    return updated;
+                });
+                fetchingInterestsRef.current.delete(interest);
                 fetchInterestProducts(interest);
             }
         });
-    }, [selectedPersonId, savedPersons]);
+    }, [selectedPersonId, selectedPersonInterests.join(','), refreshTrigger, aiPicks.length]); // Include aiPicks.length to refetch when AI picks change
 
-    // Fetch tech products from /products endpoint
-    useEffect(() => {
-        const fetchTechProducts = async () => {
-            setIsLoadingTechProducts(true);
-            setTechProductsError(null);
 
-            try {
-                const queryParams = new URLSearchParams();
-                queryParams.append('interest', 'tech');
-                queryParams.append('limit', '50');
-                queryParams.append('offset', '0');
-                queryParams.append('collection', 'amazon');
-
-                const mode = getCurrentMode();
-                const apiUrl = buildApiUrl('/products', queryParams);
-                const headers = getApiHeaders(mode || undefined);
-
-                console.log('Fetching tech products from:', apiUrl);
-
-                const response = await apiFetch(
-                    apiUrl,
-                    {
-                        method: 'GET',
-                        headers,
-                    },
-                    'GET /products',
-                );
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data: any[] = await response.json();
-
-                if (Array.isArray(data) && data.length > 0) {
-                    // Transform API response to Product format
-                    const transformedProducts: Product[] = data.map((product) => {
-                        // Extract price - prefer price_numeric, fallback to parsing product_price string
-                        let price = 0;
-                        if (product.price_numeric !== undefined && product.price_numeric !== null) {
-                            price = typeof product.price_numeric === 'number' ? product.price_numeric : parseFloat(product.price_numeric.toString()) || 0;
-                        } else if (product.product_price) {
-                            const priceStr = product.product_price.toString().replace(/[£$€,]/g, '');
-                            price = parseFloat(priceStr) || 0;
-                        }
-
-                        // Extract rating - prefer rating_numeric, fallback to product_star_rating
-                        let rating: number | undefined = undefined;
-                        if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
-                            rating = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(product.rating_numeric.toString());
-                        } else if (product.product_star_rating) {
-                            rating = parseFloat(product.product_star_rating.toString());
-                        }
-
-                        // Extract num ratings - prefer num_ratings_numeric, fallback to product_num_ratings
-                        const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
-                            ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(product.num_ratings_numeric.toString()) || 0)
-                            : (product.product_num_ratings || 0);
-
-                        return {
-                            id: product.asin || `tech-${Math.random().toString(36).substr(2, 9)}`,
-                            image: product.product_photo || '',
-                            name: product.product_title || 'Unknown Product',
-                            price: price,
-                            rating: rating,
-                            numRatings: numRatings,
-                        };
-                    });
-
-                    console.log('✅ Tech products loaded:', transformedProducts.length);
-                    setTechProducts(transformedProducts);
-                } else {
-                    throw new Error('No products received from API');
-                }
-            } catch (error) {
-                console.error('Error fetching tech products:', error);
-                setTechProductsError(getUserFriendlyErrorMessage(error));
-                // Fallback to empty array on error
-                setTechProducts([]);
-            } finally {
-                setIsLoadingTechProducts(false);
-            }
-        };
-
-        fetchTechProducts();
-    }, []);
+    // Sort AI Picks products based on sort order
+    const sortedAiPicks = useMemo(() => {
+        if (!sortOrder) {
+            return aiPicks;
+        }
+        const sorted = [...aiPicks];
+        if (sortOrder === 'highest') {
+            return sorted.sort((a, b) => b.price - a.price);
+        } else {
+            return sorted.sort((a, b) => a.price - b.price);
+        }
+    }, [aiPicks, sortOrder]);
 
     // Sort RapidAPI products based on sort order
     const sortedRapidApiProducts = useMemo(() => {
@@ -1010,18 +1268,23 @@ export const PersonPage: React.FC = () => {
         }
     }, [rapidApiProducts, rapidApiSortOrder]);
 
-    // Sort tech products based on sort order
-    const sortedTechProducts = useMemo(() => {
-        if (!techSortOrder) {
-            return techProducts;
-        }
-        const sorted = [...techProducts];
-        if (techSortOrder === 'highest') {
-            return sorted.sort((a, b) => b.price - a.price);
-        } else {
-            return sorted.sort((a, b) => a.price - b.price);
-        }
-    }, [techProducts, techSortOrder]);
+    // Sort interest products based on sort order (applies to all interest carousels)
+    // Only show first 40 products per interest in the UI (rest are available for training)
+    const sortedInterestProducts = useMemo(() => {
+        const sorted: Record<string, Product[]> = {};
+        Object.keys(interestProducts).forEach(interest => {
+            const products = [...interestProducts[interest]];
+            let sortedProducts = products;
+            if (sortOrder === 'highest') {
+                sortedProducts = products.sort((a, b) => b.price - a.price);
+            } else if (sortOrder === 'lowest') {
+                sortedProducts = products.sort((a, b) => a.price - b.price);
+            }
+            // Only take first 40 for display (rest are available for training)
+            sorted[interest] = sortedProducts.slice(0, 40);
+        });
+        return sorted;
+    }, [interestProducts, sortOrder]);
 
     // Get AI Picks product IDs to filter from other carousels
     const aiPicksProductIds = useMemo(() => {
@@ -1030,43 +1293,10 @@ export const PersonPage: React.FC = () => {
 
     const productsByTab: Record<string, Product[]> = useMemo(
         () => ({
-            "ai-picks": aiPicks, // Use real API data, never fallback to fake products
+            "ai-picks": sortedAiPicks, // Use sorted AI picks
             "rapidapi": sortedRapidApiProducts.filter(p => !aiPicksProductIds.has(p.id)), // Filter out AI Picks products
-            tech: sortedTechProducts.filter(p => !aiPicksProductIds.has(p.id)), // Filter out AI Picks products
-            golf: [
-                {
-                    id: "golf-1",
-                    image: getRandomProductImage(),
-                    name: "Premium Golf Balls (12 pack)",
-                    price: 34.99,
-                },
-                {
-                    id: "golf-2",
-                    image: getRandomProductImage(),
-                    name: "Golf Swing Trainer Aid",
-                    price: 44.99,
-                },
-                {
-                    id: "golf-3",
-                    image: getRandomProductImage(),
-                    name: "Golf Glove Leather",
-                    price: 19.99,
-                },
-                {
-                    id: "golf-4",
-                    image: getRandomProductImage(),
-                    name: "Golf Club Set - Irons",
-                    price: 499.99,
-                },
-                {
-                    id: "golf-5",
-                    image: getRandomProductImage(),
-                    name: "Golf Range Finder",
-                    price: 189.99,
-                },
-            ].filter(p => !aiPicksProductIds.has(p.id)), // Filter out AI Picks products
         }),
-        [aiPicks, sortedRapidApiProducts, sortedTechProducts, aiPicksProductIds],
+        [sortedAiPicks, sortedRapidApiProducts, aiPicksProductIds],
     );
 
     const allProducts: Product[] = useMemo(() => {
@@ -1117,13 +1347,6 @@ export const PersonPage: React.FC = () => {
         navigate(`/product/${productId}`); // Navigate to product page with actual ASIN
     };
 
-    const toggleInterest = (interest: string) => {
-        setSelectedInterests((prev) =>
-            prev.includes(interest)
-                ? prev.filter((i) => i !== interest)
-                : [...prev, interest],
-        );
-    };
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -1142,7 +1365,7 @@ export const PersonPage: React.FC = () => {
 
     // White bottom safe area overlay when sheets are open
     useEffect(() => {
-        if (isRefineOpen || isAddPersonOpen) {
+        if (isBudgetSheetOpen || isInterestsSheetOpen || isAddPersonOpen) {
             const overlay = document.createElement("div");
             overlay.style.position = "fixed";
             overlay.style.bottom = "0";
@@ -1160,7 +1383,7 @@ export const PersonPage: React.FC = () => {
                 if (el) el.remove();
             };
         }
-    }, [isRefineOpen, isAddPersonOpen]);
+    }, [isBudgetSheetOpen, isInterestsSheetOpen, isAddPersonOpen]);
 
     // Initialize favourites with two products on load
     useEffect(() => {
@@ -1353,37 +1576,124 @@ export const PersonPage: React.FC = () => {
                         <div>
                             {/* AI Picks Carousel */}
                             <div className="mt-6">
+                                {/* Sort and Edit Controls */}
+                                {!shouldShowWelcomeTraining && (
+                                <div className="flex items-center gap-1.5 mb-4 overflow-x-auto no-scrollbar -mx-4 px-4">
+                                    <Button
+                                        variant={sortOrder === 'highest' ? 'primary' : 'outline'}
+                                        size="small"
+                                        onClick={() => setSortOrder('highest')}
+                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        aria-label="Sort by highest price"
+                                    >
+                                        <FontAwesomeIcon icon={faDollarSign} className="w-2.5 h-2.5" />
+                                        <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5" />
+                                        <span>High</span>
+                                    </Button>
+                                    <Button
+                                        variant={sortOrder === 'lowest' ? 'primary' : 'outline'}
+                                        size="small"
+                                        onClick={() => setSortOrder('lowest')}
+                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        aria-label="Sort by lowest price"
+                                    >
+                                        <FontAwesomeIcon icon={faDollarSign} className="w-2.5 h-2.5" />
+                                        <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5" />
+                                        <span>Low</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="small"
+                                        onClick={() => setIsBudgetSheetOpen(true)}
+                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        aria-label="Edit budget"
+                                    >
+                                        <FontAwesomeIcon icon={faSliders} className="w-2.5 h-2.5" />
+                                        <span>Budget</span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="small"
+                                        onClick={() => setIsInterestsSheetOpen(true)}
+                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        aria-label="Edit interests"
+                                    >
+                                        <FontAwesomeIcon icon={faTags} className="w-2.5 h-2.5" />
+                                        <span>Interests</span>
+                                    </Button>
+                                </div>
+                                )}
+                                
                                 <div className="flex items-center justify-between gap-3 mb-0">
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                         AI Picks For {selectedPersonId ? savedPersons.find(p => p.id === selectedPersonId)?.name || 'Kevin' : 'Kevin'}
+                                        {isAnyDevModeEnabled() && (
+                                            <span className="ml-2 text-base font-normal text-gray-500">
+                                                ({productsByTab["ai-picks"]?.filter((p) => !removedProducts.has(p.id)).length || 0})
+                                            </span>
+                                        )}
                                     </h2>
                                     <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={handleRefresh}
-                                            disabled={isRefreshing || isLoadingAiPicks}
-                                            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                            aria-label="Refresh recommendations"
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faRotateRight}
-                                                className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
-                                            />
-                                        </button>
+                                        {shouldShowWelcomeTraining ? (
+                                            <span className="text-sm font-medium text-gray-700">
+                                                {welcomeTrainingInteractions}/5
+                                            </span>
+                                        ) : (
                                     <button
                                         type="button"
-                                        onClick={() => setIsRefineOpen(true)}
-                                        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
-                                        aria-label="Open refine panel"
+                                                onClick={handleRefresh}
+                                                disabled={isRefreshing || isLoadingAiPicks}
+                                                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                aria-label="Refresh recommendations"
                                     >
                                         <FontAwesomeIcon
-                                            icon={faSliders}
-                                            className="w-5 h-5 text-gray-500"
+                                                    icon={faRotateRight}
+                                                    className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
                                         />
                                     </button>
-                                    </div>
+                                        )}
                                 </div>
-                                {isLoadingAiPicks ? (
+                                </div>
+                                {shouldShowWelcomeTraining && isLoadingWelcomeTraining ? (
+                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
+                                        <div className="text-center px-4">
+                                            <div className="relative mx-auto mb-6 w-20 h-20">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 animate-pulse" />
+                                                <div className="absolute inset-2 rounded-full bg-white" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-simplysent-purple animate-spin" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <p className="text-simplysent-purple font-semibold text-lg mb-2">
+                                                Loading products...
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : isLoadingRecommendations ? (
+                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
+                                        <div className="text-center px-4">
+                                            <div className="relative mx-auto mb-6 w-20 h-20">
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 animate-pulse" />
+                                                <div className="absolute inset-2 rounded-full bg-white" />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <svg className="w-8 h-8 text-simplysent-purple animate-spin" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <p className="text-simplysent-purple font-semibold text-lg mb-2">
+                                                Getting your recommendations...
+                                            </p>
+                                            <p className="text-gray-500 text-sm">
+                                                Just a moment while we find the perfect picks for you
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : !shouldShowWelcomeTraining && isLoadingAiPicks ? (
                                     <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
                                         <div className="text-center px-4">
                                             {/* Loading spinner */}
@@ -1425,6 +1735,68 @@ export const PersonPage: React.FC = () => {
                                             </p>
                                         </div>
                                     </div>
+                                ) : shouldShowWelcomeTraining ? (
+                                    // Show training carousel immediately when training is enabled
+                                    <div 
+                                        ref={aiPicksCarouselRef}
+                                        data-carousel="ai-picks"
+                                        className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12 mt-[10px]"
+                                    >
+                                        <div className="flex gap-4 transition-all duration-700 ease-out">
+                                            {/* Welcome Training Info Card */}
+                                            <div className="flex-shrink-0 w-[260px]">
+                                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl p-6 h-full flex flex-col justify-center items-center text-center border-2 border-purple-200">
+                                                    <div className="mb-4">
+                                                        <svg className="w-12 h-12 text-purple-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                                        </svg>
+                                                    </div>
+                                                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                                                        Rate 5 products
+                                                    </h3>
+                                                    <p className="text-sm text-gray-600 mb-4">
+                                                        Rate 5 products to unlock AI recommendations
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="flex-1 bg-white/60 rounded-full h-2">
+                                                            <div 
+                                                                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                                                                style={{ width: `${(welcomeTrainingInteractions / 5) * 100}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-sm font-bold text-purple-700">
+                                                            {welcomeTrainingInteractions}/5
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Welcome Training Products */}
+                                            {welcomeTrainingProducts.length > 0 && welcomeTrainingProducts.map((p) => (
+                                                <div
+                                                    key={p.id}
+                                                    className="flex-shrink-0 w-[260px] transition-all duration-700 ease-out"
+                                                >
+                                                    <ProductCard
+                                                        id={p.id}
+                                                        image={p.image}
+                                                        name={p.name}
+                                                        price={p.price}
+                                                        rating={p.rating}
+                                                        numRatings={p.numRatings}
+                                                        compact
+                                                        isAiPick={false}
+                                                        isFavorite={false}
+                                                        onFavoriteToggle={() => handleWelcomeTrainingInteraction(p.id, true)}
+                                                        onRemove={() => handleWelcomeTrainingInteraction(p.id, false)}
+                                                        hideActions={false}
+                                                        showWelcomeTrainingAnimation={!interactedProductIds.has(p.id)}
+                                                        disableRemove={true}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ) : productsByTab["ai-picks"]?.filter(
                                     (p) => !removedProducts.has(p.id),
                                 ).length === 0 ? (
@@ -1455,6 +1827,7 @@ export const PersonPage: React.FC = () => {
                                         className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12 mt-[10px]"
                                     >
                                         <div className="flex gap-4 transition-all duration-700 ease-out">
+                                            {/* Regular AI Picks Products */}
                                             {productsByTab["ai-picks"]
                                                 ?.filter(
                                                     (p) =>
@@ -1462,11 +1835,14 @@ export const PersonPage: React.FC = () => {
                                                             p.id,
                                                         ),
                                                 )
-                                                .map((p) => {
+                                                .map((p, index) => {
                                                     return (
                                                         <div
                                                             key={p.id}
                                                             className="flex-shrink-0 w-[260px] transition-all duration-700 ease-out"
+                                                            style={{
+                                                                animation: `fadeInSlide 0.6s ease-out ${index * 0.05}s both`,
+                                                            }}
                                                         >
                                                             <ProductCard
                                                                 id={p.id}
@@ -1504,7 +1880,7 @@ export const PersonPage: React.FC = () => {
 
                             {/* Interest-based Carousels */}
                             {selectedPersonId && savedPersons.find(p => p.id === selectedPersonId)?.interests.map((interest) => {
-                                const products = interestProducts[interest] || [];
+                                const products = sortedInterestProducts[interest] || [];
                                 const isLoading = loadingInterests[interest] || false;
                                 
                                 if (isLoading && products.length === 0) {
@@ -1513,6 +1889,11 @@ export const PersonPage: React.FC = () => {
                                 <div className="flex items-center gap-3 mb-0">
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                                     {getInterestLabel(interest)}
+                                                    {isAnyDevModeEnabled() && (
+                                                        <span className="ml-2 text-base font-normal text-gray-500">
+                                                            (loading...)
+                                                        </span>
+                                                    )}
                                     </h2>
                                 </div>
                                             <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "200px" }}>
@@ -1533,13 +1914,23 @@ export const PersonPage: React.FC = () => {
                                     );
                                 }
                                 
-                                if (products.length === 0) return null;
+                                // Show carousel even if all products are filtered - show filtered count
+                                const filteredProducts = products.filter((p) => !removedProducts.has(p.id) && !aiPicksProductIds.has(p.id));
+                                if (filteredProducts.length === 0) return null;
+                                
+                                // Count products for this interest (excluding removed and AI picks)
+                                const productCount = products.filter((p) => !removedProducts.has(p.id) && !aiPicksProductIds.has(p.id)).length;
                                 
                                 return (
                                     <div key={interest} className="mt-[10px]">
                                         <div className="flex items-center gap-3 mb-0">
                                             <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                                 {getInterestLabel(interest)}
+                                                {isAnyDevModeEnabled() && (
+                                                    <span className="ml-2 text-base font-normal text-gray-500">
+                                                        ({productCount})
+                                                    </span>
+                                                )}
                                             </h2>
                                         </div>
                                     <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
@@ -1560,9 +1951,10 @@ export const PersonPage: React.FC = () => {
                                                             numRatings={p.numRatings}
                                                             compact
                                                             className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
-                                                                isFavorite={favourites.has(p.id)}
-                                                                onFavoriteToggle={() => toggleFavourite(p.id)}
-                                                                onRemove={handleProductRemove}
+                                                            isFavorite={favourites.has(p.id)}
+                                                            onFavoriteToggle={() => toggleFavourite(p.id)}
+                                                            onRemove={handleProductRemove}
+                                                            onClick={() => handleProductClick(p.id)}
                                                         />
                                                     </div>
                                                 ))}
@@ -1580,32 +1972,28 @@ export const PersonPage: React.FC = () => {
                                             From RapidAPI
                                     </h2>
                                         <div className="flex items-center gap-2">
-                                            <button
-                                                type="button"
+                                            <Button
+                                                variant={rapidApiSortOrder === 'highest' ? 'primary' : 'outline'}
+                                                size="small"
                                                 onClick={() => setRapidApiSortOrder('highest')}
-                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                    rapidApiSortOrder === 'highest'
-                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
-                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
-                                                }`}
+                                                className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap border-gray-300"
                                                 aria-label="Sort by highest price"
                                             >
-                                                <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3" />
-                                                <span>Highest</span>
-                                            </button>
-                                            <button
-                                                type="button"
+                                                <FontAwesomeIcon icon={faDollarSign} className="w-2.5 h-2.5" />
+                                                <FontAwesomeIcon icon={faArrowUp} className="w-2.5 h-2.5" />
+                                                <span>High</span>
+                                            </Button>
+                                            <Button
+                                                variant={rapidApiSortOrder === 'lowest' ? 'primary' : 'outline'}
+                                                size="small"
                                                 onClick={() => setRapidApiSortOrder('lowest')}
-                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                    rapidApiSortOrder === 'lowest'
-                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
-                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
-                                                }`}
+                                                className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap border-gray-300"
                                                 aria-label="Sort by lowest price"
                                             >
-                                                <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
-                                                <span>Lowest</span>
-                                            </button>
+                                                <FontAwesomeIcon icon={faDollarSign} className="w-2.5 h-2.5" />
+                                                <FontAwesomeIcon icon={faArrowDown} className="w-2.5 h-2.5" />
+                                                <span>Low</span>
+                                            </Button>
                                 </div>
                                     </div>
                                     {productsByTab["rapidapi"]?.filter(
@@ -1757,16 +2145,54 @@ export const PersonPage: React.FC = () => {
                 </div>
             </div>
 
-            <RefineSheet
-                open={isRefineOpen}
-                onOpenChange={setIsRefineOpen}
-                initialInterests={selectedInterests}
-                initialMinBudget={minBudget}
-                initialMaxBudget={maxBudget}
-                onUpdate={(data) => {
-                    setSelectedInterests(data.interests);
-                    setMinBudget(data.minBudget);
-                    setMaxBudget(data.maxBudget);
+            {/* Budget Sheet */}
+            <BudgetSheet
+                open={isBudgetSheetOpen}
+                onOpenChange={setIsBudgetSheetOpen}
+                initialMinBudget={selectedPersonId ? savedPersons.find(p => p.id === selectedPersonId)?.minBudget || 50 : 50}
+                initialMaxBudget={selectedPersonId ? savedPersons.find(p => p.id === selectedPersonId)?.maxBudget || 300 : 300}
+                onSave={(minBudget, maxBudget) => {
+                    if (selectedPersonId) {
+                        const updatedPersons = savedPersons.map(person => 
+                            person.id === selectedPersonId 
+                                ? { ...person, minBudget, maxBudget }
+                                : person
+                        );
+                        setSavedPersons(updatedPersons);
+                        localStorage.setItem('saved_persons', JSON.stringify(updatedPersons));
+                        // Trigger refresh to get new recommendations with updated budget
+                        handleRefresh();
+                    }
+                }}
+            />
+
+            {/* Interests Sheet */}
+            <InterestsSheet
+                open={isInterestsSheetOpen}
+                onOpenChange={setIsInterestsSheetOpen}
+                initialInterests={selectedPersonId ? savedPersons.find(p => p.id === selectedPersonId)?.interests || [] : []}
+                gender={selectedPersonId ? savedPersons.find(p => p.id === selectedPersonId)?.gender : undefined}
+                onSave={(interests) => {
+                    if (selectedPersonId) {
+                        const updatedPersons = savedPersons.map(person => 
+                            person.id === selectedPersonId 
+                                ? { ...person, interests }
+                                : person
+                        );
+                        setSavedPersons(updatedPersons);
+                        localStorage.setItem('saved_persons', JSON.stringify(updatedPersons));
+                        // Clear interest products cache and trigger refetch
+                        try {
+                            localStorage.removeItem(INTEREST_PRODUCTS_CACHE_KEY);
+                        } catch (error) {
+                            console.warn("Error clearing interest products cache:", error);
+                        }
+                        setInterestProducts({});
+                        fetchingInterestsRef.current.clear();
+                        setRefreshTrigger(prev => prev + 1);
+                        // Trigger refresh to get new recommendations with updated interests
+                        handleRefresh();
+                    }
                 }}
             />
 
@@ -1775,7 +2201,7 @@ export const PersonPage: React.FC = () => {
             <div
                 id="floating-nav"
                 className={`fixed inset-x-0 z-40 transition-opacity duration-300 ${
-                    isRefineOpen
+                    isBudgetSheetOpen || isInterestsSheetOpen
                         ? "opacity-0 pointer-events-none"
                         : "opacity-100"
                 }`}

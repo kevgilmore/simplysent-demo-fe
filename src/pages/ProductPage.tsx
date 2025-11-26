@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 import { getProductByAsin } from "../services/firebaseService";
 
+// Lorem ipsum description (200 words) - same as PersonPage
+const PRODUCT_DESCRIPTION = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.";
+
 interface ProductDetail {
     id: string;
     name: string;
@@ -430,8 +433,8 @@ export const ProductPage: React.FC = () => {
                     || firebaseProduct.productTitle
                     || `Product ${productId}`;
                 
-                // Extract description - try multiple fields
-                let productDescription: string = "No description available.";
+                // Extract description - try multiple fields, fallback to lorem ipsum
+                let productDescription: string = PRODUCT_DESCRIPTION;
                 
                 const descriptionValue = productData?.description 
                     || productData?.product_description
@@ -443,16 +446,22 @@ export const ProductPage: React.FC = () => {
                     || productData?.info
                     || firebaseProduct.description;
                 
-                // Ensure description is a string
+                // Use Firebase description if available, otherwise use lorem ipsum
                 if (descriptionValue) {
-                    if (typeof descriptionValue === 'string') {
+                    if (typeof descriptionValue === 'string' && descriptionValue.trim() !== '') {
                         productDescription = descriptionValue;
-                    } else if (Array.isArray(descriptionValue)) {
+                    } else if (Array.isArray(descriptionValue) && descriptionValue.length > 0) {
                         productDescription = descriptionValue.join(' ');
                     } else if (typeof descriptionValue === 'object') {
-                        productDescription = JSON.stringify(descriptionValue);
-        } else {
-                        productDescription = String(descriptionValue);
+                        const objStr = JSON.stringify(descriptionValue);
+                        if (objStr && objStr !== '{}') {
+                            productDescription = objStr;
+                        }
+                    } else {
+                        const strValue = String(descriptionValue);
+                        if (strValue && strValue.trim() !== '') {
+                            productDescription = strValue;
+                        }
                     }
                 }
                 
@@ -491,21 +500,28 @@ export const ProductPage: React.FC = () => {
                     || firebaseProduct.product_num_ratings
                     || 0;
                 
-                // Use Google Cloud Storage URL for images, with Firebase fallback
+                // Extract image - prioritize product_photo from API response (stored in Firebase)
                 // Format: https://storage.googleapis.com/simplysent-product-images/{asin}/t_{asin}_1.png
-                // Fallback to Firebase product_photos if GCP images not available
-                const firebaseProductPhotos = productData?.product_photos 
-                    || productData?.data?.product_photos
-                    || firebaseProduct?.product_photos
+                // Or use product_photo field directly if available
+                const productPhoto = productData?.product_photo 
+                    || productData?.product_photos?.[0]
+                    || productData?.data?.product_photo
+                    || productData?.data?.product_photos?.[0]
+                    || firebaseProduct?.product_photo
+                    || firebaseProduct?.product_photos?.[0]
                     || firebaseProduct?.imageUrl
-                    || (firebaseProduct?.image_url ? [firebaseProduct.image_url] : null);
+                    || firebaseProduct?.image_url;
                 
                 const getImageUrl = (imageNumber: number): string => {
-                    // If Firebase has product_photos array, use it
-                    if (Array.isArray(firebaseProductPhotos) && firebaseProductPhotos.length >= imageNumber) {
-                        return firebaseProductPhotos[imageNumber - 1];
+                    // If we have product_photo, use it for the first image
+                    if (imageNumber === 1 && productPhoto) {
+                        return productPhoto;
                     }
-                    // Fallback to GCP URL
+                    // For additional images, try product_photos array
+                    if (productData?.product_photos && Array.isArray(productData.product_photos) && productData.product_photos.length >= imageNumber) {
+                        return productData.product_photos[imageNumber - 1];
+                    }
+                    // Fallback to GCP URL format (same as PersonPage)
                     return `https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_${imageNumber}.png`;
                 };
                 
@@ -513,8 +529,13 @@ export const ProductPage: React.FC = () => {
                 const secondImageUrl = getImageUrl(2);
                 const thirdImageUrl = getImageUrl(3);
                 
-                // Use first 3 images
+                // Use first 3 images, ensuring baseImageUrl is always set
                 const productImages = [baseImageUrl, secondImageUrl, thirdImageUrl].filter(Boolean);
+                
+                // Ensure we always have at least one image
+                if (productImages.length === 0) {
+                    productImages.push(`https://storage.googleapis.com/simplysent-product-images/${productId}/t_${productId}_1.png`);
+                }
                 
                 // Transform to ProductDetail format
                 const transformedProduct: ProductDetail = {

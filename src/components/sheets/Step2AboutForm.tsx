@@ -8,7 +8,6 @@ interface Step2AboutFormProps {
     onBack: () => void;
     onNext: (data: { name?: string; gender?: string }) => void;
     relationship?: string;
-    initialName?: string;
 }
 
 // Relationships where gender can be inferred
@@ -21,9 +20,8 @@ export const Step2AboutForm: React.FC<Step2AboutFormProps> = ({
     onBack,
     onNext,
     relationship = "",
-    initialName = "",
 }) => {
-    const [name, setName] = useState(initialName);
+    const [name, setName] = useState("");
     const [gender, setGender] = useState("");
 
     // Determine if we need to show name and gender fields

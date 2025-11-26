@@ -21,6 +21,8 @@ interface ProductCardProps {
     textColor?: string;
     priceColor?: string;
     isAiPick?: boolean;
+    showWelcomeTrainingAnimation?: boolean;
+    disableRemove?: boolean;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
@@ -43,11 +45,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     textColor,
     priceColor,
     isAiPick = false,
+    showWelcomeTrainingAnimation = false,
+    disableRemove = false,
 }) => {
     const [isBad, setIsBad] = useState(false);
     const [isThumbsUp, setIsThumbsUp] = useState(false);
     const [isFavoriteInternal, setIsFavoriteInternal] = useState(false);
     const [isRemoving, setIsRemoving] = useState(false);
+    const [hasInteracted, setHasInteracted] = useState(false);
 
     const handleBadClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -57,8 +62,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             return;
         }
         if (!isBad) {
-            setIsRemoving(true);
+            setHasInteracted(true); // Stop animation
+            if (!disableRemove) {
+                setIsRemoving(true);
+            }
             setIsThumbsUp(false);
+            setIsBad(true);
+            // Call onRemove callback if provided (for welcome training tracking)
+            if (onRemove && id) {
+                onRemove(id);
+            }
         } else {
             setIsBad(!isBad);
         }
@@ -71,11 +84,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         if (isBad) {
             return;
         }
+        const wasThumbsUp = isThumbsUp;
+        setHasInteracted(true); // Stop animation
         setIsThumbsUp(!isThumbsUp);
         // If thumbs up is being activated, ensure thumbs down is off
-        if (!isThumbsUp) {
+        if (!wasThumbsUp) {
             setIsBad(false);
             setIsRemoving(false);
+            // Call onFavoriteToggle callback if provided (for welcome training tracking)
+            if (onFavoriteToggle) {
+                onFavoriteToggle();
+            }
         }
     };
 
@@ -96,13 +115,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     useEffect(() => {
-        if (isRemoving && onRemove && id) {
+        if (isRemoving && onRemove && id && !disableRemove) {
             const timer = setTimeout(() => {
                 onRemove(id);
             }, 600);
             return () => clearTimeout(timer);
         }
-    }, [isRemoving, onRemove, id]);
+    }, [isRemoving, onRemove, id, disableRemove]);
 
     const cardWidth = favouritesVariant ? "175px" : "260px";
     const cardMinHeight = favouritesVariant ? "240px" : "180px";
@@ -289,8 +308,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     <div className="flex items-center gap-4 -ml-3">
                                         <button
                                             onClick={handleThumbsUpClick}
-                                            className="flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50"
-                                            style={{ padding: compact ? "12px" : "14px" }}
+                                            className={`flex items-center justify-center rounded-2xl transition-all duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50 ${
+                                                showWelcomeTrainingAnimation && !hasInteracted ? 'animate-bounce' : ''
+                                            }`}
+                                            style={{ 
+                                                padding: compact ? "12px" : "14px",
+                                                animationDelay: showWelcomeTrainingAnimation ? '0s' : undefined,
+                                                animationDuration: showWelcomeTrainingAnimation ? '1s' : undefined,
+                                                animationIterationCount: showWelcomeTrainingAnimation ? 'infinite' : undefined,
+                                            }}
                                             aria-label="Thumbs up"
                                         >
                                             <ThumbsUp
@@ -302,8 +328,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                                         <button
                                             onClick={handleBadClick}
-                                            className="flex items-center justify-center rounded-2xl transition-colors duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50"
-                                            style={{ padding: compact ? "12px" : "14px" }}
+                                            className={`flex items-center justify-center rounded-2xl transition-all duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50 ${
+                                                showWelcomeTrainingAnimation && !hasInteracted ? 'animate-bounce' : ''
+                                            }`}
+                                            style={{ 
+                                                padding: compact ? "12px" : "14px",
+                                                animationDelay: showWelcomeTrainingAnimation ? '0.5s' : undefined,
+                                                animationDuration: showWelcomeTrainingAnimation ? '1s' : undefined,
+                                                animationIterationCount: showWelcomeTrainingAnimation ? 'infinite' : undefined,
+                                            }}
                                             aria-label="Thumbs down"
                                         >
                                             <ThumbsDown

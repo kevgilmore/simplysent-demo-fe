@@ -16,6 +16,10 @@ export const UIKitPage: React.FC = () => {
     const [minBudget, setMinBudget] = useState(50);
     const [maxBudget, setMaxBudget] = useState(300);
     const [activeTab, setActiveTab] = useState("ai-picks");
+    
+    // Typography state
+    const [selectedFont, setSelectedFont] = useState<"StackSansText" | "StackSansHeadline" | "StackSansNotch">("StackSansText");
+    const [selectedWeight, setSelectedWeight] = useState<"200" | "300" | "400" | "500" | "600" | "700">("400");
 
     const dropdownOptions = [
         { value: "option1", label: "Electronics" },
@@ -441,29 +445,90 @@ export const UIKitPage: React.FC = () => {
                     <Heading level={2} className="mb-6">
                         Typography
                     </Heading>
+                    
+                    {/* Font and Weight Selectors */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Font Family
+                            </label>
+                            <Dropdown
+                                placeholder="Select font"
+                                value={selectedFont}
+                                options={[
+                                    { value: "StackSansText", label: "StackSansText" },
+                                    { value: "StackSansHeadline", label: "StackSansHeadline" },
+                                    { value: "StackSansNotch", label: "StackSansNotch (Logo only)" },
+                                ]}
+                                onChange={(value) => setSelectedFont(value as typeof selectedFont)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Select Font Weight
+                            </label>
+                            <Dropdown
+                                placeholder="Select weight"
+                                value={selectedWeight}
+                                options={[
+                                    { value: "200", label: "ExtraLight (200)" },
+                                    { value: "300", label: "Light (300)" },
+                                    { value: "400", label: "Regular (400)" },
+                                    { value: "500", label: "Medium (500)" },
+                                    { value: "600", label: "SemiBold (600)" },
+                                    { value: "700", label: "Bold (700)" },
+                                ]}
+                                onChange={(value) => setSelectedWeight(value as typeof selectedWeight)}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Typography Preview */}
                     <div className="space-y-6">
+                        <div className="p-6 bg-gray-50 rounded-2xl border-2 border-gray-200">
+                            <p className="text-sm text-gray-500 mb-4 font-medium">
+                                Preview: {selectedFont} - Weight {selectedWeight}
+                            </p>
+                            <div 
+                                style={{ 
+                                    fontFamily: selectedFont,
+                                    fontWeight: parseInt(selectedWeight),
+                                }}
+                                className="text-4xl text-gray-900"
+                            >
+                                The quick brown fox jumps over the lazy dog
+                            </div>
+                        </div>
+
                         <div>
                             <p className="text-sm text-gray-500 mb-2 font-medium">
-                                HEADINGS - Baloo 2 (Semi-bold)
+                                StackSansText (Body Text)
                             </p>
-                            <Heading level={2}>
+                            <p className="text-lg text-gray-700" style={{ fontFamily: 'StackSansText', fontWeight: 400 }}>
+                                The quick brown fox jumps over the lazy dog.
+                                This is a sample paragraph text using StackSansText
+                                with regular weight for optimal readability.
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-500 mb-2 font-medium">
+                                StackSansHeadline (Headings)
+                            </p>
+                            <Heading level={2} style={{ fontFamily: 'StackSansHeadline', fontWeight: 500 }}>
                                 The quick brown fox jumps over the lazy dog
                             </Heading>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500 mb-2 font-medium">
-                                BODY TEXT - Comfortaa (Medium)
+                                StackSansNotch (Logo Only)
                             </p>
-                            <p className="text-lg text-gray-700">
-                                The quick brown fox jumps over the lazy dog.
-                                This is a sample paragraph text using the
-                                Comfortaa font family with medium weight for
-                                optimal readability.
-                            </p>
+                            <div className="font-notch font-bold text-3xl bg-gradient-to-r from-purple-600 via-simplysent-purple to-pink-500 bg-clip-text text-transparent">
+                                SimplySent
+                            </div>
                         </div>
                         <div>
                             <p className="text-sm text-gray-500 mb-2 font-medium">
-                                BUTTONS - Outfit (Semi-bold)
+                                Buttons (StackSansText)
                             </p>
                             <Button>Button Text Example</Button>
                         </div>
