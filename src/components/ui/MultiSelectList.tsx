@@ -39,13 +39,16 @@ export const MultiSelectList: React.FC<MultiSelectListProps> = ({
                             key={option.value}
                             type="button"
                             onClick={() => toggleOption(option.value)}
-                            className={`w-full px-6 py-4 rounded-full text-base font-medium transition-all duration-200 flex items-center justify-between
-                                ${
-                                    isSelected
-                                        ? "bg-[#5E57AC] text-white border-2 border-[#5E57AC]"
-                                        : "bg-white text-gray-700 border-2 border-gray-200 hover:border-gray-300"
-                                }
-                            `}
+                            style={{
+                                backgroundColor: isSelected ? '#5E57AC' : '#FFFFFF',
+                                color: isSelected ? '#FFFFFF' : '#374151',
+                                borderColor: isSelected ? '#5E57AC' : '#E5E7EB',
+                            }}
+                            className={`w-full px-6 py-4 rounded-full text-base font-normal transition-all duration-200 flex items-center justify-between border-2 ${
+                                isSelected
+                                    ? ""
+                                    : "hover:border-gray-300"
+                            }`}
                         >
                             <div className="flex items-center gap-3">
                                 {option.emoji && (

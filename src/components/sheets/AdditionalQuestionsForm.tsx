@@ -3,12 +3,12 @@ import { Dropdown } from "../ui/Dropdown";
 import { Button } from "../ui/Button";
 import { clothingSizeOptions, favouriteDrinkOptions } from "./formConstants";
 
-interface Step5FormProps {
+interface AdditionalQuestionsFormProps {
     onBack: () => void;
     onNext: (data: { clothingSize: string; favouriteDrink: string }) => void;
 }
 
-export const Step3StyleForm: React.FC<Step5FormProps> = ({
+export const AdditionalQuestionsForm: React.FC<AdditionalQuestionsFormProps> = ({
     onBack,
     onNext,
 }) => {
@@ -19,8 +19,8 @@ export const Step3StyleForm: React.FC<Step5FormProps> = ({
     useEffect(() => {
         const autofillEnabled = localStorage.getItem('ss_autofill_enabled') === 'true';
         if (autofillEnabled && !clothingSize && !favouriteDrink) {
-            // Auto-fill with "M" and "Beer"
-            setClothingSize("M");
+            // Auto-fill with "m" (lowercase to match option value) and "beer"
+            setClothingSize("m");
             setFavouriteDrink("beer");
         }
     }, []); // Only run once on mount

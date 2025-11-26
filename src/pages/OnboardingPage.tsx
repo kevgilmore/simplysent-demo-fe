@@ -3,65 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ActionPersonSheet } from "../components/sheets/ActionPersonSheet";
 import { Button } from "../components/ui/Button";
-import { buildApiUrl, apiFetch, getApiHeaders, getCurrentMode, isDevModeEnabled, setWelcomeTraining, setWelcomeTrainingCompleted } from "../utils/apiConfig";
-import { getProductsByDocumentIds } from "../services/firebaseService";
 
 export function OnboardingPage() {
     const navigate = useNavigate();
     const [isSheetOpen, setIsSheetOpen] = useState(false);
-    const [isAutoFilling, setIsAutoFilling] = useState(false);
 
     const handleFormComplete = () => {
-        setIsSheetOpen(false);
-        // Enable welcome training for normal onboarding flow
-        setWelcomeTrainingCompleted(false);
-        setWelcomeTraining(true);
-        // Delay to ensure person is saved and event is dispatched before navigating
+        // Set flag to indicate we're navigating from onboarding
+        sessionStorage.setItem('navigating_from_onboarding', 'true');
+        // Navigate immediately - PersonPage will load behind the closing sheet
+        navigate("/person");
+        // Close sheet after navigation starts
         setTimeout(() => {
-            navigate("/person");
-        }, 200);
-    };
-
-    const handleSkipToPersonPage = async () => {
-        // Prevent multiple calls
-        if (isAutoFilling) {
-            return;
-        }
-        
-        setIsAutoFilling(true);
-        
-        try {
-            // Create person object directly
-            const personData = {
-                id: `person-${Date.now()}`,
-                name: "Dad",
-                relationship: "father",
-                gender: "male",
-                interests: ["tech", "golf"],
-                minBudget: 10,
-                maxBudget: 200,
-                createdAt: Date.now(),
-            };
-            
-            // Save to localStorage
-            const storedPersons = localStorage.getItem('saved_persons');
-            const persons = storedPersons ? JSON.parse(storedPersons) : [];
-            persons.push(personData);
-            localStorage.setItem('saved_persons', JSON.stringify(persons));
-            
-            // Enable welcome training
-            setWelcomeTrainingCompleted(false);
-            setWelcomeTraining(true);
-            
-            // Dispatch event to notify PersonPage
-            window.dispatchEvent(new CustomEvent('person-added', { detail: personData }));
-            
-            // Navigate directly to PersonPage (bypass ActionPersonSheet)
-            navigate("/person");
-        } catch (error) {
-            console.error("Error in autofill:", error);
-            setIsAutoFilling(false);
-        }
+            setIsSheetOpen(false);
+        }, 100);
     };
 
     return (
@@ -175,7 +130,7 @@ export function OnboardingPage() {
                                         onClick={() => setIsSheetOpen(true)}
                                         variant="primary"
                                         size="large"
-                                        className="relative w-full min-w-[240px] shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300 bg-transparent border-0 overflow-hidden group"
+                                        className="relative w-full min-w-[240px] shadow-xl shadow-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300 bg-transparent border-0 overflow-hidden group !font-normal"
                                     >
                                         <motion.span
                                             animate={{
@@ -209,17 +164,6 @@ export function OnboardingPage() {
                                     </Button>
                                 </div>
                             </motion.div>
-                            {isDevModeEnabled() && (
-                                <Button
-                                    onClick={handleSkipToPersonPage}
-                                    variant="ghost"
-                                    size="medium"
-                                    disabled={isAutoFilling}
-                                    className="text-sm text-gray-500 hover:text-gray-700"
-                                >
-                                    {isAutoFilling ? "Loading..." : "Autofill (dev only)"}
-                                </Button>
-                            )}
                         </motion.div>
                     </motion.div>
                 </div>

@@ -163,6 +163,28 @@ export const girlsInterests = [
     { value: "nail-art", label: "Nail Art", emoji: "💅" },
 ];
 
+// Helper function to get interest label from value (for single interest)
+export const getInterestLabelForAPI = (interestValue: string): string => {
+    // Create a map of all interest values to their labels
+    const allInterests = [...menInterests, ...womenInterests, ...boysInterests, ...girlsInterests];
+    const interestMap = new Map<string, string>();
+    allInterests.forEach(interest => {
+        interestMap.set(interest.value, interest.label);
+    });
+    
+    // Convert interest value to its label format
+    if (interestMap.has(interestValue)) {
+        return interestMap.get(interestValue)!;
+    }
+    // If it's already a label (not in the map), return as is
+    return interestValue;
+};
+
+// Helper function to normalize interest values to API format (no dashes, proper capitalization)
+export const normalizeInterestsForAPI = (interests: string[]): string[] => {
+    return interests.map(interest => getInterestLabelForAPI(interest));
+};
+
 // Helper function to get interests based on relationship, age, and gender
 export const getInterestsForPerson = (
     relationship?: string,

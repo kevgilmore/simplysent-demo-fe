@@ -808,7 +808,7 @@ export function SharePage() {
                                                                 scale: 1.1,
                                                                 y: -2,
                                                             }}
-                                                            className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-white/90 text-purple-600 shadow-lg hover:shadow-xl transition-all duration-200 border border-white/50 backdrop-blur-sm"
+                                                            className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white/90 text-purple-600 shadow-lg hover:shadow-xl transition-all duration-200 border border-white/50 backdrop-blur-sm"
                                                         >
                                                             {interest}
                                                         </motion.span>
@@ -900,7 +900,7 @@ export function SharePage() {
                                                                             scale: 1.1,
                                                                             y: -2,
                                                                         }}
-                                                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-white/90 text-purple-600 shadow-lg hover:shadow-xl transition-all duration-200 border border-white/50 backdrop-blur-sm"
+                                                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-white/90 text-purple-600 shadow-lg hover:shadow-xl transition-all duration-200 border border-white/50 backdrop-blur-sm"
                                                                     >
                                                                         {
                                                                             interest
@@ -960,7 +960,7 @@ export function SharePage() {
                                 )}
 
                                 {/* Rank Badge */}
-                                <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-2 rounded-full text-sm font-bold shadow-lg">
+                                <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-2 rounded-full text-sm font-semibold shadow-lg">
                                     #1 TOP PICK
                                 </div>
                             </div>
@@ -1113,7 +1113,7 @@ export function SharePage() {
                                         )}
 
                                         {/* Rank Badge */}
-                                        <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-2 py-1 rounded-full text-sm font-semibold">
+                                        <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-2 py-1 rounded-full text-sm font-medium">
                                             #{product.rank}
                                         </div>
                                     </div>

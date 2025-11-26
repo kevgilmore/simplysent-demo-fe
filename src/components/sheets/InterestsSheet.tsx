@@ -158,6 +158,7 @@ export const InterestsSheet: React.FC<InterestsSheetProps> = ({
                                 variant="primary"
                                 size="large"
                                 fullWidth
+                                className="!font-normal"
                             >
                                 Save Interests
                             </Button>

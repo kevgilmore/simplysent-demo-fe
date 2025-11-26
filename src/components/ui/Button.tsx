@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
     type = "button",
 }) => {
     const baseStyles =
-        "font-semibold rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative overflow-hidden";
+        "font-medium rounded-full transition-all duration-200 focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative overflow-hidden";
 
     const variantStyles = {
         primary:
@@ -32,7 +32,7 @@ export const Button: React.FC<ButtonProps> = ({
         outline:
             "bg-transparent border-2 border-gray-300 text-[#5E57AC] hover:bg-[#5E57AC] hover:text-white hover:border-[#5E57AC] active:bg-[#5E57AC] active:text-white active:border-[#5E57AC] active:opacity-95 focus:ring-[#5E57AC]/30 disabled:hover:bg-transparent disabled:hover:text-[#5E57AC] disabled:hover:border-gray-300",
         ghost: "bg-transparent text-[#5E57AC] hover:bg-[#5E57AC]/10 active:bg-[#5E57AC]/20 active:opacity-95 focus:ring-[#5E57AC]/20 disabled:hover:bg-transparent",
-        cta: "bg-gradient-to-r from-[#4A4490] via-[#5E57AC] to-[#7C6FBE] bg-[length:200%_auto] text-white font-bold focus:ring-[#5E57AC]/40 animate-gradient-slide overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-[1500ms] disabled:animate-none disabled:opacity-60",
+        cta: "bg-gradient-to-r from-[#4A4490] via-[#5E57AC] to-[#7C6FBE] bg-[length:200%_auto] text-white font-semibold focus:ring-[#5E57AC]/40 animate-gradient-slide overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-[1500ms] disabled:animate-none disabled:opacity-60",
     };
 
     const sizeStyles = {

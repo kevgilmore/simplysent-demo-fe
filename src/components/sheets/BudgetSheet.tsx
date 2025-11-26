@@ -145,6 +145,7 @@ export const BudgetSheet: React.FC<BudgetSheetProps> = ({
                                 variant="primary"
                                 size="large"
                                 fullWidth
+                                className="!font-normal"
                             >
                                 Save Budget
                             </Button>

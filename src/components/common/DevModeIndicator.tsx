@@ -5,19 +5,16 @@ import {
   isSandboxHeaderEnabled, 
   isProdMode,
   isMockRecommendationsEnabled,
-  isWelcomeTrainingEnabled,
   setLocalMode,
   setSandboxHeader,
   setProdMode,
   setMockRecommendations,
-  setWelcomeTraining,
-  setWelcomeTrainingCompleted,
   buildApiUrl,
   apiFetch,
   getApiHeaders,
   getCurrentMode
 } from '../../utils/apiConfig';
-import { womenInterests } from '../../components/sheets/formConstants';
+import { womenInterests, normalizeInterestsForAPI } from '../../components/sheets/formConstants';
 
 interface DevModeIndicatorProps {
   className?: string;
@@ -31,16 +28,28 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
   const [localModeEnabled, setLocalModeEnabledState] = useState(false);
   const [sandboxHeaderEnabled, setSandboxHeaderEnabledState] = useState(false);
   const [mockRecommendationsEnabled, setMockRecommendationsEnabledState] = useState(false);
+  const [autofillEnabled, setAutofillEnabledState] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // Update state when localStorage changes
   useEffect(() => {
     const updateState = () => {
-      setDevModeEnabledState(isDevModeEnabled());
+      const devMode = isDevModeEnabled();
+      setDevModeEnabledState(devMode);
       setLocalModeEnabledState(isLocalModeEnabled());
       setSandboxHeaderEnabledState(isSandboxHeaderEnabled());
       setMockRecommendationsEnabledState(isMockRecommendationsEnabled());
+      
+      // If dev mode is enabled and autofill hasn't been explicitly set, enable it by default
+      const autofillSetting = localStorage.getItem('ss_autofill_enabled');
+      if (devMode && autofillSetting === null) {
+        // Autofill not explicitly set - enable by default in dev mode
+        localStorage.setItem('ss_autofill_enabled', 'true');
+        setAutofillEnabledState(true);
+      } else {
+        setAutofillEnabledState(autofillSetting === 'true');
+      }
     };
 
     updateState();
@@ -131,16 +140,15 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
     setMockRecommendations(enabled);
   };
 
-  const handleResetTraining = () => {
-    // Reset training state: clear completion flag and enable training
-    setWelcomeTrainingCompleted(false);
-    setWelcomeTraining(true);
-    setIsOpen(false);
-    // Small delay to ensure localStorage is updated
-    setTimeout(() => {
-      // Dispatch event to notify PersonPage to reset training state
-      window.dispatchEvent(new CustomEvent('reset-welcome-training'));
-    }, 50);
+  const handleAutofillToggle = (enabled: boolean) => {
+    // Update localStorage first (synchronously)
+    if (enabled) {
+      localStorage.setItem('ss_autofill_enabled', 'true');
+    } else {
+      localStorage.removeItem('ss_autofill_enabled');
+    }
+    // Then update state - this ensures the next poll reads the correct value
+    setAutofillEnabledState(enabled);
   };
 
   const handleRapidApiImport = () => {
@@ -216,6 +224,9 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
     };
 
     try {
+      // Normalize interests to API format (no dashes, proper capitalization)
+      const normalizedInterests = normalizeInterestsForAPI(personData.interests);
+      
       // Call /recommend API
       const requestData = {
         context: {
@@ -223,7 +234,7 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
           relationship: personData.relationship.charAt(0).toUpperCase() + personData.relationship.slice(1).toLowerCase(),
           gender: personData.gender.toLowerCase(),
           dob: personData.dob,
-          interests: personData.interests,
+          interests: normalizedInterests,
           budget_min: personData.budget_min,
           budget_max: personData.budget_max,
           other: personData.other,
@@ -322,12 +333,28 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
               {prodModeActive && <span className="text-green-600">✓</span>}
             </button>
             <div className="border-t border-gray-200 my-1"></div>
-            <button
-              onClick={handleResetTraining}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
-            >
-              <span>Reset Training</span>
-            </button>
+            <label className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between cursor-pointer">
+              <span>Autofill</span>
+              <div className="relative flex items-center">
+                <input
+                  type="checkbox"
+                  checked={autofillEnabled}
+                  onChange={(e) => handleAutofillToggle(e.target.checked)}
+                  className="sr-only"
+                />
+                <div
+                  className={`w-10 h-5 rounded-full transition-colors flex items-center ${
+                    autofillEnabled ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 bg-white rounded-full transition-transform transform shadow-sm ${
+                      autofillEnabled ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  ></div>
+                </div>
+              </div>
+            </label>
             <div className="border-t border-gray-200 my-1"></div>
             <label className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between cursor-pointer">
               <span>Mock Recommender</span>

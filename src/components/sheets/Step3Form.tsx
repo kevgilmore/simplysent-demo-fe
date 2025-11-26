@@ -49,6 +49,18 @@ export const Step3Form: React.FC<Step3FormProps> = ({
     const [calculatedYear, setCalculatedYear] = useState<number | null>(null);
     const [calculatedAge, setCalculatedAge] = useState<number | null>(null);
 
+    // Check if autofill is enabled and auto-fill DOB if so
+    useEffect(() => {
+        const autofillEnabled = localStorage.getItem('ss_autofill_enabled') === 'true';
+        if (autofillEnabled && !day && !month && !year && !age) {
+            // Auto-fill DOB as 01/01/1960
+            setUseAge(false); // Use DOB mode
+            setDay("1");
+            setMonth("1");
+            setYear("1960");
+        }
+    }, []); // Only run once on mount
+
     // Calculate year of birth when age is entered
     useEffect(() => {
         if (useAge && age && age.trim() !== "") {
@@ -88,17 +100,6 @@ export const Step3Form: React.FC<Step3FormProps> = ({
             setCalculatedAge(null);
         }
     }, [day, month, year, useAge]);
-    
-    // Ensure useAge is set correctly based on initial values
-    useEffect(() => {
-        if (initialDob && useAge) {
-            // If we have DOB, switch to DOB mode
-            setUseAge(false);
-        } else if (!initialDob && initialAge && !useAge) {
-            // If we only have age, switch to age mode
-            setUseAge(true);
-        }
-    }, [initialDob, initialAge, useAge]);
 
     const handleNext = () => {
         if (useAge && age && age.trim() !== "") {
@@ -141,11 +142,12 @@ export const Step3Form: React.FC<Step3FormProps> = ({
                                 setAgeMonth("");
                                 setAgeDay("");
                             }}
-                            className={`flex-1 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
-                                !useAge
-                                    ? "bg-[#5E57AC] text-white"
-                                    : "bg-gray-100 text-gray-700"
-                            }`}
+                            style={{
+                                backgroundColor: !useAge ? '#5E57AC' : '#F3F4F6',
+                                color: !useAge ? '#FFFFFF' : '#374151',
+                            }}
+                            className="flex-1 px-4 py-3 rounded-full text-sm font-normal transition-all duration-200 hover:bg-opacity-90"
+                            aria-pressed={!useAge}
                         >
                             Date of Birth
                         </button>
@@ -157,11 +159,12 @@ export const Step3Form: React.FC<Step3FormProps> = ({
                                 setMonth("");
                                 setYear("");
                             }}
-                            className={`flex-1 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
-                                useAge
-                                    ? "bg-[#5E57AC] text-white"
-                                    : "bg-gray-100 text-gray-700"
-                            }`}
+                            style={{
+                                backgroundColor: useAge ? '#5E57AC' : '#F3F4F6',
+                                color: useAge ? '#FFFFFF' : '#374151',
+                            }}
+                            className="flex-1 px-4 py-3 rounded-full text-sm font-normal transition-all duration-200 hover:bg-opacity-90"
+                            aria-pressed={useAge}
                         >
                             Current Age
                         </button>
@@ -266,6 +269,7 @@ export const Step3Form: React.FC<Step3FormProps> = ({
                     size="large"
                     variant="secondary"
                     onClick={onBack}
+                    className="!font-normal"
                 >
                     Back
                 </Button>
@@ -274,6 +278,7 @@ export const Step3Form: React.FC<Step3FormProps> = ({
                     size="large" 
                     onClick={handleNext}
                     disabled={!canProceed}
+                    className="!font-normal"
                 >
                     Next
                 </Button>

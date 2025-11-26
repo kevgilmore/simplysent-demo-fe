@@ -29,10 +29,6 @@ import {
     getApiHeaders,
     getCurrentMode,
     isAnyDevModeEnabled,
-    isWelcomeTrainingEnabled,
-    isWelcomeTrainingCompleted,
-    setWelcomeTrainingCompleted,
-    setWelcomeTraining,
     ApiError,
 } from "../utils/apiConfig";
 import {
@@ -40,17 +36,17 @@ import {
 } from "../utils/recommendationHistory";
 import { getOrCreateSessionId } from "../utils/tracking";
 // Firebase removed - all data now comes from /recommend and /products endpoints
-import { menInterests, womenInterests, boysInterests, girlsInterests } from "../components/sheets/formConstants";
+import { menInterests, womenInterests, boysInterests, girlsInterests, normalizeInterestsForAPI, getInterestLabelForAPI } from "../components/sheets/formConstants";
 
-    // Helper function to get interest label from value
-    const getInterestLabel = (value: string): string => {
-        const allInterests = [...menInterests, ...womenInterests, ...boysInterests, ...girlsInterests];
-        const interest = allInterests.find(i => i.value === value);
-        return interest ? interest.label : value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ');
-    };
+// Helper function to get interest label from value
+const getInterestLabel = (value: string): string => {
+    const allInterests = [...menInterests, ...womenInterests, ...boysInterests, ...girlsInterests];
+    const interest = allInterests.find(i => i.value === value);
+    return interest ? interest.label : value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ');
+};
 
-    // Helper function to extract user-friendly error message from API errors
-    const getUserFriendlyErrorMessage = (error: unknown): string => {
+// Helper function to extract user-friendly error message from API errors
+const getUserFriendlyErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
         // Check if it's an ApiError with metadata
         const apiError = error as ApiError;
@@ -145,47 +141,6 @@ export const PersonPage: React.FC = () => {
     const [interestProducts, setInterestProducts] = useState<Record<string, Product[]>>({});
     const [loadingInterests, setLoadingInterests] = useState<Record<string, boolean>>({});
     const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger to force refetch of interest products
-    const [welcomeTrainingProducts, setWelcomeTrainingProducts] = useState<Product[]>([]);
-    const [welcomeTrainingInteractions, setWelcomeTrainingInteractions] = useState<number>(0);
-    const [isLoadingWelcomeTraining, setIsLoadingWelcomeTraining] = useState(false);
-    const [interactedProductIds, setInteractedProductIds] = useState<Set<string>>(new Set());
-    const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false);
-    const [trainingResetTrigger, setTrainingResetTrigger] = useState(0);
-    
-    // Check if welcome training should be shown - check localStorage directly each time
-    const shouldShowWelcomeTraining = useMemo(() => {
-        const enabled = isWelcomeTrainingEnabled();
-        const completed = isWelcomeTrainingCompleted();
-        const result = enabled && !completed;
-        console.log("🎯 PersonPage: shouldShowWelcomeTraining - enabled:", enabled, "completed:", completed, "result:", result);
-        return result;
-    }, [trainingResetTrigger]);
-    
-    // Reset training state when welcome training is enabled again
-    useEffect(() => {
-        if (shouldShowWelcomeTraining && !isCompletingTrainingRef.current) {
-            setWelcomeTrainingInteractions(0);
-            setInteractedProductIds(new Set());
-            setIsLoadingRecommendations(false);
-        }
-    }, [shouldShowWelcomeTraining, trainingResetTrigger]);
-    
-    // Listen for reset training event from dev menu
-    useEffect(() => {
-        const handleResetTraining = () => {
-            isCompletingTrainingRef.current = false;
-            setWelcomeTrainingInteractions(0);
-            setInteractedProductIds(new Set());
-            setIsLoadingRecommendations(false);
-            setWelcomeTrainingProducts([]);
-            setTrainingResetTrigger(prev => prev + 1);
-        };
-        
-        window.addEventListener('reset-welcome-training', handleResetTraining);
-        return () => {
-            window.removeEventListener('reset-welcome-training', handleResetTraining);
-        };
-    }, []);
     
     const CACHE_KEY = 'person_page_ai_picks_cache';
     const INTEREST_PRODUCTS_CACHE_KEY = 'person_page_interest_products_cache';
@@ -196,7 +151,7 @@ export const PersonPage: React.FC = () => {
     const isUsingCache = useRef(false);
     const isFetchingRef = useRef(false);
     const lastFetchedPersonIdRef = useRef<string | null>(null);
-    const isCompletingTrainingRef = useRef(false);
+    const lastProcessedPersonRef = useRef<string | null>(null);
 
     const interestOptions = [
         "Tech",
@@ -221,128 +176,6 @@ export const PersonPage: React.FC = () => {
         description?: string; // Added for consistency
     };
     
-    // Get training products from interestProducts state (products beyond the first 40)
-    useEffect(() => {
-        // Check training state
-        const enabled = isWelcomeTrainingEnabled();
-        const completed = isWelcomeTrainingCompleted();
-        
-        if (!enabled || completed || !shouldShowWelcomeTraining) {
-            setWelcomeTrainingProducts([]);
-            setIsLoadingWelcomeTraining(false);
-            return;
-        }
-
-        // Wait for at least one interest to have products
-        const hasInterestProducts = Object.keys(interestProducts).length > 0 && 
-            Object.values(interestProducts).some(products => products.length > 0);
-        
-        if (!hasInterestProducts) {
-            // Still loading interest products
-            setIsLoadingWelcomeTraining(true);
-            return;
-        }
-
-        // Collect products from all interests beyond the first 40 displayed
-        const allExtraProducts: Product[] = [];
-        Object.values(interestProducts).forEach(products => {
-            // Take products beyond the first 40 (index 40 onwards)
-            if (products.length > 40) {
-                allExtraProducts.push(...products.slice(40));
-            }
-        });
-
-        if (allExtraProducts.length === 0) {
-            // Not enough extra products yet, keep loading
-            setIsLoadingWelcomeTraining(true);
-            return;
-        }
-
-        // Shuffle and select 5 random products
-        const shuffled = [...allExtraProducts].sort(() => Math.random() - 0.5);
-        const selectedProducts = shuffled.slice(0, 5);
-
-        console.log("🎯 PersonPage: Selected training products from interest fetches:", selectedProducts.length);
-        setWelcomeTrainingProducts(selectedProducts);
-        setIsLoadingWelcomeTraining(false);
-    }, [interestProducts, shouldShowWelcomeTraining, trainingResetTrigger]);
-
-    // Handle welcome training interaction (thumbs up/down)
-    const handleWelcomeTrainingInteraction = (productId: string, isThumbsUp: boolean) => {
-        // Mark this product as interacted with
-        setInteractedProductIds(prev => new Set(prev).add(productId));
-        
-        const newCount = welcomeTrainingInteractions + 1;
-        setWelcomeTrainingInteractions(newCount);
-
-        if (newCount >= 5) {
-            // Prevent multiple completions
-            if (isCompletingTrainingRef.current) {
-                return;
-            }
-            
-            isCompletingTrainingRef.current = true;
-            
-            console.log("🎯 PersonPage: Training completed! Marking as completed and loading AI picks...");
-            
-            // Mark training as completed IMMEDIATELY
-            setWelcomeTrainingCompleted(true);
-            setWelcomeTraining(false);
-            // Trigger re-evaluation
-            setTrainingResetTrigger(prev => prev + 1);
-            
-            // Show loading state briefly
-            setIsLoadingRecommendations(true);
-            
-            // Check cache immediately (no delay)
-            const checkForCache = () => {
-                try {
-                    const cached = localStorage.getItem(CACHE_KEY);
-                    if (cached) {
-                        const cachedData = JSON.parse(cached);
-                        // Check if cache is for current person
-                        if (cachedData.personId === selectedPersonId && cachedData.products && cachedData.products.length > 0) {
-                            console.log("🎯 PersonPage: Found cached AI picks, setting them immediately");
-                            // Set AI picks immediately - animation will trigger on render
-                            setAiPicks(cachedData.products);
-                            setIsLoadingRecommendations(false);
-                            
-                            // Scroll carousel to start after products are rendered
-                            setTimeout(() => {
-                                if (aiPicksCarouselRef.current) {
-                                    aiPicksCarouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-                                }
-                            }, 200);
-                            return true;
-                        }
-                    }
-                    return false;
-                } catch (error) {
-                    console.error("Error loading cached recommendations after training:", error);
-                    return false;
-                }
-            };
-            
-            // Try to get from cache immediately
-            if (!checkForCache()) {
-                console.log("🎯 PersonPage: Cache not ready yet, polling...");
-                // If cache not ready yet, poll for it (max 10 seconds)
-                let attempts = 0;
-                const maxAttempts = 20; // 20 attempts * 500ms = 10 seconds max
-                const pollInterval = setInterval(() => {
-                    attempts++;
-                    if (checkForCache() || attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        if (attempts >= maxAttempts) {
-                            // Timeout - clear loading state anyway
-                            console.warn("⚠️ PersonPage: Cache not available after training");
-                            setIsLoadingRecommendations(false);
-                        }
-                    }
-                }, 500);
-            }
-        }
-    };
     
     // Fetch AI picks when a person is selected (not on page load)
     useEffect(() => {
@@ -350,10 +183,28 @@ export const PersonPage: React.FC = () => {
             // No person selected, don't fetch
             setIsLoadingAiPicks(false);
             lastFetchedPersonIdRef.current = null; // Reset when no person selected
+            isFetchingRef.current = false; // Reset fetching flag
             return;
         }
 
-        // Prevent multiple simultaneous calls or fetching for the same person
+        // Check if person exists in savedPersons - if not, wait for it to be loaded
+        const selectedPerson = savedPersons.find(p => p.id === selectedPersonId);
+        if (!selectedPerson) {
+            console.log("⏸️ PersonPage: Person not found in savedPersons yet, waiting...");
+            isFetchingRef.current = false; // Reset fetching flag since we're not fetching
+            return; // Wait for person to be loaded
+        }
+
+        // Create a unique key for this person+data combination to prevent duplicate processing
+        const personKey = `${selectedPersonId}-${savedPersons.length}`;
+        
+        // If we've already processed this exact person with this exact data, skip
+        if (lastProcessedPersonRef.current === personKey) {
+            console.log("⏸️ PersonPage: Already processed this person with current data, skipping");
+            return;
+        }
+
+        // Prevent multiple simultaneous calls
         if (isFetchingRef.current) {
             console.log("⏸️ PersonPage: Already fetching, skipping duplicate call");
             return;
@@ -362,12 +213,14 @@ export const PersonPage: React.FC = () => {
         // Don't fetch again if we already fetched for this person (check immediately)
         if (lastFetchedPersonIdRef.current === selectedPersonId) {
             console.log("⏸️ PersonPage: Already fetched for this person, skipping duplicate call");
+            lastProcessedPersonRef.current = personKey; // Mark as processed
             return;
         }
         
-        // Mark as fetching immediately to prevent duplicate calls
+        // Mark as fetching and processing immediately to prevent duplicate calls
         isFetchingRef.current = true;
         lastFetchedPersonIdRef.current = selectedPersonId;
+        lastProcessedPersonRef.current = personKey;
 
         // Check if this is a page refresh (no navigation flag) - clear scroll position
         const navigatedFromProduct = sessionStorage.getItem(NAVIGATION_FLAG_KEY) === 'true';
@@ -380,16 +233,10 @@ export const PersonPage: React.FC = () => {
             }
         }
         
-        // Check if training is active - if so, always fetch in background (don't use cache for display)
-        const trainingEnabled = isWelcomeTrainingEnabled();
-        const trainingCompleted = isWelcomeTrainingCompleted();
-        const isTrainingActive = trainingEnabled && !trainingCompleted;
-        
         // Check cache synchronously first - if cache exists and matches current person, use it immediately
-        // BUT: During training, we still fetch in background but don't display cached results
         try {
             const cached = localStorage.getItem(CACHE_KEY);
-            if (cached && !isTrainingActive) {
+            if (cached) {
                 const cachedData = JSON.parse(cached);
                 // Check if cache is for the same person and less than 1 hour old
                 const cacheAge = Date.now() - (cachedData.timestamp || 0);
@@ -400,6 +247,8 @@ export const PersonPage: React.FC = () => {
                     console.log("📦 PersonPage: Using cached AI picks (browser refresh or navigation back)");
                     isUsingCache.current = true;
                     lastFetchedPersonIdRef.current = selectedPersonId; // Mark as fetched even when using cache
+                    lastProcessedPersonRef.current = `${selectedPersonId}-${savedPersons.length}`; // Mark as processed
+                    isFetchingRef.current = false; // Reset fetching flag
                     setAiPicks(cachedData.products);
                     setIsLoadingAiPicks(false);
                     setAiPicksError(null);
@@ -409,8 +258,6 @@ export const PersonPage: React.FC = () => {
                 } else if (cacheAge >= oneHour) {
                     console.log("📦 PersonPage: Cache expired, will fetch fresh data");
                 }
-            } else if (isTrainingActive) {
-                console.log("🎯 PersonPage: Training active - will fetch /recommend in background");
             }
         } catch (error) {
             console.warn("⚠️ PersonPage: Error reading cache, fetching fresh data:", error);
@@ -492,9 +339,12 @@ export const PersonPage: React.FC = () => {
                 }
                 
                 // Ensure interests has at least 1 item (required by new API)
-                const interests = formData.interests && formData.interests.length > 0 
+                const rawInterests = formData.interests && formData.interests.length > 0 
                     ? formData.interests 
                     : ["General"];
+                
+                // Normalize interests to API format (no dashes, proper capitalization)
+                const interests = normalizeInterestsForAPI(rawInterests);
                 
                 // Convert age to DOB
                 const age = parseInt(formData.personAge || "30");
@@ -604,10 +454,11 @@ export const PersonPage: React.FC = () => {
                         
                     console.log("✅ PersonPage: Transformed products from API:", transformedProducts);
                     
-                    // Mark this person as fetched
+                    // Mark this person as fetched and processed
                     lastFetchedPersonIdRef.current = selectedPersonId;
+                    lastProcessedPersonRef.current = `${selectedPersonId}-${savedPersons.length}`;
                     
-                    // Save to cache with person ID (always save, even during training)
+                    // Save to cache with person ID
                     try {
                         localStorage.setItem(CACHE_KEY, JSON.stringify({
                             products: transformedProducts,
@@ -620,13 +471,7 @@ export const PersonPage: React.FC = () => {
                         console.warn("⚠️ PersonPage: Error saving to cache:", error);
                     }
                     
-                    // Only set aiPicks state if training is not active (or if training just completed)
-                    // During training, results are cached but not displayed until training completes
-                    if (!isTrainingActive) {
                         setAiPicks(transformedProducts);
-                    } else {
-                        console.log("🎯 PersonPage: Training active - results cached but not displayed yet");
-                    }
                 } else {
                     throw new Error("No product recommendations received");
                 }
@@ -635,6 +480,8 @@ export const PersonPage: React.FC = () => {
                 setAiPicksError(getUserFriendlyErrorMessage(error));
                 // Never use fallback fake products for AI picks - leave empty
                 setAiPicks([]);
+                // Mark as processed even on error to prevent infinite retries
+                lastProcessedPersonRef.current = `${selectedPersonId}-${savedPersons.length}`;
             } finally {
                 setIsLoadingAiPicks(false);
                 setIsRefreshing(false);
@@ -644,7 +491,8 @@ export const PersonPage: React.FC = () => {
         
         // Only fetch if we didn't use cache
         fetchAiPicks();
-    }, [selectedPersonId]); // Removed savedPersons - we access it inside the effect, only need to refetch when selectedPersonId changes
+    }, [selectedPersonId, savedPersons.length]); // Include savedPersons.length so effect runs when person data is available
+    
     
     // Handle refresh button click
     const handleRefresh = () => {
@@ -738,9 +586,12 @@ export const PersonPage: React.FC = () => {
                     return;
                 }
                 
-                const interests = formData.interests && formData.interests.length > 0 
+                const rawInterests = formData.interests && formData.interests.length > 0 
                     ? formData.interests 
                     : ["General"];
+                
+                // Normalize interests to API format (no dashes, proper capitalization)
+                const interests = normalizeInterestsForAPI(rawInterests);
                 
                 const age = parseInt(formData.personAge || "30");
                 const dob = ageToDob(age);
@@ -872,19 +723,19 @@ export const PersonPage: React.FC = () => {
         const hasClearedPersons = sessionStorage.getItem('persons_cleared_on_app_load');
         const isFirstLoad = !hasClearedPersons;
         
+        // Check if we're navigating from onboarding
+        const navigatingFromOnboarding = sessionStorage.getItem('navigating_from_onboarding') === 'true';
+        
         if (isFirstLoad) {
             try {
                 localStorage.removeItem('saved_persons');
                 sessionStorage.setItem('persons_cleared_on_app_load', 'true');
-                // Enable welcome training on first load
-                setWelcomeTrainingCompleted(false);
-                setWelcomeTraining(true);
             } catch (error) {
                 console.warn('Error clearing saved persons:', error);
             }
         }
 
-        let redirectTimeout: NodeJS.Timeout | null = null;
+        const redirectTimeoutRef = { current: null as NodeJS.Timeout | null };
         let personFound = false;
 
         const loadPersons = () => {
@@ -900,9 +751,13 @@ export const PersonPage: React.FC = () => {
                             setSelectedPersonId(persons[persons.length - 1].id);
                         }
                         // Cancel any pending redirect
-                        if (redirectTimeout) {
-                            clearTimeout(redirectTimeout);
-                            redirectTimeout = null;
+                        if (redirectTimeoutRef.current) {
+                            clearTimeout(redirectTimeoutRef.current);
+                            redirectTimeoutRef.current = null;
+                        }
+                        // Clear the navigating flag since we found persons
+                        if (navigatingFromOnboarding) {
+                            sessionStorage.removeItem('navigating_from_onboarding');
                         }
                         return true; // Found persons
                     }
@@ -919,22 +774,34 @@ export const PersonPage: React.FC = () => {
         // Listen for new person added FIRST (before checking)
         const handlePersonAdded = () => {
             console.log('Person added event received');
-            // Enable welcome training when a person is added
-            setWelcomeTrainingCompleted(false);
-            setWelcomeTraining(true);
-            // Trigger training products fetch
-            setTrainingResetTrigger(prev => prev + 1);
-            loadPersons();
+            // Cancel any pending redirect immediately
+            if (redirectTimeoutRef.current) {
+                clearTimeout(redirectTimeoutRef.current);
+                redirectTimeoutRef.current = null;
+            }
+            // Clear the navigating flag
+            sessionStorage.removeItem('navigating_from_onboarding');
+            // Small delay to ensure localStorage is written
+            setTimeout(() => {
+                loadPersons();
+            }, 100);
         };
         window.addEventListener('person-added', handlePersonAdded);
 
         // Load persons immediately
         loadPersons();
 
-        // Only redirect if we have no persons AND this is not the first load
-        // Use a longer timeout to allow person-added event to fire (in case coming from onboarding)
-        if (!personFound && !isFirstLoad) {
-            redirectTimeout = setTimeout(() => {
+        // If coming from onboarding, don't set up redirect - wait for person-added event
+        // Clear the flag after a short delay to allow person to be loaded
+        if (navigatingFromOnboarding) {
+            setTimeout(() => {
+                sessionStorage.removeItem('navigating_from_onboarding');
+            }, 1000);
+        }
+
+        // Only redirect if we have no persons AND this is not the first load AND we're not coming from onboarding
+        if (!personFound && !isFirstLoad && !navigatingFromOnboarding) {
+            redirectTimeoutRef.current = setTimeout(() => {
                 // Final check before redirecting
                 const stored = localStorage.getItem('saved_persons');
                 const finalPersons = stored ? JSON.parse(stored) : [];
@@ -945,13 +812,14 @@ export const PersonPage: React.FC = () => {
                     console.log('Persons found after timeout, loading them');
                     loadPersons();
                 }
-            }, 1500); // Longer timeout to ensure person is saved
+                redirectTimeoutRef.current = null;
+            }, 2000); // Increased timeout to ensure person is saved
         }
 
         return () => {
             window.removeEventListener('person-added', handlePersonAdded);
-            if (redirectTimeout) {
-                clearTimeout(redirectTimeout);
+            if (redirectTimeoutRef.current) {
+                clearTimeout(redirectTimeoutRef.current);
             }
         };
     }, [navigate, selectedPersonId]);
@@ -1005,9 +873,6 @@ export const PersonPage: React.FC = () => {
                 return;
             }
             
-            // Get current AI picks product IDs for filtering
-            const currentAiPicksIds = new Set(aiPicks.map(p => p.id));
-            
             // Check cache first for this interest
             try {
                 const cached = localStorage.getItem(INTEREST_PRODUCTS_CACHE_KEY);
@@ -1021,17 +886,15 @@ export const PersonPage: React.FC = () => {
                         const oneHour = 60 * 60 * 1000;
                         
                         if (cacheAge < oneHour && cachedInterestData.products && cachedInterestData.products.length > 0) {
-                            // Filter cached products against current AI picks
-                            const filteredCachedProducts = cachedInterestData.products.filter((p: Product) => !currentAiPicksIds.has(p.id));
-                            
-                            // If we have less than 40 after filtering, don't use cache - fetch fresh
-                            if (filteredCachedProducts.length < 40) {
-                                console.log(`📦 PersonPage: Cached products for "${interest}" have ${filteredCachedProducts.length} after filtering, fetching fresh`);
+                            // Use cached products directly (don't filter AI picks - we want 40 products regardless)
+                            // If we have less than 40, don't use cache - fetch fresh
+                            if (cachedInterestData.products.length < 40) {
+                                console.log(`📦 PersonPage: Cached products for "${interest}" have ${cachedInterestData.products.length}, fetching fresh`);
                                 // Continue to fetch fresh products
                             } else {
                                 console.log(`📦 PersonPage: Using cached products for interest "${interest}"`);
                                 // Store ALL cached products (not just 40) - sortedInterestProducts will display only first 40
-                                setInterestProducts(prev => ({ ...prev, [interest]: filteredCachedProducts }));
+                                setInterestProducts(prev => ({ ...prev, [interest]: cachedInterestData.products }));
                                 setLoadingInterests(prev => ({ ...prev, [interest]: false }));
                                 return; // Use cache, skip API call
                             }
@@ -1048,8 +911,9 @@ export const PersonPage: React.FC = () => {
             
             try {
                 const queryParams = new URLSearchParams();
-                // Normalize interest to lowercase for API (API is case-insensitive but be consistent)
-                queryParams.append('interest', interest.toLowerCase());
+                // Normalize interest to API format (no dashes, proper capitalization like "Home Decor" not "home-decor")
+                const normalizedInterest = getInterestLabelForAPI(interest);
+                queryParams.append('interest', normalizedInterest);
                 // Fetch more products initially to account for filtering (we want 40 visible, so fetch 60-80 to be safe)
                 queryParams.append('limit', '80');
                 queryParams.append('offset', '0');
@@ -1059,7 +923,7 @@ export const PersonPage: React.FC = () => {
                 const apiUrl = buildApiUrl('/products', queryParams);
                 const headers = getApiHeaders(mode || undefined);
 
-                console.log(`📦 PersonPage: Fetching products for interest "${interest}" from:`, apiUrl);
+                console.log(`📦 PersonPage: Fetching products for interest "${normalizedInterest}" (normalized from "${interest}") from:`, apiUrl);
 
                 const response = await apiFetch(
                     apiUrl,
@@ -1067,7 +931,7 @@ export const PersonPage: React.FC = () => {
                         method: 'GET',
                         headers,
                     },
-                    `GET /products?interest=${interest}`,
+                                `GET /products?interest=${normalizedInterest}`,
                 );
 
                 if (!response.ok) {
@@ -1116,14 +980,16 @@ export const PersonPage: React.FC = () => {
                         };
                     });
 
-                    // Filter out products that are in AI picks
-                    let allProducts = transformedProducts.filter(p => !currentAiPicksIds.has(p.id));
+                    // Store all products (don't filter AI picks - we want 40 products regardless of overlap)
+                    let allProducts = transformedProducts;
                     
                     // Keep fetching until we have 40 products (or run out of products)
                     let offset = 80;
                     while (allProducts.length < 40 && offset < 500) {
                         const additionalQueryParams = new URLSearchParams();
-                        additionalQueryParams.append('interest', interest.toLowerCase());
+                        // Normalize interest to API format (no dashes, proper capitalization)
+                        const normalizedInterest = getInterestLabelForAPI(interest);
+                        additionalQueryParams.append('interest', normalizedInterest);
                         additionalQueryParams.append('limit', '80');
                         additionalQueryParams.append('offset', String(offset));
                         additionalQueryParams.append('collection', 'amazon');
@@ -1133,7 +999,7 @@ export const PersonPage: React.FC = () => {
                             const additionalResponse = await apiFetch(
                                 additionalApiUrl,
                                 { method: 'GET', headers },
-                                `GET /products?interest=${interest}&offset=${offset}`,
+                                `GET /products?interest=${normalizedInterest}&offset=${offset}`,
                             );
                             
                             if (!additionalResponse.ok) break;
@@ -1175,8 +1041,8 @@ export const PersonPage: React.FC = () => {
                                 };
                             });
                             
-                            const additionalFiltered = additionalTransformedProducts.filter(p => !currentAiPicksIds.has(p.id));
-                            allProducts = [...allProducts, ...additionalFiltered];
+                            // Don't filter AI picks - we want 40 products regardless of overlap
+                            allProducts = [...allProducts, ...additionalTransformedProducts];
                             
                             if (allProducts.length >= 40) break;
                             offset += 80;
@@ -1219,16 +1085,13 @@ export const PersonPage: React.FC = () => {
         };
 
         // Fetch products for all interests (only if not already fetched or fetching)
-        // Note: We check if products exist, but we might need to refetch if AI picks changed and we don't have 40 products
         selectedPersonInterests.forEach(interest => {
             const currentProducts = interestProducts[interest] || [];
-            const currentAiPicksIds = new Set(aiPicks.map(p => p.id));
-            const filteredCount = currentProducts.filter(p => !currentAiPicksIds.has(p.id)).length;
             
-            // Always refetch if we have less than 40 products after filtering AI picks
+            // Always refetch if we have less than 40 products
             // This ensures we always have 40 products per interest row
-            if ((!currentProducts.length || filteredCount < 40) && !loadingInterests[interest] && !fetchingInterestsRef.current.has(interest)) {
-                console.log(`🔄 PersonPage: Refetching "${interest}" - current: ${currentProducts.length}, filtered: ${filteredCount}, need: 40`);
+            if ((!currentProducts.length || currentProducts.length < 40) && !loadingInterests[interest] && !fetchingInterestsRef.current.has(interest)) {
+                console.log(`🔄 PersonPage: Refetching "${interest}" - current: ${currentProducts.length}, need: 40`);
                 // Clear the cached products for this interest to force a fresh fetch
                 setInterestProducts(prev => {
                     const updated = { ...prev };
@@ -1239,7 +1102,7 @@ export const PersonPage: React.FC = () => {
                 fetchInterestProducts(interest);
             }
         });
-    }, [selectedPersonId, selectedPersonInterests.join(','), refreshTrigger, aiPicks.length]); // Include aiPicks.length to refetch when AI picks change
+    }, [selectedPersonId, selectedPersonInterests.join(','), refreshTrigger]);
 
 
     // Sort AI Picks products based on sort order
@@ -1321,6 +1184,7 @@ export const PersonPage: React.FC = () => {
     };
 
     const handleProductClick = (productId: string) => {
+        console.log(`🖱️ PersonPage: handleProductClick called for productId: ${productId}`);
         // Save scroll position before navigating
         const carouselElement = aiPicksCarouselRef.current || 
             (document.querySelector('[data-carousel="ai-picks"]') as HTMLDivElement);
@@ -1577,13 +1441,12 @@ export const PersonPage: React.FC = () => {
                             {/* AI Picks Carousel */}
                             <div className="mt-6">
                                 {/* Sort and Edit Controls */}
-                                {!shouldShowWelcomeTraining && (
-                                <div className="flex items-center gap-1.5 mb-4 overflow-x-auto no-scrollbar -mx-4 px-4">
+                                <div className="flex items-center justify-evenly gap-0.5 mb-4 overflow-x-auto no-scrollbar -mx-4 px-2">
                                     <Button
                                         variant={sortOrder === 'highest' ? 'primary' : 'outline'}
                                         size="small"
                                         onClick={() => setSortOrder('highest')}
-                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        className="flex items-center justify-center gap-1 !px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 !border-gray-200"
                                         aria-label="Sort by highest price"
                                     >
                                         <FontAwesomeIcon icon={faDollarSign} className="w-2.5 h-2.5" />
@@ -1594,7 +1457,7 @@ export const PersonPage: React.FC = () => {
                                         variant={sortOrder === 'lowest' ? 'primary' : 'outline'}
                                         size="small"
                                         onClick={() => setSortOrder('lowest')}
-                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        className="flex items-center justify-center gap-1 !px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 !border-gray-200"
                                         aria-label="Sort by lowest price"
                                     >
                                         <FontAwesomeIcon icon={faDollarSign} className="w-2.5 h-2.5" />
@@ -1605,24 +1468,27 @@ export const PersonPage: React.FC = () => {
                                         variant="outline"
                                         size="small"
                                         onClick={() => setIsBudgetSheetOpen(true)}
-                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        className="!px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 !border-gray-200"
                                         aria-label="Edit budget"
                                     >
-                                        <FontAwesomeIcon icon={faSliders} className="w-2.5 h-2.5" />
-                                        <span>Budget</span>
+                                        <span className="flex items-center justify-center gap-1.5">
+                                            <FontAwesomeIcon icon={faSliders} className="w-2.5 h-2.5" />
+                                            <span>Budget</span>
+                                        </span>
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="small"
                                         onClick={() => setIsInterestsSheetOpen(true)}
-                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 border-gray-300"
+                                        className="!px-2.5 py-1.5 text-xs whitespace-nowrap flex-shrink-0 !border-gray-200"
                                         aria-label="Edit interests"
                                     >
-                                        <FontAwesomeIcon icon={faTags} className="w-2.5 h-2.5" />
-                                        <span>Interests</span>
+                                        <span className="flex items-center justify-center gap-1.5">
+                                            <FontAwesomeIcon icon={faTags} className="w-2.5 h-2.5" />
+                                            <span>Interests</span>
+                                        </span>
                                     </Button>
                                 </div>
-                                )}
                                 
                                 <div className="flex items-center justify-between gap-3 mb-0">
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
@@ -1634,66 +1500,21 @@ export const PersonPage: React.FC = () => {
                                         )}
                                     </h2>
                                     <div className="flex items-center gap-2">
-                                        {shouldShowWelcomeTraining ? (
-                                            <span className="text-sm font-medium text-gray-700">
-                                                {welcomeTrainingInteractions}/5
-                                            </span>
-                                        ) : (
                                     <button
                                         type="button"
-                                                onClick={handleRefresh}
-                                                disabled={isRefreshing || isLoadingAiPicks}
-                                                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                aria-label="Refresh recommendations"
+                                            onClick={handleRefresh}
+                                            disabled={isRefreshing || isLoadingAiPicks}
+                                            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            aria-label="Refresh recommendations"
                                     >
                                         <FontAwesomeIcon
-                                                    icon={faRotateRight}
-                                                    className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
+                                                icon={faRotateRight}
+                                                className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
                                         />
                                     </button>
-                                        )}
-                                </div>
-                                </div>
-                                {shouldShowWelcomeTraining && isLoadingWelcomeTraining ? (
-                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
-                                        <div className="text-center px-4">
-                                            <div className="relative mx-auto mb-6 w-20 h-20">
-                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 animate-pulse" />
-                                                <div className="absolute inset-2 rounded-full bg-white" />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-simplysent-purple animate-spin" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            <p className="text-simplysent-purple font-semibold text-lg mb-2">
-                                                Loading products...
-                                            </p>
-                                        </div>
                                     </div>
-                                ) : isLoadingRecommendations ? (
-                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
-                                        <div className="text-center px-4">
-                                            <div className="relative mx-auto mb-6 w-20 h-20">
-                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 animate-pulse" />
-                                                <div className="absolute inset-2 rounded-full bg-white" />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-simplysent-purple animate-spin" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            <p className="text-simplysent-purple font-semibold text-lg mb-2">
-                                                Getting your recommendations...
-                                            </p>
-                                            <p className="text-gray-500 text-sm">
-                                                Just a moment while we find the perfect picks for you
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : !shouldShowWelcomeTraining && isLoadingAiPicks ? (
+                                </div>
+                                {isLoadingAiPicks ? (
                                     <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
                                         <div className="text-center px-4">
                                             {/* Loading spinner */}
@@ -1733,68 +1554,6 @@ export const PersonPage: React.FC = () => {
                                             <p className="text-gray-500 text-sm">
                                                 {aiPicksError}
                                             </p>
-                                        </div>
-                                    </div>
-                                ) : shouldShowWelcomeTraining ? (
-                                    // Show training carousel immediately when training is enabled
-                                    <div 
-                                        ref={aiPicksCarouselRef}
-                                        data-carousel="ai-picks"
-                                        className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12 mt-[10px]"
-                                    >
-                                        <div className="flex gap-4 transition-all duration-700 ease-out">
-                                            {/* Welcome Training Info Card */}
-                                            <div className="flex-shrink-0 w-[260px]">
-                                                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-3xl p-6 h-full flex flex-col justify-center items-center text-center border-2 border-purple-200">
-                                                    <div className="mb-4">
-                                                        <svg className="w-12 h-12 text-purple-600 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-                                                        </svg>
-                                                    </div>
-                                                    <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                                        Rate 5 products
-                                                    </h3>
-                                                    <p className="text-sm text-gray-600 mb-4">
-                                                        Rate 5 products to unlock AI recommendations
-                                                    </p>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex-1 bg-white/60 rounded-full h-2">
-                                                            <div 
-                                                                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                                                                style={{ width: `${(welcomeTrainingInteractions / 5) * 100}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-sm font-bold text-purple-700">
-                                                            {welcomeTrainingInteractions}/5
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            {/* Welcome Training Products */}
-                                            {welcomeTrainingProducts.length > 0 && welcomeTrainingProducts.map((p) => (
-                                                <div
-                                                    key={p.id}
-                                                    className="flex-shrink-0 w-[260px] transition-all duration-700 ease-out"
-                                                >
-                                                    <ProductCard
-                                                        id={p.id}
-                                                        image={p.image}
-                                                        name={p.name}
-                                                        price={p.price}
-                                                        rating={p.rating}
-                                                        numRatings={p.numRatings}
-                                                        compact
-                                                        isAiPick={false}
-                                                        isFavorite={false}
-                                                        onFavoriteToggle={() => handleWelcomeTrainingInteraction(p.id, true)}
-                                                        onRemove={() => handleWelcomeTrainingInteraction(p.id, false)}
-                                                        hideActions={false}
-                                                        showWelcomeTrainingAnimation={!interactedProductIds.has(p.id)}
-                                                        disableRemove={true}
-                                                    />
-                                                </div>
-                                            ))}
                                         </div>
                                     </div>
                                 ) : productsByTab["ai-picks"]?.filter(
@@ -1914,12 +1673,12 @@ export const PersonPage: React.FC = () => {
                                     );
                                 }
                                 
-                                // Show carousel even if all products are filtered - show filtered count
-                                const filteredProducts = products.filter((p) => !removedProducts.has(p.id) && !aiPicksProductIds.has(p.id));
+                                // Filter only removed products (not AI picks - we want 40 products regardless of overlap)
+                                const filteredProducts = products.filter((p) => !removedProducts.has(p.id));
                                 if (filteredProducts.length === 0) return null;
                                 
-                                // Count products for this interest (excluding removed and AI picks)
-                                const productCount = products.filter((p) => !removedProducts.has(p.id) && !aiPicksProductIds.has(p.id)).length;
+                                // Count products for this interest (excluding only removed products)
+                                const productCount = products.filter((p) => !removedProducts.has(p.id)).length;
                                 
                                 return (
                                     <div key={interest} className="mt-[10px]">
@@ -1936,7 +1695,7 @@ export const PersonPage: React.FC = () => {
                                     <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
                                         <div className="flex gap-4 transition-all duration-1000">
                                                 {products
-                                                    .filter((p) => !removedProducts.has(p.id) && !aiPicksProductIds.has(p.id))
+                                                    .filter((p) => !removedProducts.has(p.id))
                                                 .map((p) => (
                                                     <div
                                                         key={p.id}

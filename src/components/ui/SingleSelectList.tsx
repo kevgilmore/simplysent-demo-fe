@@ -31,7 +31,7 @@ export const SingleSelectList: React.FC<SingleSelectListProps> = ({
                             key={option.value}
                             type="button"
                             onClick={() => onChange(option.value)}
-                            className={`w-full px-6 py-4 rounded-full text-base font-medium transition-all duration-200 flex items-center justify-between
+                            className={`w-full px-6 py-4 rounded-full text-base font-normal transition-all duration-200 flex items-center justify-between
                                 ${
                                     isSelected
                                         ? "bg-[#5E57AC] text-white border-2 border-[#5E57AC]"

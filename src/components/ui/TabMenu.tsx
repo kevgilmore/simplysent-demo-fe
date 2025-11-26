@@ -37,7 +37,7 @@ export const TabMenu: React.FC<TabMenuProps> = ({
                         <button
                             key={tab.id}
                             onClick={() => onTabChange(tab.id)}
-                            className={`relative pb-4 px-2 font-semibold text-base transition-colors duration-200 whitespace-nowrap
+                            className={`relative pb-4 px-2 font-medium text-base transition-colors duration-200 whitespace-nowrap
               ${
                   isActive
                       ? isAi

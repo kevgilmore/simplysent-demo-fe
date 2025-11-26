@@ -129,11 +129,11 @@ export const RangeSlider: React.FC<RangeSliderProps> = ({
             <div className="px-2">
                 {/* Value Display */}
                 <div className="flex justify-between items-center mb-6">
-                    <div className="bg-[#5E57AC] text-white px-5 py-2 rounded-full font-semibold">
+                    <div className="bg-[#5E57AC] text-white px-5 py-2 rounded-full font-normal">
                         £{minValue}
                     </div>
-                    <span className="text-gray-500 font-medium">to</span>
-                    <div className="bg-[#5E57AC] text-white px-5 py-2 rounded-full font-semibold">
+                    <span className="text-gray-500 font-normal">to</span>
+                    <div className="bg-[#5E57AC] text-white px-5 py-2 rounded-full font-normal">
                         £{maxValue}
                     </div>
                 </div>

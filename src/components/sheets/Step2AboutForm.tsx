@@ -88,10 +88,11 @@ export const Step2AboutForm: React.FC<Step2AboutFormProps> = ({
                     size="large"
                     variant="secondary"
                     onClick={onBack}
+                    className="!font-normal"
                 >
                     Back
                 </Button>
-                <Button fullWidth size="large" onClick={handleNext}>
+                <Button fullWidth size="large" onClick={handleNext} className="!font-normal">
                     Next
                 </Button>
             </div>

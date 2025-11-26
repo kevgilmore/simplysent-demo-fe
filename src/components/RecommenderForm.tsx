@@ -38,6 +38,7 @@ import {
     hasFullRecommendationData,
     getFullRecommendationData,
 } from "../utils/recommendationHistory";
+import { normalizeInterestsForAPI } from "./sheets/formConstants";
 interface FormData {
     personAge: string;
     interests: string[];
@@ -542,13 +543,16 @@ export function RecommenderForm() {
                 return sizeMap[normalized] || 'M';
             };
             
+            // Normalize interests to API format (no dashes, proper capitalization)
+            const normalizedInterests = normalizeInterestsForAPI(newFormData.interests);
+            
             const requestData = {
                 context: {
                     name: "Friend",
                     relationship: newFormData.relationship.charAt(0).toUpperCase() + newFormData.relationship.slice(1).toLowerCase(),
                     gender: newFormData.gender.toLowerCase(),
                     dob: dob,
-                    interests: newFormData.interests,
+                    interests: normalizedInterests,
                     budget_min: newFormData.minBudget,
                     budget_max: newFormData.maxBudget,
                     other: {
@@ -783,13 +787,16 @@ export function RecommenderForm() {
                 return sizeMap[normalized] || 'M';
             };
             
+            // Normalize interests to API format (no dashes, proper capitalization)
+            const normalizedInterests = normalizeInterestsForAPI(formData.interests);
+            
             const requestData = {
                 context: {
                     name: "Friend",
                     relationship: formData.relationship ? formData.relationship.charAt(0).toUpperCase() + formData.relationship.slice(1).toLowerCase() : "Friend",
                     gender: formData.gender.toLowerCase(),
                     dob: dob,
-                    interests: formData.interests,
+                    interests: normalizedInterests,
                     budget_min: formData.minBudget,
                     budget_max: formData.maxBudget,
                     other: {

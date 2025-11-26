@@ -489,16 +489,37 @@ export const ProductPage: React.FC = () => {
                 }
                 
                 // Extract rating and reviews
-                const rating = productData?.product_star_rating 
-                    || productData?.rating
-                    || firebaseProduct.rating
-                    || firebaseProduct.product_star_rating
-                    || 0;
-                const numRatings = productData?.product_num_ratings 
-                    || productData?.num_ratings
-                    || firebaseProduct.num_ratings
-                    || firebaseProduct.product_num_ratings
-                    || 0;
+                // Use rating_numeric (new API spec) - deprecated product_star_rating is no longer used
+                let rating: number | undefined = undefined;
+                if (productData?.rating_numeric !== undefined && productData?.rating_numeric !== null) {
+                    const ratingNum = typeof productData.rating_numeric === 'number' ? productData.rating_numeric : parseFloat(productData.rating_numeric.toString());
+                    if (!isNaN(ratingNum) && ratingNum > 0 && ratingNum <= 5) {
+                        rating = ratingNum;
+                    }
+                }
+                // Fallback to old field names for backwards compatibility
+                if (rating === undefined) {
+                    const fallbackRating = productData?.product_star_rating 
+                        || productData?.rating
+                        || firebaseProduct?.rating
+                        || firebaseProduct?.product_star_rating
+                        || 0;
+                    rating = typeof fallbackRating === 'number' ? fallbackRating : parseFloat(fallbackRating?.toString() || '0');
+                }
+                
+                // Use num_ratings_numeric (new API spec) - deprecated product_num_ratings is no longer used
+                let numRatings = 0;
+                if (productData?.num_ratings_numeric !== undefined && productData?.num_ratings_numeric !== null) {
+                    numRatings = typeof productData.num_ratings_numeric === 'number' ? productData.num_ratings_numeric : parseInt(productData.num_ratings_numeric.toString()) || 0;
+                } else {
+                    // Fallback to old field names for backwards compatibility
+                    const fallbackNumRatings = productData?.product_num_ratings 
+                        || productData?.num_ratings
+                        || firebaseProduct?.num_ratings
+                        || firebaseProduct?.product_num_ratings
+                        || 0;
+                    numRatings = typeof fallbackNumRatings === 'number' ? fallbackNumRatings : parseInt(fallbackNumRatings?.toString() || '0');
+                }
                 
                 // Extract image - prioritize product_photo from API response (stored in Firebase)
                 // Format: https://storage.googleapis.com/simplysent-product-images/{asin}/t_{asin}_1.png
@@ -545,8 +566,8 @@ export const ProductPage: React.FC = () => {
                     image: baseImageUrl,
                     images: productImages,
                     description: productDescription,
-                    rating: typeof rating === 'number' ? rating : parseFloat(rating?.toString() || '0'),
-                    reviews: typeof numRatings === 'number' ? numRatings : parseInt(numRatings?.toString() || '0'),
+                    rating: rating || 0,
+                    reviews: numRatings,
                     features: productData?.features || [],
                     specifications: productData?.specifications || [],
                     inStock: true,

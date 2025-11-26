@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "../ui/Button";
 import { MultiSelectList } from "../ui/MultiSelectList";
 import { getInterestsForPerson } from "./formConstants";
@@ -25,6 +25,25 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
         return getInterestsForPerson(relationship, age, gender);
     }, [relationship, age, gender]);
 
+    // Check if autofill is enabled and auto-fill interests when options are available
+    useEffect(() => {
+        const autofillEnabled = localStorage.getItem('ss_autofill_enabled') === 'true';
+        if (!autofillEnabled) return;
+        if (interests.length > 0) return; // Already has interests
+        
+        const allOptions = [...primary, ...(other || [])];
+        if (allOptions.length === 0) return; // Wait for options to load
+        
+        // Check if "tech" and "golf" are in the available options
+        const availableValues = allOptions.map(opt => opt.value);
+        const autofillInterests = ["tech", "golf"].filter(val => availableValues.includes(val));
+        
+        if (autofillInterests.length > 0) {
+            // Set interests directly - React will re-render MultiSelectList with updated selectedValues
+            setInterests(autofillInterests);
+        }
+    }, [primary, other, interests.length]); // Run when options change or interests is empty
+
     const handleNext = () => {
         onNext({ interests });
     };
@@ -40,6 +59,7 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
             <div className="flex-1 overflow-y-auto sheet-scrollable" style={{ overflowX: 'visible', minHeight: 0 }}>
                 <div className="flex flex-col gap-6">
                     <MultiSelectList
+                        key={`primary-${interests.join(',')}`}
                         options={primary}
                         selectedValues={interests}
                         onChange={setInterests}
@@ -49,6 +69,7 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
                         <div>
                             <p className="text-sm text-gray-600 mb-3 font-medium">Other</p>
                             <MultiSelectList
+                                key={`other-${interests.join(',')}`}
                                 options={other}
                                 selectedValues={interests}
                                 onChange={setInterests}
@@ -64,10 +85,11 @@ export const Step4InterestsForm: React.FC<Step4InterestsFormProps> = ({
                     size="large"
                     variant="secondary"
                     onClick={onBack}
+                    className="!font-normal"
                 >
                     Back
                 </Button>
-                <Button fullWidth size="large" onClick={handleNext}>
+                <Button fullWidth size="large" onClick={handleNext} className="!font-normal">
                     Next
                 </Button>
             </div>

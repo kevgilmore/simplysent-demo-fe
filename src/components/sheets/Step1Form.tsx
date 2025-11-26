@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/Button";
 import { SingleSelectList } from "../ui/SingleSelectList";
 import { relationshipOptions } from "./formConstants";
@@ -9,6 +9,15 @@ interface Step1FormProps {
 
 export const Step1Form: React.FC<Step1FormProps> = ({ onNext }) => {
     const [relationship, setRelationship] = useState("");
+
+    // Check if autofill is enabled and auto-fill if so
+    useEffect(() => {
+        const autofillEnabled = localStorage.getItem('ss_autofill_enabled') === 'true';
+        if (autofillEnabled) {
+            // Auto-select "father" relationship (but don't auto-submit)
+            setRelationship("father");
+        }
+    }, []); // Only run once on mount
 
     const handleNext = () => {
         if (relationship) {
@@ -33,7 +42,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onNext }) => {
             </div>
 
             <div className="flex-shrink-0 mt-4 pb-3" style={{ overflow: "visible", padding: "0 4px" }}>
-                <Button fullWidth size="large" onClick={handleNext} disabled={!relationship}>
+                <Button fullWidth size="large" onClick={handleNext} disabled={!relationship} className="!font-normal">
                     Next
                 </Button>
             </div>

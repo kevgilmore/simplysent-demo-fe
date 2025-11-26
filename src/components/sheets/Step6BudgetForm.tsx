@@ -52,6 +52,7 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
                     variant="secondary"
                     onClick={onBack}
                     disabled={isSubmitting}
+                    className="!font-normal"
                 >
                     Back
                 </Button>
@@ -61,6 +62,7 @@ export const Step6BudgetForm: React.FC<Step6BudgetFormProps> = ({
                     variant="cta"
                     onClick={handleNext}
                     disabled={isSubmitting}
+                    className="!font-normal"
                 >
                     {isSubmitting ? (
                         <span className="flex items-center justify-center gap-2">

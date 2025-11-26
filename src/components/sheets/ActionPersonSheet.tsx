@@ -6,7 +6,7 @@ import { Step1Form } from "./Step1Form";
 import { Step2AboutForm } from "./Step2AboutForm";
 import { Step3Form } from "./Step3Form";
 import { Step4InterestsForm } from "./Step4InterestsForm";
-import { Step3StyleForm } from "./Step3StyleForm";
+import { AdditionalQuestionsForm } from "./AdditionalQuestionsForm";
 import { Step6BudgetForm } from "./Step6BudgetForm";
 import {
     buildApiUrl,
@@ -15,6 +15,7 @@ import {
     getCurrentMode,
 } from "../../utils/apiConfig";
 import { getOrCreateSessionId } from "../../utils/tracking";
+import { normalizeInterestsForAPI } from "./formConstants";
 
 /**
  * ActionPersonSheet
@@ -342,9 +343,12 @@ const AddPersonForm: React.FC<{
             }
             
             // Ensure interests has at least 1 item (required by API)
-            const interests = finalData.interests && finalData.interests.length > 0 
+            const rawInterests = finalData.interests && finalData.interests.length > 0 
                 ? finalData.interests 
                 : ["General"];
+            
+            // Normalize interests to API format (no dashes, proper capitalization)
+            const interests = normalizeInterestsForAPI(rawInterests);
             
             const requestData = {
                 context: {
@@ -396,9 +400,10 @@ const AddPersonForm: React.FC<{
             console.log("API Response:", apiResponse);
             
             // Store person in localStorage
+            const personId = apiResponse.recommendation_id || `person-${Date.now()}`;
             try {
                 const personData = {
-                    id: apiResponse.recommendation_id || `person-${Date.now()}`,
+                    id: personId,
                     name: finalData.name || "Friend",
                     relationship: finalData.relationship,
                     gender: finalData.gender,
@@ -412,6 +417,62 @@ const AddPersonForm: React.FC<{
                 const persons = storedPersons ? JSON.parse(storedPersons) : [];
                 persons.push(personData);
                 localStorage.setItem('saved_persons', JSON.stringify(persons));
+                
+                // Transform and cache the products so PersonPage can use them immediately
+                if (apiResponse.products && apiResponse.products.length > 0) {
+                    const PRODUCT_DESCRIPTION = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.";
+                    
+                    const transformedProducts = apiResponse.products.map((product) => {
+                        const asin = product.asin || `ai-${product.rank || Math.random().toString(36).substr(2, 9)}`;
+                        const productName = product.product_title || `Product ${product.rank || 'Unknown'}`;
+                        const productImage = product.product_photo 
+                            || `https://storage.googleapis.com/simplysent-product-images/${asin}/t_${asin}_1.png`;
+                        
+                        let productPrice = 0;
+                        if (product.price_numeric !== undefined && product.price_numeric !== null) {
+                            productPrice = typeof product.price_numeric === 'number' ? product.price_numeric : parseFloat(String(product.price_numeric)) || 0;
+                        } else if (product.product_price) {
+                            const priceStr = String(product.product_price).replace(/[£$€,]/g, '');
+                            productPrice = parseFloat(priceStr) || 0;
+                        }
+                        
+                        let parsedRating: number | undefined = undefined;
+                        if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
+                            const ratingNum = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(String(product.rating_numeric));
+                            if (!isNaN(ratingNum) && ratingNum > 0 && ratingNum <= 5) {
+                                parsedRating = ratingNum;
+                            }
+                        }
+                        
+                        const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
+                            ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(String(product.num_ratings_numeric)) || 0)
+                            : (product.product_num_ratings || 0);
+                        
+                        return {
+                            id: asin,
+                            image: productImage,
+                            name: productName,
+                            price: productPrice,
+                            rating: parsedRating,
+                            numRatings: numRatings,
+                            description: PRODUCT_DESCRIPTION,
+                        };
+                    });
+                    
+                    // Save to cache using the same key PersonPage uses
+                    const CACHE_KEY = 'person_page_ai_picks_cache';
+                    try {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify({
+                            products: transformedProducts,
+                            timestamp: Date.now(),
+                            recommendationId: apiResponse.recommendation_id,
+                            personId: personId,
+                        }));
+                        console.log("💾 ActionPersonSheet: Saved AI picks to cache for PersonPage");
+                    } catch (error) {
+                        console.warn("⚠️ ActionPersonSheet: Error saving to cache:", error);
+                    }
+                }
                 
                 // Dispatch event to notify PersonPage
                 window.dispatchEvent(new CustomEvent('person-added', { detail: personData }));
@@ -513,7 +574,7 @@ const AddPersonForm: React.FC<{
 
     if (step === 5) {
         return (
-            <Step3StyleForm 
+            <AdditionalQuestionsForm 
                 onBack={handleStep5Back} 
                 onNext={handleStep5Next}
             />

@@ -135,7 +135,7 @@ export const UIKitPage: React.FC = () => {
                                         price={p.price}
                                         className="border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
                                         badge={
-                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-sm">
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-normal text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-sm">
                                                 <svg
                                                     width="10"
                                                     height="10"
@@ -286,7 +286,7 @@ export const UIKitPage: React.FC = () => {
                             size="small"
                             onClick={() => setSelectedLabels([])}
                             disabled={selectedLabels.length === 0}
-                            className="text-[#5E57AC]"
+                            className="text-[#5E57AC] !font-normal"
                         >
                             Deselect all
                         </Button>
@@ -316,7 +316,7 @@ export const UIKitPage: React.FC = () => {
                                     onChange={() => toggleLabel(label)}
                                     className="sr-only"
                                 />
-                                <span className="text-sm font-semibold text-center leading-tight">
+                                <span className="text-sm font-normal text-center leading-tight">
                                     {label}
                                 </span>
                             </label>
@@ -355,16 +355,16 @@ export const UIKitPage: React.FC = () => {
                                 Button Variants
                             </Heading>
                             <div className="flex flex-wrap gap-4">
-                                <Button variant="primary">
+                                <Button variant="primary" className="!font-normal">
                                     Primary Button
                                 </Button>
-                                <Button variant="secondary">
+                                <Button variant="secondary" className="!font-normal">
                                     Secondary Button
                                 </Button>
-                                <Button variant="outline">
+                                <Button variant="outline" className="!font-normal">
                                     Outline Button
                                 </Button>
-                                <Button variant="ghost">Ghost Button</Button>
+                                <Button variant="ghost" className="!font-normal">Ghost Button</Button>
                             </div>
                         </div>
 
@@ -374,9 +374,9 @@ export const UIKitPage: React.FC = () => {
                                 Button Sizes
                             </Heading>
                             <div className="flex flex-wrap items-center gap-4">
-                                <Button size="small">Small</Button>
-                                <Button size="medium">Medium</Button>
-                                <Button size="large">Large</Button>
+                                <Button size="small" className="!font-normal">Small</Button>
+                                <Button size="medium" className="!font-normal">Medium</Button>
+                                <Button size="large" className="!font-normal">Large</Button>
                             </div>
                         </div>
 
@@ -386,8 +386,8 @@ export const UIKitPage: React.FC = () => {
                                 Button States
                             </Heading>
                             <div className="flex flex-wrap gap-4">
-                                <Button>Normal</Button>
-                                <Button disabled>Disabled</Button>
+                                <Button className="!font-normal">Normal</Button>
+                                <Button disabled className="!font-normal">Disabled</Button>
                             </div>
                         </div>
 
@@ -396,7 +396,7 @@ export const UIKitPage: React.FC = () => {
                             <Heading level={4} className="mb-4">
                                 Full Width Button
                             </Heading>
-                            <Button fullWidth>Full Width Button</Button>
+                            <Button fullWidth className="!font-normal">Full Width Button</Button>
                         </div>
                     </div>
                 </div>
@@ -530,7 +530,7 @@ export const UIKitPage: React.FC = () => {
                             <p className="text-sm text-gray-500 mb-2 font-medium">
                                 Buttons (StackSansText)
                             </p>
-                            <Button>Button Text Example</Button>
+                            <Button className="!font-normal">Button Text Example</Button>
                         </div>
                     </div>
                 </div>

@@ -273,12 +273,12 @@ export function GiftCarousel({
                   (e.target as HTMLImageElement).src = 'https://cerescann.com/wp-content/uploads/2016/07/Product-PlaceHolder.jpg';
                 }} />
                   {/* Top Pick badge */}
-                  <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md">
+                  <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-medium px-3 py-1 rounded-full shadow-md">
                     Top Pick
                   </div>
                   {/* Price pill */}
                   <div className="absolute top-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 rounded-full shadow-md">
-                    <span className="text-white font-semibold">
+                    <span className="text-white font-medium">
                       {currentItem.price}
                     </span>
                   </div>
@@ -298,7 +298,7 @@ export function GiftCarousel({
                       {formattedDescription}
                     </p>
                     <div className="mt-auto">
-                      <a href={generateAmazonUrl(currentItem.sku)} target="_blank" rel="noopener noreferrer" className="w-full bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-500 hover:to-amber-500 text-gray-900 font-semibold py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center text-sm md:text-base">
+                      <a href={generateAmazonUrl(currentItem.sku)} target="_blank" rel="noopener noreferrer" className="w-full bg-gradient-to-r from-yellow-400 to-amber-400 hover:from-yellow-500 hover:to-amber-500 text-gray-900 font-medium py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center text-sm md:text-base">
                         <ShoppingCartIcon className="w-4 h-4 md:w-5 md:h-5 mr-2" />
                         View on Amazon
                       </a>
