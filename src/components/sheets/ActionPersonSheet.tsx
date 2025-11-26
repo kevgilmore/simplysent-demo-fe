@@ -202,6 +202,42 @@ const AddPersonForm: React.FC<{
     const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Check for auto-fill data
+    const getAutoFillData = () => {
+        try {
+            const stored = localStorage.getItem('onboarding_autofill');
+            if (stored) {
+                const data = JSON.parse(stored);
+                // Clear after reading
+                localStorage.removeItem('onboarding_autofill');
+                return data;
+            }
+        } catch (error) {
+            console.warn('Error reading auto-fill data:', error);
+        }
+        return null;
+    };
+
+    const autoFillData = getAutoFillData();
+    
+    // Calculate age from DOB if provided
+    const calculateAgeFromDob = (dob: string): number => {
+        try {
+            const [day, month, year] = dob.split('/').map(Number);
+            const birthDate = new Date(year, month - 1, day);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        } catch {
+            return 30; // Default age
+        }
+    };
+
     const [formData, setFormData] = useState<{
         relationship?: string;
         name?: string;
@@ -216,15 +252,35 @@ const AddPersonForm: React.FC<{
         notes?: string;
         minBudget?: number;
         maxBudget?: number;
-    }>({});
+    }>(() => {
+        // Auto-fill from localStorage if available
+        if (autoFillData) {
+            const age = autoFillData.dob ? calculateAgeFromDob(autoFillData.dob) : undefined;
+            return {
+                relationship: autoFillData.relationship?.toLowerCase() || undefined,
+                name: autoFillData.name || undefined,
+                gender: autoFillData.gender || undefined,
+                dob: autoFillData.dob || undefined,
+                age: age,
+                interests: autoFillData.interests || [],
+                clothingSize: autoFillData.other?.clothing_size || undefined,
+                favouriteDrink: autoFillData.other?.favourite_drink || undefined,
+                minBudget: autoFillData.budget_min || undefined,
+                maxBudget: autoFillData.budget_max || undefined,
+            };
+        }
+        return {};
+    });
 
     const handleStep1Next = (data: { relationship: string }) => {
         const newData = { ...formData, relationship: data.relationship };
-        // Pre-fill name for Mother/Father
-        if (data.relationship === "mother") {
-            newData.name = "Mum";
-        } else if (data.relationship === "father") {
-            newData.name = "Dad";
+        // Pre-fill name for Mother/Father (only if not already set from auto-fill)
+        if (!newData.name) {
+            if (data.relationship === "mother") {
+                newData.name = "Mum";
+            } else if (data.relationship === "father") {
+                newData.name = "Dad";
+            }
         }
         setFormData(newData);
         // Skip step 2 for Mother and Father
@@ -234,6 +290,20 @@ const AddPersonForm: React.FC<{
             setStep(2);
         }
     };
+    
+    // Auto-advance if auto-fill data is present
+    useEffect(() => {
+        if (autoFillData && step === 1 && formData.relationship) {
+            // Skip to step 3 if relationship is mother/father, otherwise step 2
+            if (formData.relationship === "mother" || formData.relationship === "father") {
+                setStep(3);
+            } else if (formData.name && formData.gender) {
+                setStep(3);
+            } else if (formData.name) {
+                setStep(2);
+            }
+        }
+    }, [autoFillData, step, formData.relationship, formData.name, formData.gender]);
 
     const handleStep2Back = () => setStep(1);
     const handleStep2Next = (data: { name?: string; gender?: string }) => {
@@ -373,6 +443,30 @@ const AddPersonForm: React.FC<{
             const apiResponse: ApiResponse = await response.json();
             console.log("API Response:", apiResponse);
             
+            // Store person in localStorage
+            try {
+                const personData = {
+                    id: apiResponse.recommendation_id || `person-${Date.now()}`,
+                    name: finalData.name || "Friend",
+                    relationship: finalData.relationship,
+                    gender: finalData.gender,
+                    interests: finalData.interests || [],
+                    minBudget: finalData.minBudget,
+                    maxBudget: finalData.maxBudget,
+                    createdAt: Date.now(),
+                };
+                
+                const storedPersons = localStorage.getItem('saved_persons');
+                const persons = storedPersons ? JSON.parse(storedPersons) : [];
+                persons.push(personData);
+                localStorage.setItem('saved_persons', JSON.stringify(persons));
+                
+                // Dispatch event to notify PersonPage
+                window.dispatchEvent(new CustomEvent('person-added', { detail: personData }));
+            } catch (error) {
+                console.warn('Failed to save person:', error);
+            }
+            
             // Close the sheet
             onClose();
             
@@ -380,8 +474,8 @@ const AddPersonForm: React.FC<{
             if (onComplete) {
                 onComplete();
             } else {
-                // Navigate to person page - it will fetch recommendations on load
-                navigate("/person");
+                // Navigate to home page (PersonPage) - it will fetch recommendations on load
+                navigate("/");
             }
         } catch (error) {
             console.error("Error calling /recommend:", error);

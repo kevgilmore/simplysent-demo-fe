@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useLayoutEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faStar,
@@ -33,9 +33,17 @@ import {
 } from "../utils/recommendationHistory";
 import { getOrCreateSessionId } from "../utils/tracking";
 import { getProductsByDocumentIds } from "../services/firebaseService";
+import { menInterests, womenInterests, boysInterests, girlsInterests } from "../components/sheets/formConstants";
 
-// Helper function to extract user-friendly error message from API errors
-const getUserFriendlyErrorMessage = (error: unknown): string => {
+    // Helper function to get interest label from value
+    const getInterestLabel = (value: string): string => {
+        const allInterests = [...menInterests, ...womenInterests, ...boysInterests, ...girlsInterests];
+        const interest = allInterests.find(i => i.value === value);
+        return interest ? interest.label : value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ');
+    };
+
+    // Helper function to extract user-friendly error message from API errors
+    const getUserFriendlyErrorMessage = (error: unknown): string => {
     if (error instanceof Error) {
         // Check if it's an ApiError with metadata
         const apiError = error as ApiError;
@@ -87,6 +95,7 @@ interface ApiResponse {
 
 export const PersonPage: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [pageTab, setPageTab] = useState("gifts");
     const [favourites, setFavourites] = useState<Set<string>>(new Set());
     const [removedProducts, setRemovedProducts] = useState<Set<string>>(
@@ -109,6 +118,19 @@ export const PersonPage: React.FC = () => {
     const [isLoadingTechProducts, setIsLoadingTechProducts] = useState(true);
     const [techProductsError, setTechProductsError] = useState<string | null>(null);
     const [techSortOrder, setTechSortOrder] = useState<'highest' | 'lowest' | null>(null);
+    const [savedPersons, setSavedPersons] = useState<Array<{
+        id: string;
+        name: string;
+        relationship?: string;
+        gender?: string;
+        interests: string[];
+        minBudget?: number;
+        maxBudget?: number;
+        createdAt: number;
+    }>>([]);
+    const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+    const [interestProducts, setInterestProducts] = useState<Record<string, Product[]>>({});
+    const [loadingInterests, setLoadingInterests] = useState<Record<string, boolean>>({});
     
     const CACHE_KEY = 'person_page_ai_picks_cache';
     const SCROLL_POSITION_KEY = 'person_page_carousel_scroll';
@@ -139,8 +161,14 @@ export const PersonPage: React.FC = () => {
         numRatings?: number;
     };
     
-    // Fetch AI picks from API on component mount
+    // Fetch AI picks when a person is selected (not on page load)
     useEffect(() => {
+        if (!selectedPersonId) {
+            // No person selected, don't fetch
+            setIsLoadingAiPicks(false);
+            return;
+        }
+
         // Check if this is a page refresh (no navigation flag) - clear scroll position
         const navigatedFromProduct = sessionStorage.getItem(NAVIGATION_FLAG_KEY) === 'true';
         if (!navigatedFromProduct) {
@@ -224,36 +252,28 @@ export const PersonPage: React.FC = () => {
                     return sizeMap[normalized] || 'M'; // Default to M if not found
                 };
                 
-                // In dev mode, use defaults. Otherwise, try to get from history
-                if (devModeEnabled) {
-                    // Use default values for dev mode
+                // Get form data from selected person
+                const selectedPerson = savedPersons.find(p => p.id === selectedPersonId);
+                if (selectedPerson) {
+                    // Calculate age from createdAt if needed, or use a default
+                    const age = selectedPerson.createdAt ? Math.floor((Date.now() - selectedPerson.createdAt) / (1000 * 60 * 60 * 24 * 365)) : 30;
                     formData = {
-                        personAge: "55",
-                        gender: "male",
-                        relationship: "father",
-                        occasion: "birthday",
-                        sentiment: "practical",
-                        interests: ["tech gadgets"], // Must have at least 1 interest
-                        favoritedrink: "coffee",
-                        clothesSize: "large",
-                        minBudget: 10,
-                        maxBudget: 50,
-                        name: "Kevin", // Add name for new API
+                        personAge: age.toString(),
+                        gender: selectedPerson.gender || "male",
+                        relationship: selectedPerson.relationship || "friend",
+                        interests: selectedPerson.interests || [],
+                        favoritedrink: "beer", // Default if not stored
+                        clothesSize: "medium", // Default if not stored
+                        minBudget: selectedPerson.minBudget || 10,
+                        maxBudget: selectedPerson.maxBudget || 50,
+                        name: selectedPerson.name || "Friend",
                     };
                 } else {
-                    // Try to get form data from most recent recommendation
-                    const history = getRecommendationHistory();
-                    if (history.length > 0) {
-                        const mostRecent = history[0];
-                        if (mostRecent.formData) {
-                            formData = mostRecent.formData;
-                        }
-                    }
-                    
-                    // If no history available and not dev mode, show error
-                    if (!formData) {
-                        throw new Error("No recommendation history found. Please fill out the onboarding form or add a person.");
-                    }
+                    // No person selected - don't fetch
+                    setIsLoadingAiPicks(false);
+                    setAiPicksError("Please select a person to get recommendations.");
+                    setAiPicks([]);
+                    return;
                 }
                 
                 // Ensure interests has at least 1 item (required by new API)
@@ -451,7 +471,7 @@ export const PersonPage: React.FC = () => {
         
         // Only fetch if we didn't use cache
         fetchAiPicks();
-    }, []);
+    }, [selectedPersonId, savedPersons]);
     
     // Handle refresh button click
     const handleRefresh = () => {
@@ -504,33 +524,29 @@ export const PersonPage: React.FC = () => {
                     return sizeMap[normalized] || 'M';
                 };
                 
-                // In dev mode, use defaults. Otherwise, try to get from history
-                if (devModeEnabled) {
+                // Get form data from selected person
+                const selectedPerson = savedPersons.find(p => p.id === selectedPersonId);
+                if (selectedPerson) {
+                    // Calculate age from createdAt if needed, or use a default
+                    const age = selectedPerson.createdAt ? Math.floor((Date.now() - selectedPerson.createdAt) / (1000 * 60 * 60 * 24 * 365)) : 30;
                     formData = {
-                        personAge: "55",
-                        gender: "male",
-                        relationship: "father",
-                        occasion: "birthday",
-                        sentiment: "practical",
-                        interests: ["tech gadgets"],
-                        favoritedrink: "coffee",
-                        clothesSize: "large",
-                        minBudget: 10,
-                        maxBudget: 50,
-                        name: "Kevin",
+                        personAge: age.toString(),
+                        gender: selectedPerson.gender || "male",
+                        relationship: selectedPerson.relationship || "friend",
+                        interests: selectedPerson.interests || [],
+                        favoritedrink: "beer", // Default if not stored
+                        clothesSize: "medium", // Default if not stored
+                        minBudget: selectedPerson.minBudget || 10,
+                        maxBudget: selectedPerson.maxBudget || 50,
+                        name: selectedPerson.name || "Friend",
                     };
                 } else {
-                    const history = getRecommendationHistory();
-                    if (history.length > 0) {
-                        const mostRecent = history[0];
-                        if (mostRecent.formData) {
-                            formData = mostRecent.formData;
-                        }
-                    }
-                    
-                    if (!formData) {
-                        throw new Error("No recommendation history found. Please fill out the onboarding form or add a person.");
-                    }
+                    // No person selected - don't fetch
+                    setIsLoadingAiPicks(false);
+                    setAiPicksError("Please select a person to get recommendations.");
+                    setAiPicks([]);
+                    setIsRefreshing(false);
+                    return;
                 }
                 
                 const interests = formData.interests && formData.interests.length > 0 
@@ -696,6 +712,89 @@ export const PersonPage: React.FC = () => {
         fetchAiPicks();
     };
     
+    // Load saved persons from localStorage and redirect if none exist
+    useEffect(() => {
+        // Clear all saved persons only on very first app load (before any person is added)
+        // Check if this is the first time loading PersonPage in this session
+        const hasClearedPersons = sessionStorage.getItem('persons_cleared_on_app_load');
+        const isFirstLoad = !hasClearedPersons;
+        
+        if (isFirstLoad) {
+            try {
+                localStorage.removeItem('saved_persons');
+                sessionStorage.setItem('persons_cleared_on_app_load', 'true');
+            } catch (error) {
+                console.warn('Error clearing saved persons:', error);
+            }
+        }
+
+        let redirectTimeout: NodeJS.Timeout | null = null;
+        let personFound = false;
+
+        const loadPersons = () => {
+            try {
+                const stored = localStorage.getItem('saved_persons');
+                if (stored) {
+                    const persons = JSON.parse(stored);
+                    if (persons.length > 0) {
+                        personFound = true;
+                        setSavedPersons(persons);
+                        // Select the most recent person by default
+                        if (!selectedPersonId) {
+                            setSelectedPersonId(persons[persons.length - 1].id);
+                        }
+                        // Cancel any pending redirect
+                        if (redirectTimeout) {
+                            clearTimeout(redirectTimeout);
+                            redirectTimeout = null;
+                        }
+                        return true; // Found persons
+                    }
+                }
+                personFound = false;
+                return false; // No persons found
+            } catch (error) {
+                console.warn('Error loading saved persons:', error);
+                personFound = false;
+                return false;
+            }
+        };
+
+        // Listen for new person added FIRST (before checking)
+        const handlePersonAdded = () => {
+            console.log('Person added event received');
+            loadPersons();
+        };
+        window.addEventListener('person-added', handlePersonAdded);
+
+        // Load persons immediately
+        loadPersons();
+
+        // Only redirect if we have no persons AND this is not the first load
+        // Use a longer timeout to allow person-added event to fire (in case coming from onboarding)
+        if (!personFound && !isFirstLoad) {
+            redirectTimeout = setTimeout(() => {
+                // Final check before redirecting
+                const stored = localStorage.getItem('saved_persons');
+                const finalPersons = stored ? JSON.parse(stored) : [];
+                if (finalPersons.length === 0) {
+                    console.log('No persons found, redirecting to onboarding');
+                    navigate("/");
+                } else {
+                    console.log('Persons found after timeout, loading them');
+                    loadPersons();
+                }
+            }, 1500); // Longer timeout to ensure person is saved
+        }
+
+        return () => {
+            window.removeEventListener('person-added', handlePersonAdded);
+            if (redirectTimeout) {
+                clearTimeout(redirectTimeout);
+            }
+        };
+    }, [navigate, selectedPersonId]);
+
     // Load RapidAPI products from localStorage
     useEffect(() => {
         const loadRapidApiProducts = () => {
@@ -723,6 +822,93 @@ export const PersonPage: React.FC = () => {
             window.removeEventListener('rapidapi-products-updated', handleUpdate);
         };
     }, []);
+
+    // Fetch products for each interest when a person is selected
+    useEffect(() => {
+        if (!selectedPersonId) return;
+        
+        const selectedPerson = savedPersons.find(p => p.id === selectedPersonId);
+        if (!selectedPerson || !selectedPerson.interests || selectedPerson.interests.length === 0) return;
+
+        const fetchInterestProducts = async (interest: string) => {
+            setLoadingInterests(prev => ({ ...prev, [interest]: true }));
+            
+            try {
+                const queryParams = new URLSearchParams();
+                queryParams.append('interest', interest);
+                queryParams.append('limit', '20');
+                queryParams.append('offset', '0');
+                queryParams.append('collection', 'amazon');
+
+                const mode = getCurrentMode();
+                const apiUrl = buildApiUrl('/products', queryParams);
+                const headers = getApiHeaders(mode || undefined);
+
+                const response = await apiFetch(
+                    apiUrl,
+                    {
+                        method: 'GET',
+                        headers,
+                    },
+                    `GET /products?interest=${interest}`,
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data: any[] = await response.json();
+
+                if (Array.isArray(data) && data.length > 0) {
+                    const transformedProducts: Product[] = data.map((product) => {
+                        let price = 0;
+                        if (product.price_numeric !== undefined && product.price_numeric !== null) {
+                            price = typeof product.price_numeric === 'number' ? product.price_numeric : parseFloat(product.price_numeric.toString()) || 0;
+                        } else if (product.product_price) {
+                            const priceStr = product.product_price.toString().replace(/[£$€,]/g, '');
+                            price = parseFloat(priceStr) || 0;
+                        }
+
+                        let rating: number | undefined = undefined;
+                        if (product.rating_numeric !== undefined && product.rating_numeric !== null) {
+                            rating = typeof product.rating_numeric === 'number' ? product.rating_numeric : parseFloat(product.rating_numeric.toString());
+                        } else if (product.product_star_rating) {
+                            rating = parseFloat(product.product_star_rating.toString());
+                        }
+
+                        const numRatings = product.num_ratings_numeric !== undefined && product.num_ratings_numeric !== null
+                            ? (typeof product.num_ratings_numeric === 'number' ? product.num_ratings_numeric : parseInt(product.num_ratings_numeric.toString()) || 0)
+                            : (product.product_num_ratings || 0);
+
+                        return {
+                            id: product.asin || `${interest}-${Math.random().toString(36).substr(2, 9)}`,
+                            image: product.product_photo || '',
+                            name: product.product_title || 'Unknown Product',
+                            price: price,
+                            rating: rating,
+                            numRatings: numRatings,
+                        };
+                    });
+
+                    setInterestProducts(prev => ({ ...prev, [interest]: transformedProducts }));
+                } else {
+                    setInterestProducts(prev => ({ ...prev, [interest]: [] }));
+                }
+            } catch (error) {
+                console.error(`Error fetching products for interest ${interest}:`, error);
+                setInterestProducts(prev => ({ ...prev, [interest]: [] }));
+            } finally {
+                setLoadingInterests(prev => ({ ...prev, [interest]: false }));
+            }
+        };
+
+        // Fetch products for all interests
+        selectedPerson.interests.forEach(interest => {
+            if (!interestProducts[interest] && !loadingInterests[interest]) {
+                fetchInterestProducts(interest);
+            }
+        });
+    }, [selectedPersonId, savedPersons]);
 
     // Fetch tech products from /products endpoint
     useEffect(() => {
@@ -837,11 +1023,16 @@ export const PersonPage: React.FC = () => {
         }
     }, [techProducts, techSortOrder]);
 
+    // Get AI Picks product IDs to filter from other carousels
+    const aiPicksProductIds = useMemo(() => {
+        return new Set(aiPicks.map(p => p.id));
+    }, [aiPicks]);
+
     const productsByTab: Record<string, Product[]> = useMemo(
         () => ({
             "ai-picks": aiPicks, // Use real API data, never fallback to fake products
-            "rapidapi": sortedRapidApiProducts, // Products from RapidAPI JSON import (sorted)
-            tech: sortedTechProducts, // Products from /products endpoint (sorted)
+            "rapidapi": sortedRapidApiProducts.filter(p => !aiPicksProductIds.has(p.id)), // Filter out AI Picks products
+            tech: sortedTechProducts.filter(p => !aiPicksProductIds.has(p.id)), // Filter out AI Picks products
             golf: [
                 {
                     id: "golf-1",
@@ -873,9 +1064,9 @@ export const PersonPage: React.FC = () => {
                     name: "Golf Range Finder",
                     price: 189.99,
                 },
-            ],
+            ].filter(p => !aiPicksProductIds.has(p.id)), // Filter out AI Picks products
         }),
-        [aiPicks, sortedRapidApiProducts, sortedTechProducts],
+        [aiPicks, sortedRapidApiProducts, sortedTechProducts, aiPicksProductIds],
     );
 
     const allProducts: Product[] = useMemo(() => {
@@ -1100,72 +1291,32 @@ export const PersonPage: React.FC = () => {
                                     className="w-6 h-6 text-gray-700"
                                 />
                                 <span className="font-semibold text-gray-800 text-base">
-                                    Kevin
+                                    {selectedPersonId ? savedPersons.find(p => p.id === selectedPersonId)?.name || 'Kevin' : 'Kevin'}
                                 </span>
                             </button>
 
                             {isMenuOpen && (
-                                <div className="absolute left-0 mt-2 bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-gray-200 z-50 min-w-[120px] overflow-hidden">
+                                <div className="absolute left-0 mt-2 bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-gray-200 z-50 min-w-[120px] overflow-hidden max-h-[400px] overflow-y-auto">
+                                    {savedPersons.map((person) => (
                                     <button
+                                            key={person.id}
                                         type="button"
                                         onClick={() => {
+                                                setSelectedPersonId(person.id);
                                             setIsMenuOpen(false);
-                                            navigate("/new");
                                         }}
-                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
+                                            className={`block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50 ${
+                                                selectedPersonId === person.id ? 'bg-purple-50' : ''
+                                            }`}
                                     >
-                                        Dad
+                                            {person.name}
                                     </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            navigate("/new-mum");
-                                        }}
-                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
-                                    >
-                                        Mum
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            navigate("/new");
-                                        }}
-                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
-                                    >
-                                        Brother
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            navigate("/new");
-                                        }}
-                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
-                                    >
-                                        Sister
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            navigate("/new");
-                                        }}
-                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
-                                    >
-                                        Harry
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsMenuOpen(false);
-                                            navigate("/new");
-                                        }}
-                                        className="block w-full pl-5 pr-4 py-2.5 font-semibold transition-colors text-left text-gray-800 hover:bg-purple-50"
-                                    >
-                                        Coral
-                                    </button>
+                                    ))}
+                                    {savedPersons.length === 0 && (
+                                        <div className="px-5 py-2.5 text-sm text-gray-500">
+                                            No persons added yet
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -1204,7 +1355,7 @@ export const PersonPage: React.FC = () => {
                             <div className="mt-6">
                                 <div className="flex items-center justify-between gap-3 mb-0">
                                     <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
-                                        AI Picks For Kevin
+                                        AI Picks For {selectedPersonId ? savedPersons.find(p => p.id === selectedPersonId)?.name || 'Kevin' : 'Kevin'}
                                     </h2>
                                     <div className="flex items-center gap-2">
                                         <button
@@ -1219,17 +1370,17 @@ export const PersonPage: React.FC = () => {
                                                 className={`w-4 h-4 text-gray-500 ${isRefreshing ? 'animate-spin' : ''}`}
                                             />
                                         </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsRefineOpen(true)}
-                                            className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
-                                            aria-label="Open refine panel"
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={faSliders}
-                                                className="w-5 h-5 text-gray-500"
-                                            />
-                                        </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsRefineOpen(true)}
+                                        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors"
+                                        aria-label="Open refine panel"
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faSliders}
+                                            className="w-5 h-5 text-gray-500"
+                                        />
+                                    </button>
                                     </div>
                                 </div>
                                 {isLoadingAiPicks ? (
@@ -1351,13 +1502,83 @@ export const PersonPage: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* Interest-based Carousels */}
+                            {selectedPersonId && savedPersons.find(p => p.id === selectedPersonId)?.interests.map((interest) => {
+                                const products = interestProducts[interest] || [];
+                                const isLoading = loadingInterests[interest] || false;
+                                
+                                if (isLoading && products.length === 0) {
+                                    return (
+                                        <div key={interest} className="mt-[10px]">
+                                <div className="flex items-center gap-3 mb-0">
+                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
+                                                    {getInterestLabel(interest)}
+                                    </h2>
+                                </div>
+                                            <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "200px" }}>
+                                                <div className="text-center px-4">
+                                                    <div className="relative mx-auto mb-4 w-12 h-12">
+                                                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 animate-pulse" />
+                                                        <div className="absolute inset-1 rounded-full bg-white" />
+                                                        <div className="absolute inset-0 flex items-center justify-center">
+                                                            <svg className="w-6 h-6 text-simplysent-purple animate-spin" fill="none" viewBox="0 0 24 24">
+                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                            </svg>
+                                        </div>
+                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                
+                                if (products.length === 0) return null;
+                                
+                                return (
+                                    <div key={interest} className="mt-[10px]">
+                                        <div className="flex items-center gap-3 mb-0">
+                                            <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
+                                                {getInterestLabel(interest)}
+                                            </h2>
+                                        </div>
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
+                                        <div className="flex gap-4 transition-all duration-1000">
+                                                {products
+                                                    .filter((p) => !removedProducts.has(p.id) && !aiPicksProductIds.has(p.id))
+                                                .map((p) => (
+                                                    <div
+                                                        key={p.id}
+                                                        className="flex-shrink-0 w-[260px]"
+                                                    >
+                                                        <ProductCard
+                                                            id={p.id}
+                                                            image={p.image}
+                                                            name={p.name}
+                                                            price={p.price}
+                                                            rating={p.rating}
+                                                            numRatings={p.numRatings}
+                                                            compact
+                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
+                                                                isFavorite={favourites.has(p.id)}
+                                                                onFavoriteToggle={() => toggleFavourite(p.id)}
+                                                                onRemove={handleProductRemove}
+                                                        />
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                            </div>
+                                );
+                            })}
+
                             {/* RapidAPI Carousel */}
                             {rapidApiProducts.length > 0 && (
-                                <div className="mt-[10px]">
+                            <div className="mt-[10px]">
                                     <div className="flex items-center justify-between gap-3 mb-0">
-                                        <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
+                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
                                             From RapidAPI
-                                        </h2>
+                                    </h2>
                                         <div className="flex items-center gap-2">
                                             <button
                                                 type="button"
@@ -1385,261 +1606,65 @@ export const PersonPage: React.FC = () => {
                                                 <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
                                                 <span>Lowest</span>
                                             </button>
-                                        </div>
+                                </div>
                                     </div>
                                     {productsByTab["rapidapi"]?.filter(
-                                        (p) => !removedProducts.has(p.id),
-                                    ).length === 0 ? (
-                                        <div className="flex items-center justify-center py-12 px-4">
-                                            <div className="text-center max-w-md">
-                                                <p className="text-gray-400 text-lg font-medium">
-                                                    No more recommendations here.
-                                                </p>
-                                                <p className="text-gray-400 text-sm mt-2">
-                                                    Check back later for new picks!
-                                                </p>
-                                            </div>
+                                    (p) => !removedProducts.has(p.id),
+                                ).length === 0 ? (
+                                    <div className="flex items-center justify-center py-12 px-4">
+                                        <div className="text-center max-w-md">
+                                            <p className="text-gray-400 text-lg font-medium">
+                                                No more recommendations here.
+                                            </p>
+                                            <p className="text-gray-400 text-sm mt-2">
+                                                Check back later for new picks!
+                                            </p>
                                         </div>
-                                    ) : (
-                                        <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
-                                            <div className="flex gap-4 transition-all duration-1000">
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
+                                        <div className="flex gap-4 transition-all duration-1000">
                                                 {productsByTab["rapidapi"]
-                                                    ?.filter(
-                                                        (p) =>
-                                                            !removedProducts.has(
+                                                ?.filter(
+                                                    (p) =>
+                                                        !removedProducts.has(
+                                                            p.id,
+                                                        ),
+                                                )
+                                                .map((p) => (
+                                                    <div
+                                                        key={p.id}
+                                                        className="flex-shrink-0 w-[260px]"
+                                                    >
+                                                        <ProductCard
+                                                            id={p.id}
+                                                            image={p.image}
+                                                            name={p.name}
+                                                            price={p.price}
+                                                            rating={p.rating}
+                                                            numRatings={p.numRatings}
+                                                            compact
+                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
+                                                            isFavorite={favourites.has(
                                                                 p.id,
-                                                            ),
-                                                    )
-                                                    .map((p) => (
-                                                        <div
-                                                            key={p.id}
-                                                            className="flex-shrink-0 w-[260px]"
-                                                        >
-                                                            <ProductCard
-                                                                id={p.id}
-                                                                image={p.image}
-                                                                name={p.name}
-                                                                price={p.price}
-                                                                rating={p.rating}
-                                                                numRatings={p.numRatings}
-                                                                compact
-                                                                className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
-                                                                isFavorite={favourites.has(
+                                                            )}
+                                                            onFavoriteToggle={() =>
+                                                                toggleFavourite(
                                                                     p.id,
-                                                                )}
-                                                                onFavoriteToggle={() =>
-                                                                    toggleFavourite(
-                                                                        p.id,
-                                                                    )
-                                                                }
-                                                                onRemove={
-                                                                    handleProductRemove
-                                                                }
-                                                            />
-                                                        </div>
-                                                    ))}
-                                            </div>
+                                                                )
+                                                            }
+                                                            onRemove={
+                                                                handleProductRemove
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))}
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                            </div>
                             )}
 
-                            {/* Tech Carousel */}
-                            <div className="mt-[10px]">
-                                <div className="flex items-center justify-between gap-3 mb-0">
-                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
-                                        Tech
-                                    </h2>
-                                    {!isLoadingTechProducts && !techProductsError && techProducts.length > 0 && (
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => setTechSortOrder('highest')}
-                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                    techSortOrder === 'highest'
-                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
-                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
-                                                }`}
-                                                aria-label="Sort by highest price"
-                                            >
-                                                <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3" />
-                                                <span>Highest</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setTechSortOrder('lowest')}
-                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                    techSortOrder === 'lowest'
-                                                        ? 'bg-purple-100 text-purple-700 border border-purple-300'
-                                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
-                                                }`}
-                                                aria-label="Sort by lowest price"
-                                            >
-                                                <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3" />
-                                                <span>Lowest</span>
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                                {isLoadingTechProducts ? (
-                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
-                                        <div className="text-center px-4">
-                                            {/* Loading spinner */}
-                                            <div className="relative mx-auto mb-6 w-20 h-20">
-                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-100 to-purple-50 animate-pulse" />
-                                                <div className="absolute inset-2 rounded-full bg-white" />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-simplysent-purple animate-spin" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            <p className="text-simplysent-purple font-semibold text-lg mb-2">
-                                                Loading tech products...
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : techProductsError ? (
-                                    <div className="mt-[10px] flex items-center justify-center" style={{ minHeight: "311px" }}>
-                                        <div className="text-center px-4 max-w-md">
-                                            <div className="relative mx-auto mb-6 w-20 h-20">
-                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-red-100 to-red-50" />
-                                                <div className="absolute inset-2 rounded-full bg-white" />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                            <p className="text-red-600 font-semibold text-lg mb-2">
-                                                Unable to load tech products
-                                            </p>
-                                            <p className="text-gray-500 text-sm">
-                                                {techProductsError}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : productsByTab["tech"]?.filter(
-                                    (p) => !removedProducts.has(p.id),
-                                ).length === 0 ? (
-                                    <div className="flex items-center justify-center py-12 px-4">
-                                        <div className="text-center max-w-md">
-                                            <p className="text-gray-400 text-lg font-medium">
-                                                No more recommendations here.
-                                            </p>
-                                            <p className="text-gray-400 text-sm mt-2">
-                                                Check back later for new picks!
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
-                                        <div className="flex gap-4 transition-all duration-1000">
-                                            {productsByTab["tech"]
-                                                ?.filter(
-                                                    (p) =>
-                                                        !removedProducts.has(
-                                                            p.id,
-                                                        ),
-                                                )
-                                                .map((p) => (
-                                                    <div
-                                                        key={p.id}
-                                                        className="flex-shrink-0 w-[260px]"
-                                                    >
-                                                        <ProductCard
-                                                            id={p.id}
-                                                            image={p.image}
-                                                            name={p.name}
-                                                            price={p.price}
-                                                            rating={p.rating}
-                                                            numRatings={p.numRatings}
-                                                            compact
-                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
-                                                            isFavorite={favourites.has(
-                                                                p.id,
-                                                            )}
-                                                            onFavoriteToggle={() =>
-                                                                toggleFavourite(
-                                                                    p.id,
-                                                                )
-                                                            }
-                                                            onRemove={
-                                                                handleProductRemove
-                                                            }
-                                                            // Only AI picks have real ASINs, so only they are clickable
-                                                        />
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Golf Carousel */}
-                            <div className="mt-[10px]">
-                                <div className="flex items-center gap-3 mb-0">
-                                    <h2 className="text-[22px] font-medium font-headline text-simplysent-grey-heading">
-                                        Golf
-                                    </h2>
-                                </div>
-                                {productsByTab["golf"]?.filter(
-                                    (p) => !removedProducts.has(p.id),
-                                ).length === 0 ? (
-                                    <div className="flex items-center justify-center py-12 px-4">
-                                        <div className="text-center max-w-md">
-                                            <p className="text-gray-400 text-lg font-medium">
-                                                No more recommendations here.
-                                            </p>
-                                            <p className="text-gray-400 text-sm mt-2">
-                                                Check back later for new picks!
-                                            </p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-8 mt-[10px]">
-                                        <div className="flex gap-4 transition-all duration-1000">
-                                            {productsByTab["golf"]
-                                                ?.filter(
-                                                    (p) =>
-                                                        !removedProducts.has(
-                                                            p.id,
-                                                        ),
-                                                )
-                                                .map((p) => (
-                                                    <div
-                                                        key={p.id}
-                                                        className="flex-shrink-0 w-[260px]"
-                                                    >
-                                                        <ProductCard
-                                                            id={p.id}
-                                                            image={p.image}
-                                                            name={p.name}
-                                                            price={p.price}
-                                                            rating={p.rating}
-                                                            numRatings={p.numRatings}
-                                                            compact
-                                                            className="shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white"
-                                                            isFavorite={favourites.has(
-                                                                p.id,
-                                                            )}
-                                                            onFavoriteToggle={() =>
-                                                                toggleFavourite(
-                                                                    p.id,
-                                                                )
-                                                            }
-                                                            onRemove={
-                                                                handleProductRemove
-                                                            }
-                                                            // Only AI picks have real ASINs, so only they are clickable
-                                                        />
-                                                    </div>
-                                                ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     )}
 

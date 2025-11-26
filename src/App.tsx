@@ -5,16 +5,11 @@ import {
     Outlet,
     useLocation,
 } from "react-router-dom";
-import { RecommenderForm } from "./components/RecommenderForm";
 import { SharePage } from "./pages/SharePage";
-import { IntroPage } from "./pages/IntroPage";
+import { OnboardingPage } from "./pages/OnboardingPage";
 import { AboutUsPage } from "./pages/AboutUsPage";
 import { PrivacyPolicyPage } from "./pages/PrivacyPolicyPage";
 import { TermsOfServicePage } from "./pages/TermsOfServicePage";
-import { BlogPost1 } from "./components/BlogPost1";
-import { BlogPost2 } from "./components/BlogPost2";
-import { BlogPost3 } from "./components/BlogPost3";
-import { UIKitPage } from "./pages/UIKitPage";
 import { PersonPage } from "./pages/PersonPage";
 import { ProductPage } from "./pages/ProductPage";
 import { AnimatePresence } from "framer-motion";
@@ -92,7 +87,7 @@ function AppShell() {
     console.log("Current route:", location.pathname);
 
     // Check if current route is a carousel page that needs full width
-    const isCarouselPage = location.pathname === "/recommendations" || location.pathname === "/";
+    const isCarouselPage = location.pathname === "/person";
     // Check if current route is a product page that needs full width purple background
     const isProductPage = location.pathname.startsWith("/product/");
 
@@ -145,19 +140,14 @@ const router = createBrowserRouter([
         path: "/",
         element: <AppShell />,
         children: [
-            { index: true, element: <PersonPage /> },
-            { path: "results", element: <RecommenderForm /> },
-            { path: "about-us", element: <AboutUsPage /> },
-            { path: "privacy-policy", element: <PrivacyPolicyPage /> },
-            { path: "terms-of-service", element: <TermsOfServicePage /> },
-            { path: "app-release-blog", element: <BlogPost1 /> },
-            { path: "fathers-day-guide", element: <BlogPost2 /> },
-            { path: "budget-gifts-guide", element: <BlogPost3 /> },
-            { path: "ui", element: <UIKitPage /> },
-            { path: "error", element: <ErrorPage /> },
-            { path: "recommendations", element: <PersonPage /> },
+            { index: true, element: <OnboardingPage /> },
+            { path: "person", element: <PersonPage /> },
             { path: "product/:productId", element: <ProductPage /> },
-            { path: ":recId", element: <SharePage /> }, // Add at end to avoid conflicts
+            { path: "about", element: <AboutUsPage /> },
+            { path: "privacy", element: <PrivacyPolicyPage /> },
+            { path: "terms", element: <TermsOfServicePage /> },
+            { path: "error", element: <ErrorPage /> },
+            { path: ":recId", element: <SharePage /> }, // Share page - must be last to avoid conflicts
         ],
     },
 ]);

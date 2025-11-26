@@ -5,13 +5,16 @@ import { PlusIcon } from "lucide-react";
 import { ActionPersonSheet } from "../components/sheets/ActionPersonSheet";
 import { Button } from "../components/ui/Button";
 
-export function IntroPage() {
+export function OnboardingPage() {
     const navigate = useNavigate();
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
     const handleFormComplete = () => {
         setIsSheetOpen(false);
-        navigate("/recommendations");
+        // Delay to ensure person is saved and event is dispatched before navigating
+        setTimeout(() => {
+            navigate("/person");
+        }, 200);
     };
 
     return (
@@ -48,77 +51,65 @@ export function IntroPage() {
                             scale: {
                                 delay: 0.2,
                                 type: "spring",
-                                stiffness: 100,
+                                stiffness: 200,
+                                damping: 15,
                             },
-                            opacity: { delay: 0.2, duration: 0.6 },
+                            opacity: { delay: 0.2 },
                             y: {
-                                delay: 0.8,
-                                duration: 3,
+                                delay: 0.5,
+                                duration: 2,
                                 repeat: Infinity,
                                 repeatType: "reverse",
                                 ease: "easeInOut",
                             },
                         }}
-                        className="relative w-full"
+                        className="relative"
                     >
                         {/* Glow Effect */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-64 h-64 bg-gradient-to-br from-purple-300/40 to-pink-300/40 rounded-full blur-3xl" />
+                        <div className="absolute inset-0 bg-purple-400/30 blur-3xl rounded-full scale-150"></div>
+                        {/* Main Illustration */}
+                        <div className="relative bg-white rounded-3xl p-8 shadow-2xl">
+                            <PlusIcon className="w-24 h-24 text-purple-600 mx-auto" />
                         </div>
-
-                        {/* Illustration */}
-                        <img
-                            src="/undraw_gifts.svg"
-                            alt="Gift giving illustration"
-                            className="w-full mx-auto relative z-10 drop-shadow-2xl"
-                            style={{ maxWidth: "220px" }}
-                        />
                     </motion.div>
 
-                    {/* Text Content */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                    {/* Title */}
+                    <motion.h1
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4, duration: 0.5 }}
-                        className="text-center space-y-2"
+                        transition={{ delay: 0.4 }}
+                        className="text-4xl md:text-5xl font-bold text-center text-gray-900"
                     >
-                        <h1 className="text-2xl md:text-4xl text-gray-800 font-bold">
-                            Let's find the perfect gift
-                        </h1>
-                        <p className="text-sm md:text-lg text-gray-600">
-                            Answer a few quick questions to get started
-                        </p>
+                        Find the Perfect Gift
+                    </motion.h1>
+
+                    {/* Description */}
+                    <motion.p
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="text-lg md:text-xl text-gray-600 text-center max-w-md"
+                    >
+                        Tell us about the person you're shopping for and we'll
+                        find the perfect gifts for them.
+                    </motion.p>
+
+                    {/* CTA Button */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="pt-4"
+                    >
+                        <Button
+                            onClick={() => setIsSheetOpen(true)}
+                            variant="primary"
+                            size="large"
+                        >
+                            Get Started
+                        </Button>
                     </motion.div>
                 </div>
-
-                {/* CTA Button - Bottom */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                        delay: 0.6,
-                        duration: 0.5,
-                        type: "spring",
-                        stiffness: 200,
-                    }}
-                    className="pb-6"
-                    style={{
-                        paddingBottom:
-                            "calc(36px + env(safe-area-inset-bottom))",
-                    }}
-                >
-                    <Button
-                        onClick={() => setIsSheetOpen(true)}
-                        variant="cta"
-                        size="large"
-                        fullWidth
-                    >
-                        <span className="flex items-center justify-center gap-3">
-                            <PlusIcon className="w-6 h-6" />
-                            Get Started
-                        </span>
-                    </Button>
-                </motion.div>
             </div>
 
             {/* ActionPersonSheet - opens at state 1 (first step) */}
@@ -131,3 +122,4 @@ export function IntroPage() {
         </div>
     );
 }
+

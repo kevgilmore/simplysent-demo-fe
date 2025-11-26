@@ -75,9 +75,27 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
 
   const modeInfo = getModeInfo();
 
-  const handleClearLocalStorage = () => {
-    if (confirm('Are you sure you want to clear all local storage? This will reset all settings.')) {
+  const handleClearCache = () => {
+    if (confirm('Are you sure you want to clear cache? This will clear recommendations and products but keep dev mode settings.')) {
+      // Preserve dev mode settings
+      const devModeSettings = {
+        devMode: localStorage.getItem('ss_dev_mode'),
+        sandboxHeader: localStorage.getItem('ss_sandbox_header'),
+        localMode: localStorage.getItem('ss_local_mode'),
+        mockRecommendations: localStorage.getItem('ss_mock_recommendations'),
+        apiMode: localStorage.getItem('ss_api_mode'),
+      };
+
+      // Clear all localStorage
       localStorage.clear();
+
+      // Restore dev mode settings
+      if (devModeSettings.devMode) localStorage.setItem('ss_dev_mode', devModeSettings.devMode);
+      if (devModeSettings.sandboxHeader) localStorage.setItem('ss_sandbox_header', devModeSettings.sandboxHeader);
+      if (devModeSettings.localMode) localStorage.setItem('ss_local_mode', devModeSettings.localMode);
+      if (devModeSettings.mockRecommendations) localStorage.setItem('ss_mock_recommendations', devModeSettings.mockRecommendations);
+      if (devModeSettings.apiMode) localStorage.setItem('ss_api_mode', devModeSettings.apiMode);
+
       setIsOpen(false);
       window.location.reload();
     }
@@ -156,6 +174,31 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
     }
   };
 
+  const handleAutoFillOnboarding = () => {
+    const autoFillData = {
+      name: "Dad",
+      relationship: "father",
+      gender: "male",
+      dob: "15/03/1975",
+      interests: ["tech", "golf"],
+      budget_min: 10,
+      budget_max: 200,
+      other: {
+        clothing_size: "L",
+        favourite_drink: "other"
+      }
+    };
+
+    // Store auto-fill data in localStorage
+    localStorage.setItem('onboarding_autofill', JSON.stringify(autoFillData));
+    
+    // Dispatch event to notify OnboardingPage/ActionPersonSheet
+    window.dispatchEvent(new CustomEvent('onboarding-autofill', { detail: autoFillData }));
+    
+    setIsOpen(false);
+    alert('Auto-fill data set! Open the onboarding form to see it pre-filled.');
+  };
+
   return (
     <div className={`fixed bottom-4 left-4 z-50 ${className}`} ref={dropdownRef}>
       <button
@@ -170,6 +213,13 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
       {isOpen && (
         <div className="absolute left-0 bottom-full mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
           <div className="py-1">
+            <button
+              onClick={handleAutoFillOnboarding}
+              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
+            >
+              <span>Auto-fill Onboarding</span>
+            </button>
+            <div className="border-t border-gray-200 my-1"></div>
             <button
               onClick={handleLocalSelect}
               className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-between"
@@ -223,10 +273,10 @@ export function DevModeIndicator({ className = "" }: DevModeIndicatorProps) {
             </button>
             <div className="border-t border-gray-200 my-1"></div>
             <button
-              onClick={handleClearLocalStorage}
-              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center justify-between"
+              onClick={handleClearCache}
+              className="w-full px-4 py-2 text-left text-sm text-orange-600 hover:bg-orange-50 flex items-center justify-between"
             >
-              <span>Clear Local Storage</span>
+              <span>Clear Cache</span>
             </button>
           </div>
         </div>

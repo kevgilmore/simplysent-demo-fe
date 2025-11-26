@@ -390,7 +390,7 @@ export const ProductPage: React.FC = () => {
         const fetchProduct = async () => {
             if (!productId) {
                 console.error("❌ ProductPage: No productId provided");
-                navigate("/recommendations");
+                navigate("/person");
                 return;
             }
 
@@ -414,7 +414,7 @@ export const ProductPage: React.FC = () => {
                     setIsLoading(false);
                     // Don't redirect immediately - let user see the error
                     setTimeout(() => {
-                        navigate("/recommendations");
+                        navigate("/person");
                     }, 3000);
                     return;
                 }

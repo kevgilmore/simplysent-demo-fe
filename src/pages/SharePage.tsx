@@ -616,7 +616,7 @@ export function SharePage() {
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => navigate("/results")}
+                            onClick={() => navigate("/")}
                             className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg transition-colors"
                         >
                             <SparklesIcon className="w-5 h-5 mr-2" />
