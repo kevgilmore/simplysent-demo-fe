@@ -6,6 +6,7 @@ import { Dropdown } from "../components/ui/Dropdown";
 import { RangeSlider } from "../components/ui/RangeSlider";
 import { Button } from "../components/ui/Button";
 import { TabMenu } from "../components/ui/TabMenu";
+import { MultiSelectList } from "../components/ui/MultiSelectList";
 
 export const UIKitPage: React.FC = () => {
     // State for interactive components
@@ -16,6 +17,8 @@ export const UIKitPage: React.FC = () => {
     const [minBudget, setMinBudget] = useState(50);
     const [maxBudget, setMaxBudget] = useState(300);
     const [activeTab, setActiveTab] = useState("ai-picks");
+    const [horizontalCarouselIsAiPick, setHorizontalCarouselIsAiPick] = useState(true);
+    const [verticalCarouselIsAiPick, setVerticalCarouselIsAiPick] = useState(false);
     
     // Typography state
     const [selectedFont, setSelectedFont] = useState<"StackSansText" | "StackSansHeadline" | "StackSansNotch">("StackSansText");
@@ -35,70 +38,128 @@ export const UIKitPage: React.FC = () => {
         { id: "golf", label: "Golf" },
     ];
 
+    // Hardcoded products for carousel and tabs - using images from public/img/products
+    const carouselProducts = [
+        {
+            id: "1",
+            image: "/img/products/fitbit.png",
+            name: "Fitbit Fitness Tracker",
+            price: 199.99,
+            rating: 4.5,
+            numRatings: 1234,
+        },
+        {
+            id: "2",
+            image: "/img/products/ninaj2.png",
+            name: "Ninja Air Fryer Pro",
+            price: 149.99,
+            rating: 4.7,
+            numRatings: 856,
+        },
+        {
+            id: "3",
+            image: "/img/products/ninja.png",
+            name: "Ninja Blender System",
+            price: 179.99,
+            rating: 4.6,
+            numRatings: 642,
+        },
+        {
+            id: "4",
+            image: "/img/products/pop.png",
+            name: "Pop Culture Collectible",
+            price: 29.99,
+            rating: 4.3,
+            numRatings: 423,
+        },
+        {
+            id: "5",
+            image: "/img/products/sony.png",
+            name: "Sony Wireless Headphones",
+            price: 249.99,
+            rating: 4.8,
+            numRatings: 1523,
+        },
+        {
+            id: "6",
+            image: "/img/products/controller.png",
+            name: "Gaming Controller Pro",
+            price: 79.99,
+            rating: 4.4,
+            numRatings: 987,
+        },
+    ];
+
     const productsByTab: Record<
         string,
         Array<{ image: string; name: string; price: number }>
     > = {
         "ai-picks": [
             {
-                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/fitbit.png",
                 name: "Top-Rated Wireless Headphones",
                 price: 189.99,
             },
             {
-                image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/ninaj2.png",
                 name: "Smart Home Starter Kit",
                 price: 139.99,
             },
             {
-                image: "https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/ninja.png",
                 name: "Cosy Deluxe Candle",
                 price: 18.99,
             },
         ],
         tech: [
             {
-                image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/sony.png",
                 name: "Wireless Headphones Pro Max",
                 price: 199.99,
             },
             {
-                image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/controller.png",
                 name: "Smart Home Hub",
                 price: 129.99,
             },
             {
-                image: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/fitbit.png",
                 name: "Portable Bluetooth Speaker",
                 price: 59.99,
             },
         ],
         golf: [
             {
-                image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/pop.png",
                 name: "Premium Golf Balls (12 pack)",
                 price: 34.99,
             },
             {
-                image: "https://images.unsplash.com/photo-1535139262971-d2d102b0fb12?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/ninaj2.png",
                 name: "Golf Swing Trainer Aid",
                 price: 44.99,
             },
             {
-                image: "https://images.unsplash.com/photo-1521417531060-7c277f2cc6a3?q=80&w=800&auto=format&fit=crop",
+                image: "/img/products/ninja.png",
                 name: "Golf Glove Leather",
                 price: 19.99,
             },
         ],
     };
 
-    const toggleLabel = (label: string) => {
-        setSelectedLabels((prev) =>
-            prev.includes(label)
-                ? prev.filter((l) => l !== label)
-                : [...prev, label],
-        );
-    };
+    // Multi-select options for interests
+    const interestOptions = [
+        { value: "tech", label: "Tech", emoji: "📱" },
+        { value: "golf", label: "Golf", emoji: "⛳" },
+        { value: "outdoors", label: "Outdoors", emoji: "🏕️" },
+        { value: "home", label: "Home", emoji: "🏡" },
+        { value: "books", label: "Books", emoji: "📚" },
+        { value: "fashion", label: "Fashion", emoji: "👗" },
+        { value: "beauty", label: "Beauty", emoji: "💄" },
+        { value: "toys", label: "Toys", emoji: "🧸" },
+    ];
+
+    // toggleLabel is now handled by MultiSelectList component
 
     return (
         <div className="min-h-screen py-8 px-4">
@@ -114,6 +175,96 @@ export const UIKitPage: React.FC = () => {
                     </p>
                 </div>
 
+                {/* Product Carousel Section */}
+                <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <Heading level={3}>
+                            Product Carousel (Horizontal)
+                        </Heading>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={horizontalCarouselIsAiPick}
+                                onChange={(e) => setHorizontalCarouselIsAiPick(e.target.checked)}
+                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                AI Pick Styling
+                            </span>
+                        </label>
+                    </div>
+                    <div className="overflow-x-auto no-scrollbar -mx-4 px-4 pt-3 pb-12">
+                        <div className="flex gap-4 transition-all duration-700 ease-out">
+                            {carouselProducts.map((p, index) => (
+                                <div
+                                    key={p.id}
+                                    className="flex-shrink-0 w-[260px] transition-all duration-700 ease-out"
+                                    style={{
+                                        animation: `fadeInSlide 0.6s ease-out ${index * 0.05}s both`,
+                                    }}
+                                >
+                                    <ProductCard
+                                        id={p.id}
+                                        image={p.image}
+                                        name={p.name}
+                                        price={p.price}
+                                        rating={p.rating}
+                                        numRatings={p.numRatings}
+                                        compact
+                                        isAiPick={horizontalCarouselIsAiPick}
+                                        className={!horizontalCarouselIsAiPick ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white" : ""}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Vertical Carousel Section */}
+                <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <Heading level={3}>
+                            Product Carousel (Vertical)
+                        </Heading>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={verticalCarouselIsAiPick}
+                                onChange={(e) => setVerticalCarouselIsAiPick(e.target.checked)}
+                                className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                                AI Pick Styling
+                            </span>
+                        </label>
+                    </div>
+                    <div className="overflow-y-auto no-scrollbar max-h-[600px] pr-2 pt-2">
+                        <div className="flex flex-col gap-6">
+                            {carouselProducts.map((p, index) => (
+                                <div
+                                    key={p.id}
+                                    className="flex-shrink-0 transition-all duration-300 ease-out"
+                                    style={{
+                                        animation: `fadeInSlide 0.6s ease-out ${index * 0.05}s both`,
+                                    }}
+                                >
+                                    <ProductCard
+                                        id={p.id}
+                                        image={p.image}
+                                        name={p.name}
+                                        price={p.price}
+                                        rating={p.rating}
+                                        numRatings={p.numRatings}
+                                        compact
+                                        isAiPick={verticalCarouselIsAiPick}
+                                        className={!verticalCarouselIsAiPick ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white" : ""}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Tab Menu Section */}
                 <div className="bg-white rounded-3xl shadow-lg p-8 mb-8">
                     <Heading level={3} className="mb-6">
@@ -125,41 +276,97 @@ export const UIKitPage: React.FC = () => {
                         onTabChange={setActiveTab}
                     />
                     <div className="mt-8">
-                        {activeTab === "ai-picks" ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {productsByTab[activeTab]?.map((p, idx) => (
-                                    <ProductCard
-                                        key={`${activeTab}-${idx}`}
-                                        image={p.image}
-                                        name={p.name}
-                                        price={p.price}
-                                        className="border-2 border-purple-300 ring-1 ring-purple-200/60 hover:ring-purple-300/70 transition-shadow"
-                                        badge={
-                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-normal text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-sm">
-                                                <svg
-                                                    width="10"
-                                                    height="10"
-                                                    viewBox="0 0 24 24"
-                                                    fill="currentColor"
-                                                >
-                                                    <path d="M12 2l2.39 5.26L20 8.27l-4 3.89L17.18 18 12 15.45 6.82 18 8 12.16 4 8.27l5.61-1.01L12 2z" />
-                                                </svg>
-                                                AI pick
-                                            </span>
-                                        }
-                                    />
-                                ))}
+                        {activeTab === "ai-picks" && (
+                            <div className="space-y-4">
+                                <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border-2 border-purple-200">
+                                    <h4 className="text-xl font-semibold text-gray-800 mb-2">
+                                        AI Picks Content
+                                    </h4>
+                                    <p className="text-gray-600 mb-4">
+                                        This tab showcases AI-powered recommendations. The system analyzes user preferences, 
+                                        browsing history, and product ratings to suggest the most relevant items.
+                                    </p>
+                                    <div className="flex items-center gap-2 text-sm text-purple-600">
+                                        <svg
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="currentColor"
+                                        >
+                                            <path d="M12 2l2.39 5.26L20 8.27l-4 3.89L17.18 18 12 15.45 6.82 18 8 12.16 4 8.27l5.61-1.01L12 2z" />
+                                        </svg>
+                                        <span className="font-medium">AI-powered recommendations</span>
+                                    </div>
+                                </div>
+                                <div className="p-6 bg-white rounded-2xl border-2 border-gray-200">
+                                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                                        Features
+                                    </h4>
+                                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                                        <li>Personalized product suggestions based on user behavior</li>
+                                        <li>Machine learning algorithms for better accuracy</li>
+                                        <li>Real-time updates as preferences change</li>
+                                        <li>Integration with product ratings and reviews</li>
+                                    </ul>
+                                </div>
                             </div>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {productsByTab[activeTab]?.map((p, idx) => (
-                                    <ProductCard
-                                        key={`${activeTab}-${idx}`}
-                                        image={p.image}
-                                        name={p.name}
-                                        price={p.price}
-                                    />
-                                ))}
+                        )}
+                        {activeTab === "tech" && (
+                            <div className="space-y-4">
+                                <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border-2 border-blue-200">
+                                    <h4 className="text-xl font-semibold text-gray-800 mb-2">
+                                        Tech Products
+                                    </h4>
+                                    <p className="text-gray-600 mb-4">
+                                        Explore the latest in technology - from cutting-edge gadgets to smart home devices. 
+                                        Find everything you need to stay connected and productive.
+                                    </p>
+                                    <div className="flex items-center gap-2 text-sm text-blue-600">
+                                        <span className="text-2xl">📱</span>
+                                        <span className="font-medium">Latest tech innovations</span>
+                                    </div>
+                                </div>
+                                <div className="p-6 bg-white rounded-2xl border-2 border-gray-200">
+                                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                                        Categories
+                                    </h4>
+                                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                                        <li>Smartphones and accessories</li>
+                                        <li>Laptops and computers</li>
+                                        <li>Smart home devices</li>
+                                        <li>Wearable technology</li>
+                                        <li>Audio equipment</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        )}
+                        {activeTab === "golf" && (
+                            <div className="space-y-4">
+                                <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border-2 border-green-200">
+                                    <h4 className="text-xl font-semibold text-gray-800 mb-2">
+                                        Golf Equipment
+                                    </h4>
+                                    <p className="text-gray-600 mb-4">
+                                        Everything you need for the perfect round. From clubs to accessories, 
+                                        find premium golf equipment for players of all skill levels.
+                                    </p>
+                                    <div className="flex items-center gap-2 text-sm text-green-600">
+                                        <span className="text-2xl">⛳</span>
+                                        <span className="font-medium">Professional golf gear</span>
+                                    </div>
+                                </div>
+                                <div className="p-6 bg-white rounded-2xl border-2 border-gray-200">
+                                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                                        Product Range
+                                    </h4>
+                                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                                        <li>Golf clubs and sets</li>
+                                        <li>Golf balls and accessories</li>
+                                        <li>Golf apparel and footwear</li>
+                                        <li>Training aids and equipment</li>
+                                        <li>Golf bags and carts</li>
+                                    </ul>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -291,36 +498,12 @@ export const UIKitPage: React.FC = () => {
                             Deselect all
                         </Button>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {[
-                            "Tech",
-                            "Golf",
-                            "Outdoors",
-                            "Home",
-                            "Books",
-                            "Fashion",
-                            "Beauty",
-                            "Toys",
-                        ].map((label) => (
-                            <label
-                                key={label}
-                                className={`group flex items-center justify-center px-7 py-3 rounded-full cursor-pointer transition-all duration-200 transform hover:scale-105 ${
-                                    selectedLabels.includes(label)
-                                        ? "bg-[#5E57AC] text-white border-2 border-[#5E57AC] shadow-md"
-                                        : "bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-100"
-                                }`}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selectedLabels.includes(label)}
-                                    onChange={() => toggleLabel(label)}
-                                    className="sr-only"
-                                />
-                                <span className="text-sm font-normal text-center leading-tight">
-                                    {label}
-                                </span>
-                            </label>
-                        ))}
+                    <div className="flex flex-col gap-6">
+                        <MultiSelectList
+                            options={interestOptions}
+                            selectedValues={selectedLabels}
+                            onChange={setSelectedLabels}
+                        />
                     </div>
                 </div>
 
