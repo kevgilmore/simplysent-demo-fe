@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Sheet, SheetRef } from "react-modal-sheet";
 import { X } from "lucide-react";
+import { motion } from "framer-motion";
 import { Heading } from "../components/ui/Heading";
 import { ProductCard } from "../components/ui/ProductCard";
 import { TextInput } from "../components/ui/TextInput";
@@ -9,6 +10,7 @@ import { RangeSlider } from "../components/ui/RangeSlider";
 import { Button } from "../components/ui/Button";
 import { TabMenu } from "../components/ui/TabMenu";
 import { MultiSelectList } from "../components/ui/MultiSelectList";
+import { buttonThemes, ButtonTheme } from "../config/buttonTheme";
 
 export const UIKitPage: React.FC = () => {
     // State for interactive components
@@ -23,6 +25,7 @@ export const UIKitPage: React.FC = () => {
     const [verticalCarouselIsAiPick, setVerticalCarouselIsAiPick] = useState(false);
     const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
     const productSheetRef = useRef<SheetRef>(null);
+    const [selectedButtonTheme, setSelectedButtonTheme] = useState<ButtonTheme | null>(null);
     
     // Manage body overflow when sheet is open
     useEffect(() => {
@@ -602,22 +605,39 @@ export const UIKitPage: React.FC = () => {
                     </Heading>
 
                     <div className="space-y-8">
+                        {/* Animated Gradient Buttons - Theme Selectors */}
+                        <div>
+                            <Heading level={4} className="mb-4">
+                                Animated Gradient Buttons (Click to Apply Theme)
+                            </Heading>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {buttonThemes.map((theme) => (
+                                    <AnimatedGradientButton
+                                        key={theme.id}
+                                        theme={theme}
+                                        isSelected={selectedButtonTheme?.id === theme.id}
+                                        onClick={() => setSelectedButtonTheme(theme)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+
                         {/* Button Variants */}
                         <div>
                             <Heading level={4} className="mb-4">
                                 Button Variants
                             </Heading>
                             <div className="flex flex-wrap gap-4">
-                                <Button variant="primary" className="!font-normal">
+                                <ThemedButton variant="primary" className="!font-normal" theme={selectedButtonTheme}>
                                     Primary Button
-                                </Button>
-                                <Button variant="secondary" className="!font-normal">
+                                </ThemedButton>
+                                <ThemedButton variant="secondary" className="!font-normal" theme={selectedButtonTheme}>
                                     Secondary Button
-                                </Button>
-                                <Button variant="outline" className="!font-normal">
+                                </ThemedButton>
+                                <ThemedButton variant="outline" className="!font-normal" theme={selectedButtonTheme}>
                                     Outline Button
-                                </Button>
-                                <Button variant="ghost" className="!font-normal">Ghost Button</Button>
+                                </ThemedButton>
+                                <ThemedButton variant="ghost" className="!font-normal" theme={selectedButtonTheme}>Ghost Button</ThemedButton>
                             </div>
                         </div>
 
@@ -627,9 +647,9 @@ export const UIKitPage: React.FC = () => {
                                 Button Sizes
                             </Heading>
                             <div className="flex flex-wrap items-center gap-4">
-                                <Button size="small" className="!font-normal">Small</Button>
-                                <Button size="medium" className="!font-normal">Medium</Button>
-                                <Button size="large" className="!font-normal">Large</Button>
+                                <ThemedButton size="small" className="!font-normal" theme={selectedButtonTheme}>Small</ThemedButton>
+                                <ThemedButton size="medium" className="!font-normal" theme={selectedButtonTheme}>Medium</ThemedButton>
+                                <ThemedButton size="large" className="!font-normal" theme={selectedButtonTheme}>Large</ThemedButton>
                             </div>
                         </div>
 
@@ -639,8 +659,8 @@ export const UIKitPage: React.FC = () => {
                                 Button States
                             </Heading>
                             <div className="flex flex-wrap gap-4">
-                                <Button className="!font-normal">Normal</Button>
-                                <Button disabled className="!font-normal">Disabled</Button>
+                                <ThemedButton className="!font-normal" theme={selectedButtonTheme}>Normal</ThemedButton>
+                                <ThemedButton disabled className="!font-normal" theme={selectedButtonTheme}>Disabled</ThemedButton>
                             </div>
                         </div>
 
@@ -649,8 +669,9 @@ export const UIKitPage: React.FC = () => {
                             <Heading level={4} className="mb-4">
                                 Full Width Button
                             </Heading>
-                            <Button fullWidth className="!font-normal">Full Width Button</Button>
+                            <ThemedButton fullWidth className="!font-normal" theme={selectedButtonTheme}>Full Width Button</ThemedButton>
                         </div>
+
                     </div>
                 </div>
 
@@ -861,38 +882,88 @@ export const UIKitPage: React.FC = () => {
                             }}
                         >
                             {/* Vertical Carousel */}
-                            <div className="flex-1 overflow-y-auto no-scrollbar w-full pt-2">
-                                <div className="flex flex-col gap-6 w-full items-center px-0">
-                                    {sheetProducts.map((p) => (
-                                        <div
-                                            key={p.id}
-                                            className="flex-shrink-0 flex justify-center w-full"
-                                            style={{
-                                                contain: "layout style",
-                                                isolation: "isolate",
-                                            }}
-                                        >
-                                            <div 
-                                                style={{ 
-                                                    width: "100%", 
-                                                    maxWidth: "300px",
+                            <div 
+                                className="flex-1 w-full pt-2"
+                                style={{
+                                    overflow: "hidden",
+                                    position: "relative",
+                                    marginRight: "-20px",
+                                    paddingRight: "20px",
+                                }}
+                            >
+                                <div 
+                                    className="h-full overflow-y-scroll w-full sheet-scroll-hide"
+                                    style={{
+                                        WebkitOverflowScrolling: "touch",
+                                        scrollbarWidth: "none",
+                                        msOverflowStyle: "none",
+                                        paddingRight: "50px",
+                                        marginRight: "-50px",
+                                        width: "calc(100% + 50px)",
+                                    }}
+                                >
+                                    <style>{`
+                                        .sheet-scroll-hide::-webkit-scrollbar,
+                                        [class*="overflow-y-scroll"]::-webkit-scrollbar {
+                                            display: block !important;
+                                            width: 20px !important;
+                                            height: 20px !important;
+                                            -webkit-appearance: none !important;
+                                            background: red !important;
+                                        }
+                                        .sheet-scroll-hide::-webkit-scrollbar-track,
+                                        [class*="overflow-y-scroll"]::-webkit-scrollbar-track {
+                                            background: red !important;
+                                        }
+                                        .sheet-scroll-hide::-webkit-scrollbar-thumb,
+                                        [class*="overflow-y-scroll"]::-webkit-scrollbar-thumb {
+                                            background: darkred !important;
+                                            border-radius: 10px !important;
+                                        }
+                                        .sheet-scroll-container::-webkit-scrollbar {
+                                            display: block !important;
+                                            width: 20px !important;
+                                            background: red !important;
+                                        }
+                                        .sheet-scroll-container::-webkit-scrollbar-track {
+                                            background: red !important;
+                                        }
+                                        .sheet-scroll-container::-webkit-scrollbar-thumb {
+                                            background: darkred !important;
+                                        }
+                                    `}</style>
+                                    <div className="flex flex-col gap-6 w-full items-center px-0 sheet-scroll-container" style={{ paddingRight: "50px" }}>
+                                        {sheetProducts.map((p) => (
+                                            <div
+                                                key={p.id}
+                                                className="flex-shrink-0 flex justify-center w-full"
+                                                style={{
                                                     contain: "layout style",
+                                                    isolation: "isolate",
                                                 }}
                                             >
-                                                <ProductCard
-                                                    id={p.id}
-                                                    image={p.image}
-                                                    name={p.name}
-                                                    price={p.price}
-                                                    rating={p.rating}
-                                                    numRatings={p.numRatings}
-                                                    compact
-                                                    simpleThumbsButtons={true}
-                                                    customWidth="300px"
-                                                />
+                                                <div 
+                                                    style={{ 
+                                                        width: "100%", 
+                                                        maxWidth: "300px",
+                                                        contain: "layout style",
+                                                    }}
+                                                >
+                                                    <ProductCard
+                                                        id={p.id}
+                                                        image={p.image}
+                                                        name={p.name}
+                                                        price={p.price}
+                                                        rating={p.rating}
+                                                        numRatings={p.numRatings}
+                                                        compact
+                                                        simpleThumbsButtons={true}
+                                                        customWidth="300px"
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </Sheet.Content>
@@ -901,5 +972,326 @@ export const UIKitPage: React.FC = () => {
                 </Sheet>
             </>
         </div>
+    );
+};
+
+// Animated Gradient Button Component - Theme Selector
+interface AnimatedGradientButtonProps {
+    theme: ButtonTheme;
+    isSelected?: boolean;
+    onClick?: () => void;
+}
+
+const AnimatedGradientButton: React.FC<AnimatedGradientButtonProps> = ({ theme, isSelected = false, onClick }) => {
+    const [isHovered, setIsHovered] = useState(false);
+    const [isPressed, setIsPressed] = useState(false);
+    
+    // Create gradient string from colors
+    const gradientString = theme.colors.join(", ");
+    
+    return (
+        <motion.button
+            onClick={onClick}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => {
+                setIsHovered(false);
+                setIsPressed(false);
+            }}
+            onMouseDown={() => setIsPressed(true)}
+            onMouseUp={() => setIsPressed(false)}
+            className="relative px-6 py-3 rounded-full font-medium text-white overflow-hidden transition-all duration-200 cursor-pointer"
+            style={{
+                boxShadow: isPressed 
+                    ? "inset 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(94, 87, 172, 0.2)"
+                    : "0 4px 15px rgba(94, 87, 172, 0.3)",
+                transform: isPressed ? "translateY(1px)" : "translateY(0)",
+                filter: isPressed ? "brightness(0.85)" : "brightness(1)",
+            }}
+        >
+            {/* Slow gradient animation background */}
+            <motion.div
+                className="absolute inset-0 rounded-full"
+                animate={{
+                    background: [
+                        `linear-gradient(135deg, ${gradientString})`,
+                        `linear-gradient(225deg, ${gradientString})`,
+                        `linear-gradient(315deg, ${gradientString})`,
+                        `linear-gradient(45deg, ${gradientString})`,
+                        `linear-gradient(135deg, ${gradientString})`,
+                    ],
+                }}
+                transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "linear",
+                }}
+                style={{
+                    backgroundSize: "200% 200%",
+                }}
+            />
+            
+            {/* Fast flash/shimmer on hover */}
+            {isHovered && (
+                <motion.div
+                    className="absolute inset-0 rounded-full"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "200%" }}
+                    transition={{
+                        duration: 0.6,
+                        ease: "easeInOut",
+                    }}
+                    style={{
+                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent)",
+                        transform: "skewX(-20deg)",
+                    }}
+                />
+            )}
+            
+            {/* Button text */}
+            <span className="relative z-10">{theme.label}</span>
+            {/* Selected indicator */}
+            {isSelected && (
+                <span className="absolute top-1 right-1 z-20 text-white text-xs bg-white/30 rounded-full px-2 py-0.5">
+                    ✓
+                </span>
+            )}
+        </motion.button>
+    );
+};
+
+// ThemedButton Component - Wraps Button with theme styling
+interface ThemedButtonProps {
+    children: React.ReactNode;
+    onClick?: () => void;
+    variant?: "primary" | "secondary" | "outline" | "ghost" | "cta";
+    size?: "small" | "medium" | "large";
+    disabled?: boolean;
+    fullWidth?: boolean;
+    className?: string;
+    type?: "button" | "submit" | "reset";
+    theme: ButtonTheme | null;
+}
+
+// Helper function to convert hex to rgba
+const hexToRgba = (hex: string, alpha: number): string => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return hex;
+    const r = parseInt(result[1], 16);
+    const g = parseInt(result[2], 16);
+    const b = parseInt(result[3], 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+// Helper function to get primary color from theme (first color)
+const getPrimaryColor = (theme: ButtonTheme): string => {
+    return theme.colors[0];
+};
+
+const ThemedButton: React.FC<ThemedButtonProps> = ({ 
+    children, 
+    theme,
+    onClick,
+    variant = "primary",
+    size = "medium",
+    disabled = false,
+    fullWidth = false,
+    className = "",
+    type = "button",
+}) => {
+    const [isHovered, setIsHovered] = useState(false);
+    const [isPressed, setIsPressed] = useState(false);
+    
+    // If no theme selected, render normal Button
+    if (!theme) {
+        return (
+            <Button
+                onClick={onClick}
+                variant={variant}
+                size={size}
+                disabled={disabled}
+                fullWidth={fullWidth}
+                className={className}
+                type={type}
+            >
+                {children}
+            </Button>
+        );
+    }
+    
+    // Create gradient string from colors
+    const gradientString = theme.colors.join(", ");
+    const primaryColor = getPrimaryColor(theme);
+    
+    // Get size classes to match Button component
+    const sizeClasses = {
+        small: "px-5 py-2 text-sm",
+        medium: "px-7 py-3.5 text-base",
+        large: "px-9 py-4 text-lg",
+    };
+    
+    const widthClass = fullWidth ? "w-full" : "";
+    
+    // Variant-specific styling
+    let textColorStyle: React.CSSProperties = { color: "white" };
+    let borderStyle: React.CSSProperties = {};
+    
+    if (variant === "secondary") {
+        // Secondary: Light background with theme colors at reduced opacity
+        textColorStyle = { color: primaryColor };
+    } else if (variant === "outline") {
+        // Outline: Transparent background with theme color border
+        borderStyle = {
+            border: `2px solid ${primaryColor}`,
+            background: "transparent",
+        };
+        textColorStyle = { color: primaryColor };
+    } else if (variant === "ghost") {
+        // Ghost: Transparent background, theme color text
+        borderStyle = {
+            background: "transparent",
+        };
+        textColorStyle = { color: primaryColor };
+    }
+    
+    return (
+        <motion.button
+            type={type}
+            onClick={onClick}
+            disabled={disabled}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => {
+                setIsHovered(false);
+                setIsPressed(false);
+            }}
+            onMouseDown={() => setIsPressed(true)}
+            onMouseUp={() => setIsPressed(false)}
+            className={`font-medium rounded-full transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation relative overflow-hidden ${sizeClasses[size]} ${widthClass} ${className}`}
+            style={{
+                ...borderStyle,
+                ...textColorStyle,
+                boxShadow: isPressed 
+                    ? variant === "outline" || variant === "ghost"
+                        ? "inset 0 2px 4px rgba(0, 0, 0, 0.1)"
+                        : variant === "secondary"
+                        ? `inset 0 4px 12px ${hexToRgba(primaryColor, 0.4)}, inset 0 2px 4px ${hexToRgba(primaryColor, 0.5)}, 0 2px 8px ${hexToRgba(primaryColor, 0.4)}`
+                        : "inset 0 4px 12px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(94, 87, 172, 0.2)"
+                    : variant === "outline" || variant === "ghost"
+                    ? "none"
+                    : variant === "secondary"
+                    ? `0 2px 8px ${hexToRgba(primaryColor, 0.2)}`
+                    : "0 4px 15px rgba(94, 87, 172, 0.3)",
+                transform: isPressed ? "translateY(1px)" : "translateY(0)",
+                filter: isPressed ? (variant === "secondary" ? "brightness(0.95)" : "brightness(0.85)") : "brightness(1)",
+            }}
+        >
+            {/* Animated gradient background - only for primary variant */}
+            {variant === "primary" && (
+                <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    animate={{
+                        background: [
+                            `linear-gradient(135deg, ${gradientString})`,
+                            `linear-gradient(225deg, ${gradientString})`,
+                            `linear-gradient(315deg, ${gradientString})`,
+                            `linear-gradient(45deg, ${gradientString})`,
+                            `linear-gradient(135deg, ${gradientString})`,
+                        ],
+                    }}
+                    transition={{
+                        duration: 8,
+                        repeat: Infinity,
+                        ease: "linear",
+                    }}
+                    style={{
+                        backgroundSize: "200% 200%",
+                        zIndex: 0,
+                    }}
+                />
+            )}
+            
+            {/* Animated background for secondary */}
+            {variant === "secondary" && (
+                <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    animate={{
+                        background: isPressed
+                            ? [
+                                `linear-gradient(135deg, ${theme.colors.map(c => hexToRgba(c, 0.5)).join(", ")})`,
+                                `linear-gradient(225deg, ${theme.colors.map(c => hexToRgba(c, 0.5)).join(", ")})`,
+                                `linear-gradient(315deg, ${theme.colors.map(c => hexToRgba(c, 0.5)).join(", ")})`,
+                                `linear-gradient(45deg, ${theme.colors.map(c => hexToRgba(c, 0.5)).join(", ")})`,
+                                `linear-gradient(135deg, ${theme.colors.map(c => hexToRgba(c, 0.5)).join(", ")})`,
+                            ]
+                            : [
+                                `linear-gradient(135deg, ${theme.colors.map(c => hexToRgba(c, 0.3)).join(", ")})`,
+                                `linear-gradient(225deg, ${theme.colors.map(c => hexToRgba(c, 0.3)).join(", ")})`,
+                                `linear-gradient(315deg, ${theme.colors.map(c => hexToRgba(c, 0.3)).join(", ")})`,
+                                `linear-gradient(45deg, ${theme.colors.map(c => hexToRgba(c, 0.3)).join(", ")})`,
+                                `linear-gradient(135deg, ${theme.colors.map(c => hexToRgba(c, 0.3)).join(", ")})`,
+                            ],
+                    }}
+                    transition={{
+                        duration: isPressed ? 6 : 8,
+                        repeat: Infinity,
+                        ease: "linear",
+                    }}
+                    style={{
+                        backgroundSize: "200% 200%",
+                        zIndex: 0,
+                    }}
+                />
+            )}
+            
+            {/* Hover background for outline */}
+            {variant === "outline" && isHovered && (
+                <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                        background: `linear-gradient(135deg, ${gradientString})`,
+                        zIndex: 0,
+                    }}
+                />
+            )}
+            
+            {/* Hover background for ghost */}
+            {variant === "ghost" && isHovered && (
+                <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    style={{
+                        background: hexToRgba(primaryColor, 0.2),
+                        zIndex: 0,
+                    }}
+                />
+            )}
+            
+            {/* Fast flash/shimmer on hover - only for primary and secondary */}
+            {(variant === "primary" || variant === "secondary") && isHovered && (
+                <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "200%" }}
+                    transition={{
+                        duration: 0.6,
+                        ease: "easeInOut",
+                    }}
+                    style={{
+                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent)",
+                        transform: "skewX(-20deg)",
+                        zIndex: 1,
+                    }}
+                />
+            )}
+            
+            {/* Button text */}
+            <span className="relative z-10" style={variant === "outline" && isHovered ? { color: "white" } : textColorStyle}>
+                {children}
+            </span>
+        </motion.button>
     );
 };
