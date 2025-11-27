@@ -187,6 +187,44 @@ export const PersonPage: React.FC = () => {
             return;
         }
 
+        // Check cache FIRST (before checking savedPersons) - cache check is independent of savedPersons
+        // This allows us to use cached data immediately when coming from ActionPersonSheet
+        try {
+            const cached = localStorage.getItem(CACHE_KEY);
+            if (cached) {
+                const cachedData = JSON.parse(cached);
+                // Check if cache is for the same person and less than 1 hour old
+                const cacheAge = Date.now() - (cachedData.timestamp || 0);
+                const oneHour = 60 * 60 * 1000;
+                const cacheMatchesPerson = cachedData.personId === selectedPersonId;
+                
+                if (cacheMatchesPerson && cacheAge < oneHour && cachedData.products && cachedData.products.length > 0) {
+                    console.log("📦 PersonPage: Using cached AI picks (from ActionPersonSheet or browser refresh)");
+                    isUsingCache.current = true;
+                    lastFetchedPersonIdRef.current = selectedPersonId; // Mark as fetched even when using cache
+                    // Try to get savedPersons length, but don't fail if it's not loaded yet
+                    try {
+                        const stored = localStorage.getItem('saved_persons');
+                        const persons = stored ? JSON.parse(stored) : [];
+                        lastProcessedPersonRef.current = `${selectedPersonId}-${persons.length}`; // Mark as processed
+                    } catch {
+                        lastProcessedPersonRef.current = `${selectedPersonId}-0`; // Fallback
+                    }
+                    isFetchingRef.current = false; // Reset fetching flag
+                    setAiPicks(cachedData.products);
+                    setIsLoadingAiPicks(false);
+                    setAiPicksError(null);
+                    return; // Exit early, don't make API call
+                } else if (!cacheMatchesPerson) {
+                    console.log(`📦 PersonPage: Cache is for different person (cache: ${cachedData.personId}, selected: ${selectedPersonId}), will fetch fresh data`);
+                } else if (cacheAge >= oneHour) {
+                    console.log("📦 PersonPage: Cache expired, will fetch fresh data");
+                }
+            }
+        } catch (error) {
+            console.warn("⚠️ PersonPage: Error reading cache, fetching fresh data:", error);
+        }
+
         // Check if person exists in savedPersons - if not, wait for it to be loaded
         const selectedPerson = savedPersons.find(p => p.id === selectedPersonId);
         if (!selectedPerson) {
@@ -231,36 +269,6 @@ export const PersonPage: React.FC = () => {
             } catch (error) {
                 // Ignore errors
             }
-        }
-        
-        // Check cache synchronously first - if cache exists and matches current person, use it immediately
-        try {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                const cachedData = JSON.parse(cached);
-                // Check if cache is for the same person and less than 1 hour old
-                const cacheAge = Date.now() - (cachedData.timestamp || 0);
-                const oneHour = 60 * 60 * 1000;
-                const cacheMatchesPerson = cachedData.personId === selectedPersonId;
-                
-                if (cacheMatchesPerson && cacheAge < oneHour && cachedData.products && cachedData.products.length > 0) {
-                    console.log("📦 PersonPage: Using cached AI picks (browser refresh or navigation back)");
-                    isUsingCache.current = true;
-                    lastFetchedPersonIdRef.current = selectedPersonId; // Mark as fetched even when using cache
-                    lastProcessedPersonRef.current = `${selectedPersonId}-${savedPersons.length}`; // Mark as processed
-                    isFetchingRef.current = false; // Reset fetching flag
-                    setAiPicks(cachedData.products);
-                    setIsLoadingAiPicks(false);
-                    setAiPicksError(null);
-                    return; // Exit early, don't make API call
-                } else if (!cacheMatchesPerson) {
-                    console.log("📦 PersonPage: Cache is for different person, will fetch fresh data");
-                } else if (cacheAge >= oneHour) {
-                    console.log("📦 PersonPage: Cache expired, will fetch fresh data");
-                }
-            }
-        } catch (error) {
-            console.warn("⚠️ PersonPage: Error reading cache, fetching fresh data:", error);
         }
         
         // If we get here, it's a fresh fetch (not using cache)
