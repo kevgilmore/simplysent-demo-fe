@@ -867,18 +867,30 @@ export const UIKitPage: React.FC = () => {
                                         <div
                                             key={p.id}
                                             className="flex-shrink-0 flex justify-center w-full"
+                                            style={{
+                                                contain: "layout style",
+                                                isolation: "isolate",
+                                            }}
                                         >
-                                            <ProductCard
-                                                id={p.id}
-                                                image={p.image}
-                                                name={p.name}
-                                                price={p.price}
-                                                rating={p.rating}
-                                                numRatings={p.numRatings}
-                                                compact
-                                                simpleThumbsButtons={true}
-                                                customWidth="300px"
-                                            />
+                                            <div 
+                                                style={{ 
+                                                    width: "100%", 
+                                                    maxWidth: "300px",
+                                                    contain: "layout style",
+                                                }}
+                                            >
+                                                <ProductCard
+                                                    id={p.id}
+                                                    image={p.image}
+                                                    name={p.name}
+                                                    price={p.price}
+                                                    rating={p.rating}
+                                                    numRatings={p.numRatings}
+                                                    compact
+                                                    simpleThumbsButtons={true}
+                                                    customWidth="300px"
+                                                />
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
