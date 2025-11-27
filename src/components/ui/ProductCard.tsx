@@ -61,20 +61,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         if (isThumbsUp) {
             return;
         }
-        if (!isBad) {
-            setHasInteracted(true); // Stop animation
-            if (!disableRemove) {
-                setIsRemoving(true);
-            }
-            setIsThumbsUp(false);
-            setIsBad(true);
-            // Call onRemove callback if provided (for welcome training tracking)
-            if (onRemove && id) {
-                onRemove(id);
-            }
-        } else {
-            setIsBad(!isBad);
-        }
+        // Just toggle the visual state, don't remove the card
+        setHasInteracted(true); // Stop animation
+        setIsThumbsUp(false);
+        setIsBad(!isBad);
+        // Don't call onRemove - cards should never be removed on thumbs down
     };
 
     const handleThumbsUpClick = (e: React.MouseEvent) => {
@@ -308,15 +299,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                                     <div className="flex items-center gap-4 -ml-3">
                                         <button
                                             onClick={handleThumbsUpClick}
-                                            className={`flex items-center justify-center rounded-2xl transition-all duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50 ${
+                                            className={`flex items-center justify-center rounded-2xl transition-all duration-200 hover:scale-110 focus:outline-none active:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50 ${
                                                 showWelcomeTrainingAnimation && !hasInteracted ? 'animate-bounce' : ''
                                             }`}
                                             style={{ 
                                                 padding: compact ? "12px" : "14px",
+                                                border: 'none',
+                                                outline: 'none',
+                                                boxShadow: '0 4px 12px rgba(100,100,100,0.15)',
+                                                WebkitTapHighlightColor: 'transparent',
                                                 animationDelay: showWelcomeTrainingAnimation ? '0s' : undefined,
                                                 animationDuration: showWelcomeTrainingAnimation ? '1s' : undefined,
                                                 animationIterationCount: showWelcomeTrainingAnimation ? 'infinite' : undefined,
                                             }}
+                                            onFocus={(e) => e.target.blur()}
+                                            onMouseDown={(e) => e.preventDefault()}
                                             aria-label="Thumbs up"
                                         >
                                             <ThumbsUp
@@ -328,15 +325,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
                                         <button
                                             onClick={handleBadClick}
-                                            className={`flex items-center justify-center rounded-2xl transition-all duration-200 hover:scale-110 focus:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50 ${
+                                            className={`flex items-center justify-center rounded-2xl transition-all duration-200 hover:scale-110 focus:outline-none active:outline-none shadow-[0_4px_12px_rgba(100,100,100,0.15)] bg-white hover:bg-gray-50 ${
                                                 showWelcomeTrainingAnimation && !hasInteracted ? 'animate-bounce' : ''
                                             }`}
                                             style={{ 
                                                 padding: compact ? "12px" : "14px",
+                                                border: 'none',
+                                                outline: 'none',
+                                                boxShadow: '0 4px 12px rgba(100,100,100,0.15)',
+                                                WebkitTapHighlightColor: 'transparent',
                                                 animationDelay: showWelcomeTrainingAnimation ? '0.5s' : undefined,
                                                 animationDuration: showWelcomeTrainingAnimation ? '1s' : undefined,
                                                 animationIterationCount: showWelcomeTrainingAnimation ? 'infinite' : undefined,
                                             }}
+                                            onFocus={(e) => e.target.blur()}
+                                            onMouseDown={(e) => e.preventDefault()}
                                             aria-label="Thumbs down"
                                         >
                                             <ThumbsDown

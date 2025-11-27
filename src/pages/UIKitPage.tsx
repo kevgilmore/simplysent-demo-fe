@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { Sheet, SheetRef } from "react-modal-sheet";
+import { X } from "lucide-react";
 import { Heading } from "../components/ui/Heading";
 import { ProductCard } from "../components/ui/ProductCard";
 import { TextInput } from "../components/ui/TextInput";
@@ -19,6 +21,21 @@ export const UIKitPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState("ai-picks");
     const [horizontalCarouselIsAiPick, setHorizontalCarouselIsAiPick] = useState(true);
     const [verticalCarouselIsAiPick, setVerticalCarouselIsAiPick] = useState(false);
+    const [isProductSheetOpen, setIsProductSheetOpen] = useState(false);
+    const productSheetRef = useRef<SheetRef>(null);
+    
+    // Manage body overflow when sheet is open
+    useEffect(() => {
+        if (isProductSheetOpen) {
+            const prev = document.body.style.overflow;
+            document.body.style.overflow = "hidden";
+            document.body.classList.add("sheet-open");
+            return () => {
+                document.body.style.overflow = prev;
+                document.body.classList.remove("sheet-open");
+            };
+        }
+    }, [isProductSheetOpen]);
     
     // Typography state
     const [selectedFont, setSelectedFont] = useState<"StackSansText" | "StackSansHeadline" | "StackSansNotch">("StackSansText");
@@ -159,6 +176,50 @@ export const UIKitPage: React.FC = () => {
         { value: "toys", label: "Toys", emoji: "🧸" },
     ];
 
+    // Hardcoded products for the product sheet vertical carousel
+    const sheetProducts = [
+        {
+            id: "sheet-1",
+            image: "/img/products/fitbit.png",
+            name: "Fitbit Fitness Tracker Pro",
+            price: 199.99,
+            rating: 4.5,
+            numRatings: 1234,
+        },
+        {
+            id: "sheet-2",
+            image: "/img/products/ninaj2.png",
+            name: "Ninja Air Fryer Deluxe",
+            price: 149.99,
+            rating: 4.7,
+            numRatings: 856,
+        },
+        {
+            id: "sheet-3",
+            image: "/img/products/sony.png",
+            name: "Sony Wireless Headphones",
+            price: 249.99,
+            rating: 4.8,
+            numRatings: 1523,
+        },
+        {
+            id: "sheet-4",
+            image: "/img/products/controller.png",
+            name: "Gaming Controller Elite",
+            price: 79.99,
+            rating: 4.4,
+            numRatings: 987,
+        },
+        {
+            id: "sheet-5",
+            image: "/img/products/pop.png",
+            name: "Pop Culture Collectible Set",
+            price: 29.99,
+            rating: 4.3,
+            numRatings: 423,
+        },
+    ];
+
     // toggleLabel is now handled by MultiSelectList component
 
     return (
@@ -169,10 +230,17 @@ export const UIKitPage: React.FC = () => {
                     <Heading level={1} className="mb-4">
                         UI Kit Showcase
                     </Heading>
-                    <p className="text-lg text-gray-600 font-medium max-w-2xl mx-auto">
+                    <p className="text-lg text-gray-600 font-medium max-w-2xl mx-auto mb-4">
                         A comprehensive collection of reusable components built
                         with modern design principles
                     </p>
+                    <Button
+                        onClick={() => setIsProductSheetOpen(true)}
+                        variant="primary"
+                        className="!font-normal"
+                    >
+                        Person Sheet
+                    </Button>
                 </div>
 
                 {/* Product Carousel Section */}
@@ -198,7 +266,7 @@ export const UIKitPage: React.FC = () => {
                             {carouselProducts.map((p, index) => (
                                 <div
                                     key={p.id}
-                                    className="flex-shrink-0 w-[260px] transition-all duration-700 ease-out"
+                                    className="flex-shrink-0 w-[300px] transition-all duration-700 ease-out"
                                     style={{
                                         animation: `fadeInSlide 0.6s ease-out ${index * 0.05}s both`,
                                     }}
@@ -213,6 +281,7 @@ export const UIKitPage: React.FC = () => {
                                         compact
                                         isAiPick={horizontalCarouselIsAiPick}
                                         className={!horizontalCarouselIsAiPick ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white" : ""}
+                                        customWidth="300px"
                                     />
                                 </div>
                             ))}
@@ -258,6 +327,7 @@ export const UIKitPage: React.FC = () => {
                                         compact
                                         isAiPick={verticalCarouselIsAiPick}
                                         className={!verticalCarouselIsAiPick ? "shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_15px_50px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1 bg-white" : ""}
+                                        customWidth="300px"
                                     />
                                 </div>
                             ))}
@@ -726,6 +796,98 @@ export const UIKitPage: React.FC = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Product Sheet */}
+            <>
+                <Sheet
+                    ref={productSheetRef}
+                    isOpen={isProductSheetOpen}
+                    onClose={() => setIsProductSheetOpen(false)}
+                    snapPoints={[0, 1]}
+                    initialSnap={1}
+                    disableDrag={true}
+                >
+                    <Sheet.Container
+                        style={{
+                            borderTopLeftRadius: 28,
+                            borderTopRightRadius: 28,
+                            boxShadow: "0 4px 24px rgba(0,0,0,0.18)",
+                            background: "#ffffff",
+                        }}
+                    >
+                        <Sheet.Header>
+                            <div
+                                className="flex items-center justify-center px-6"
+                                style={{
+                                    minHeight: "64px",
+                                    paddingTop: "calc(env(safe-area-inset-top) + 16px)",
+                                    position: "relative",
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        top: 8,
+                                        left: 0,
+                                        right: 0,
+                                        display: "flex",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <Sheet.DragIndicator
+                                        style={{ display: "none" }}
+                                    />
+                                </div>
+                                <h2 className="m-0 text-xl font-headline font-medium text-gray-800 select-none">
+                                    Products
+                                </h2>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsProductSheetOpen(false)}
+                                    className="p-2 rounded-full hover:bg-gray-100 transition-colors absolute right-6"
+                                    aria-label="Close"
+                                >
+                                    <X size={24} className="text-gray-600" />
+                                </button>
+                            </div>
+                        </Sheet.Header>
+                        <Sheet.Content
+                            style={{
+                                padding: "24px",
+                                display: "flex",
+                                flexDirection: "column",
+                                height: "100%",
+                                overflow: "hidden",
+                            }}
+                        >
+                            {/* Vertical Carousel */}
+                            <div className="flex-1 overflow-y-auto no-scrollbar w-full pt-2">
+                                <div className="flex flex-col gap-6 w-full items-center px-0">
+                                    {sheetProducts.map((p) => (
+                                        <div
+                                            key={p.id}
+                                            className="flex-shrink-0 flex justify-center w-full"
+                                        >
+                                            <ProductCard
+                                                id={p.id}
+                                                image={p.image}
+                                                name={p.name}
+                                                price={p.price}
+                                                rating={p.rating}
+                                                numRatings={p.numRatings}
+                                                compact
+                                                simpleThumbsButtons={true}
+                                                customWidth="300px"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </Sheet.Content>
+                    </Sheet.Container>
+                    <Sheet.Backdrop onTap={() => setIsProductSheetOpen(false)} />
+                </Sheet>
+            </>
         </div>
     );
 };
