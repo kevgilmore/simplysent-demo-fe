@@ -9,7 +9,7 @@
         "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
         "preview": "npx vite preview",
         "predeploy": "npm run build",
-        "deploy": "echo try.simplysent.co > dist/CNAME && npx gh-pages -d dist -t"
+        "deploy": "echo demo.simplysent.co > dist/CNAME && npx gh-pages -d dist -t"
     },
     "dependencies": {
         "@fortawesome/fontawesome-svg-core": "^7.1.0",
